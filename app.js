@@ -316,6 +316,12 @@ async function refreshHealth() {
     state.healthOk = false;
     state.healthMessage = "API routes are not reachable right now.";
   }
+
+  if (state.healthOk && !state.selectedNodeId && state.roots[0]) {
+    openNode(state.roots[0]);
+    return;
+  }
+
   render();
 }
 
@@ -326,6 +332,13 @@ function selectNode(node) {
 
 function openNode(node) {
   selectNode(node);
+  if (!state.healthOk) {
+    node.childrenMessage = "Set OPENAI_API_KEY in the deployment environment to generate fields and subfields.";
+    node.remainingMessage = "";
+    render();
+    return;
+  }
+
   if (!node || !node.likelyHasChildren) {
     return;
   }
@@ -403,6 +416,16 @@ async function loadBibliography(node) {
 }
 
 async function growRootDomains() {
+  if (!state.healthOk) {
+    if (!state.selectedNodeId && state.roots[0]) {
+      state.selectedNodeId = state.roots[0].id;
+      state.roots[0].childrenMessage =
+        "Set OPENAI_API_KEY in the deployment environment to generate fields and subfields.";
+    }
+    render();
+    return;
+  }
+
   state.loadingRoots = true;
   if (!state.selectedNodeId && state.roots[0]) {
     state.selectedNodeId = state.roots[0].id;
@@ -715,4 +738,3 @@ refs.loadBibliographyButton.addEventListener("click", () => {
 
 render();
 refreshHealth();
-openNode(state.roots[0]);
