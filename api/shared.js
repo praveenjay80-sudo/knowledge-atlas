@@ -22,9 +22,9 @@ const ROOT_TAXONOMY = [
 ];
 
 const BREADTH_TARGETS = {
-  compact: "8 to 12",
-  broad: "14 to 22",
-  maximal: "20 to 36",
+  compact: "6 to 10",
+  broad: "10 to 16",
+  maximal: "14 to 22",
 };
 
 const ROLE_VALUES = ["field", "subfield", "specialty", "topic", "concept_family"];
@@ -96,48 +96,87 @@ function extractResponseText(data) {
   return parts.join("\n").trim();
 }
 
-async function callOpenAI({ prompt, schemaName, schema }) {
+async function callOpenAI({
+  prompt,
+  schemaName,
+  schema,
+  maxOutputTokens = 1200,
+  reasoningEffort = "low",
+  timeoutMs = 40000,
+}) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not set on the server.");
   }
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+  const attempts = [
+    { maxOutputTokens, reasoningEffort, timeoutMs },
+    {
+      maxOutputTokens: Math.min(maxOutputTokens, 800),
+      reasoningEffort: "low",
+      timeoutMs: Math.min(timeoutMs, 25000),
     },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || "gpt-5-mini",
-      input: prompt,
-      text: {
-        format: buildJsonSchema(schemaName, schema),
-      },
-    }),
-  });
+  ];
 
-  const data = await response.json();
-  if (!response.ok) {
-    const message = data?.error?.message || "OpenAI API request failed.";
-    const error = new Error(message);
-    error.statusCode = response.status;
-    throw error;
+  let lastError = null;
+
+  for (const attempt of attempts) {
+    try {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        signal: AbortSignal.timeout(attempt.timeoutMs),
+        body: JSON.stringify({
+          model: process.env.OPENAI_MODEL || "gpt-5-mini",
+          input: prompt,
+          max_output_tokens: attempt.maxOutputTokens,
+          reasoning: {
+            effort: attempt.reasoningEffort,
+          },
+          text: {
+            format: buildJsonSchema(schemaName, schema),
+          },
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        const message = data?.error?.message || "OpenAI API request failed.";
+        const error = new Error(message);
+        error.statusCode = response.status;
+        throw error;
+      }
+
+      const text = extractResponseText(data);
+      if (!text) {
+        const error = new Error("OpenAI returned no text output for this structured response.");
+        error.statusCode = 502;
+        throw error;
+      }
+
+      try {
+        return JSON.parse(text);
+      } catch {
+        const error = new Error(`OpenAI returned non-JSON structured output: ${text.slice(0, 240)}`);
+        error.statusCode = 502;
+        throw error;
+      }
+    } catch (error) {
+      if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+        const timeoutError = new Error(
+          "The model request took too long for the current Vercel function window. Try a narrower topic or compact coverage mode.",
+        );
+        timeoutError.statusCode = 504;
+        lastError = timeoutError;
+      } else {
+        lastError = error;
+      }
+    }
   }
 
-  const text = extractResponseText(data);
-  if (!text) {
-    const error = new Error("OpenAI returned no text output for this structured response.");
-    error.statusCode = 502;
-    throw error;
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    const error = new Error(`OpenAI returned non-JSON structured output: ${text.slice(0, 240)}`);
-    error.statusCode = 502;
-    throw error;
-  }
+  throw lastError || new Error("OpenAI request failed.");
 }
 
 function normalizeWhitespace(value) {
@@ -397,7 +436,7 @@ function taxonomySchema() {
       items: {
         type: "array",
         minItems: 1,
-        maxItems: 40,
+        maxItems: 24,
         items: {
           type: "object",
           additionalProperties: false,
@@ -629,6 +668,9 @@ async function handleTaxonomyRequest(req, res) {
       }),
       schemaName: "science_taxonomy_children",
       schema: taxonomySchema(),
+      maxOutputTokens: 1100,
+      reasoningEffort: "low",
+      timeoutMs: 30000,
     });
 
     const { acceptedItems, droppedNames } = filterNearDuplicateItems(payload.items, existingChildren);
@@ -671,6 +713,9 @@ async function handleBibliographyRequest(req, res) {
       prompt: bibliographyPrompt({ pathSegments, summary, keywords }),
       schemaName: "categorized_seminal_bibliography",
       schema: bibliographySchema(),
+      maxOutputTokens: 1200,
+      reasoningEffort: "low",
+      timeoutMs: 30000,
     });
 
     sendJson(res, 200, payload);
@@ -705,6 +750,9 @@ async function handleConceptTreeRequest(req, res) {
       prompt: conceptTreePrompt({ pathSegments, summary, keywords }),
       schemaName: "concept_tree_learning_map",
       schema: conceptsSchema(),
+      maxOutputTokens: 1300,
+      reasoningEffort: "low",
+      timeoutMs: 32000,
     });
 
     sendJson(res, 200, payload);
