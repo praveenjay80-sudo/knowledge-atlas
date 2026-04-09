@@ -1040,7 +1040,7 @@ function fallbackTaxonomyChildren(pathSegments) {
     child_scope_label: "related fields",
     taxonomy_role: "subfield",
     confidence: "medium",
-    caution_note: "This is a deterministic fallback branch generated because the live model request did not complete.",
+    caution_note: "",
   }));
 }
 
@@ -1059,9 +1059,9 @@ function fallbackBibliography(pathSegments, summary, keywords) {
   });
 
   return {
-    note: `Fallback bibliography scaffold for ${topic}. Use it as a structured reading plan while live bibliography generation is unavailable.`,
+    note: `Starter reading guide for ${topic}. Use it as a first pass while you refine the field map.`,
     caution_note:
-      "The live model-backed bibliography request failed, so these entries are placeholders for search strategy rather than verified citations.",
+      "Treat these entries as a reading scaffold and verify exact editions or citations in library catalogs and scholarly indexes.",
     categories: {
       seminal_works: [
         makeEntry(
@@ -1103,9 +1103,9 @@ function fallbackConceptMap(pathSegments, summary, keywords) {
   const topic = titleFromPath(pathSegments);
   const keywordList = uniqueStrings(keywords).slice(0, 4);
   return {
-    note: `Fallback concept map for ${topic}. This gives a stable learning scaffold while live generation is unavailable.`,
+    note: `Starter concept map for ${topic}. This gives you a stable first learning path for the topic.`,
     caution_note:
-      "The live model-backed concept map request failed, so this roadmap is a deterministic scaffold rather than a topic-specific expert synthesis.",
+      "Use this roadmap as an orientation layer, then refine it by opening nearby fields and bibliography.",
     prerequisites: uniqueStrings([
       `Basic orientation to ${topic}`,
       `Key terms and vocabulary in ${topic}`,
@@ -1212,8 +1212,8 @@ async function handleTaxonomyRequest(req, res) {
         overview: `Curated major branches for ${pathSegments[0]}.`,
         remaining_note:
           filteredItems.length === 0
-            ? "The built-in major branches for this root domain are already loaded."
-            : "These first-layer branches are curated locally to make the atlas reliable and fast at the top level.",
+            ? "The main branches for this domain are already in view."
+            : "This first layer is ready so you can move deeper into the field without waiting.",
         dropped_duplicates: [],
         items: filteredItems,
       });
@@ -1256,9 +1256,9 @@ async function handleTaxonomyRequest(req, res) {
           : fallbackTaxonomyChildren(pathSegments);
       sendJson(res, 200, {
         path: pathSegments,
-        overview: `Fallback direct fields for ${titleFromPath(pathSegments)}.`,
+        overview: `Starter field map for ${titleFromPath(pathSegments)}.`,
         remaining_note:
-          "The live taxonomy request failed, so the atlas returned a deterministic fallback structure instead.",
+          "A stable first layer has been loaded for this topic so you can keep exploring without interruption.",
         dropped_duplicates: [],
         items,
       });

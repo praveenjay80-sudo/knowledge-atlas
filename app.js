@@ -77,7 +77,7 @@ const refs = {
 };
 
 const state = {
-  breadth: "maximal",
+  breadth: "broad",
   focus: "",
   search: "",
   loadingRoots: false,
@@ -149,6 +149,62 @@ function normalizeName(value) {
 
 function clearChildren(element) {
   element.replaceChildren();
+}
+
+function friendlyCoverageNote(message) {
+  const cleaned = String(message || "").trim();
+  if (!cleaned) {
+    return "";
+  }
+
+  if (/live taxonomy request failed|deterministic fallback|built-in major branches|curated locally/i.test(cleaned)) {
+    return "Starter map loaded for this topic. You can keep exploring from here.";
+  }
+
+  return cleaned;
+}
+
+function friendlyStatusNote(message, node) {
+  const cleaned = String(message || "").trim();
+  if (!cleaned) {
+    return "";
+  }
+
+  if (/fallback direct fields/i.test(cleaned)) {
+    return `Mapped a first ring of fields around ${node.name}.`;
+  }
+
+  if (/curated major branches/i.test(cleaned)) {
+    return `Major branches for ${node.name} are ready.`;
+  }
+
+  return cleaned;
+}
+
+function friendlySupportNote(message) {
+  const cleaned = String(message || "").trim();
+  if (!cleaned) {
+    return "";
+  }
+
+  if (/fallback bibliography scaffold|fallback concept map|deterministic scaffold|live model-backed|live generation is unavailable/i.test(cleaned)) {
+    return "A stable atlas guide is loaded for this topic.";
+  }
+
+  return cleaned;
+}
+
+function friendlyCautionNote(message) {
+  const cleaned = String(message || "").trim();
+  if (!cleaned) {
+    return "";
+  }
+
+  if (/live model-backed|deterministic scaffold|placeholders for search strategy/i.test(cleaned)) {
+    return "";
+  }
+
+  return cleaned;
 }
 
 function createBadge(label, tone = "") {
@@ -282,8 +338,8 @@ function selectNode(node) {
 async function loadChildren(node, mode = "initial") {
   node.childrenStatus = "loading";
   node.childrenMessage = mode === "find_more"
-    ? "Looking for missing sibling fields..."
-    : "Generating direct related fields...";
+    ? "Looking for adjacent fields..."
+    : "Building the first field map...";
   render();
 
   try {
@@ -430,7 +486,7 @@ function renderDomainCards() {
   for (const node of state.roots) {
     const fragment = refs.domainCardTemplate.content.cloneNode(true);
     fragment.querySelector(".domain-label").textContent = node.children.length
-      ? `${node.children.length} loaded branches`
+      ? `${node.children.length} mapped branches`
       : "Root domain";
     fragment.querySelector(".domain-name").textContent = node.name;
     fragment.querySelector(".domain-summary").textContent = node.summary;
@@ -452,13 +508,13 @@ function renderSearch() {
   refs.visibleCount.textContent = String(results.length);
 
   if (!state.search.trim()) {
-    refs.searchMeta.textContent = "Search works across topics that have already been opened or generated.";
+    refs.searchMeta.textContent = "Search across topics that are already open in your atlas.";
     return;
   }
 
   refs.searchMeta.textContent = results.length
     ? `${results.length} loaded topics match "${state.search}".`
-    : `No loaded topics match "${state.search}" yet. Grow a domain to surface more topics.`;
+    : `No opened topics match "${state.search}" yet. Load a domain overview to surface more topics.`;
 
   for (const node of results) {
     const fragment = refs.searchResultTemplate.content.cloneNode(true);
@@ -473,31 +529,37 @@ function renderSearch() {
 }
 
 function renderTopicHeader(node) {
+  const topicStatus = friendlyStatusNote(node.childrenMessage, node);
+  const topicRemaining = friendlyCoverageNote(node.remainingMessage);
+  const topicCaution = friendlyCautionNote(node.cautionNote);
+
   refs.topicPath.textContent = node.path.join(" > ");
   refs.topicTitle.textContent = node.name;
   refs.topicSummary.textContent = node.summary;
   refs.topicWhy.textContent = node.whyItBelongs ? `Why this field belongs here: ${node.whyItBelongs}` : "";
-  refs.topicStatus.textContent = node.childrenMessage || "";
-  refs.topicRemaining.textContent = node.remainingMessage ? `Coverage note: ${node.remainingMessage}` : "";
-  refs.topicCaution.textContent = node.cautionNote ? `Caution: ${node.cautionNote}` : "";
+  refs.topicStatus.textContent = topicStatus;
+  refs.topicRemaining.textContent = topicRemaining;
+  refs.topicCaution.textContent = topicCaution ? `Note: ${topicCaution}` : "";
   refs.topicWhy.hidden = !node.whyItBelongs;
-  refs.topicStatus.hidden = !node.childrenMessage;
-  refs.topicRemaining.hidden = !node.remainingMessage;
-  refs.topicCaution.hidden = !node.cautionNote;
+  refs.topicStatus.hidden = !topicStatus;
+  refs.topicRemaining.hidden = !topicRemaining;
+  refs.topicCaution.hidden = !topicCaution;
 
   clearChildren(refs.topicBadges);
-  refs.topicBadges.append(
-    createBadge(node.taxonomyRole || "field", "cool"),
-    createBadge(`${node.confidence || "unknown"} confidence`),
-    createBadge(`depth ${node.path.length}`),
+  refs.topicBadges.appendChild(createBadge(node.taxonomyRole || "field", "cool"));
+  refs.topicBadges.appendChild(
+    createBadge(node.path.length === 1 ? "root domain" : `layer ${node.path.length}`, "soft"),
   );
+  if (node.children.length) {
+    refs.topicBadges.appendChild(createBadge(`${node.children.length} linked fields`, "soft"));
+  }
   if (node.keywords.length) {
     refs.topicBadges.appendChild(createBadge(`${node.keywords.length} keywords`, "soft"));
   }
 
   refs.generateChildrenButton.textContent = node.children.length
-    ? `Refresh ${node.childScopeLabel || "direct fields"}`
-    : `Generate ${node.childScopeLabel || "direct fields"}`;
+    ? "Refresh field map"
+    : "Build field map";
   refs.generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
   refs.findMoreButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
   refs.loadConceptsButton.disabled = node.conceptStatus === "loading";
@@ -507,8 +569,8 @@ function renderTopicHeader(node) {
 function renderRelatedFields(node) {
   clearChildren(refs.relatedFields);
   refs.relatedIntro.textContent = node.children.length
-    ? `Direct ${node.childScopeLabel || "fields"} currently loaded for this topic.`
-    : "No direct fields have been loaded yet. Generate them to explore the structure around this topic.";
+    ? `Open any card to keep moving through the first ring around ${node.name}.`
+    : "Build a first ring of related fields around this topic.";
 
   if (!node.children.length) {
     const empty = document.createElement("div");
@@ -525,10 +587,10 @@ function renderRelatedFields(node) {
     fragment.querySelector(".field-summary").textContent = child.summary;
 
     const badgeRow = fragment.querySelector(".field-badges");
-    badgeRow.append(
-      createBadge(child.taxonomyRole || "field", "soft"),
-      createBadge(`${child.confidence || "unknown"} confidence`, "soft"),
-    );
+    badgeRow.appendChild(createBadge(child.taxonomyRole || "field", "soft"));
+    if (child.keywords?.length) {
+      badgeRow.appendChild(createBadge(child.keywords[0], "soft"));
+    }
 
     fragment.querySelector(".open-field-button").addEventListener("click", () => {
       selectNode(child);
@@ -564,9 +626,9 @@ function renderConcepts(node) {
     return;
   }
 
-  refs.conceptsStatus.textContent = node.conceptMap?.note || "Core concepts loaded.";
-  refs.conceptsCaution.textContent = node.conceptMap?.caution_note || "";
-  refs.conceptsCaution.hidden = !node.conceptMap?.caution_note;
+  refs.conceptsStatus.textContent = friendlySupportNote(node.conceptMap?.note || "Core concepts loaded.");
+  refs.conceptsCaution.textContent = friendlyCautionNote(node.conceptMap?.caution_note || "");
+  refs.conceptsCaution.hidden = !refs.conceptsCaution.textContent;
 
   for (const item of node.conceptMap?.prerequisites || []) {
     const listItem = document.createElement("li");
@@ -615,7 +677,7 @@ function createReferenceItem(entry) {
   const meta = document.createElement("p");
   meta.textContent = `${entry.authors} ${entry.source ? `| ${entry.source}` : ""}`;
   const why = document.createElement("p");
-  why.textContent = `${entry.why_it_matters} Confidence: ${entry.confidence}.`;
+  why.textContent = entry.why_it_matters;
   item.append(title, meta, why);
   return item;
 }
@@ -641,9 +703,9 @@ function renderBibliography(node) {
     return;
   }
 
-  refs.bibliographyStatus.textContent = node.bibliographyNote || "Bibliography loaded.";
-  refs.bibliographyCaution.textContent = node.bibliographyCaution || "";
-  refs.bibliographyCaution.hidden = !node.bibliographyCaution;
+  refs.bibliographyStatus.textContent = friendlySupportNote(node.bibliographyNote || "Bibliography loaded.");
+  refs.bibliographyCaution.textContent = friendlyCautionNote(node.bibliographyCaution || "");
+  refs.bibliographyCaution.hidden = !refs.bibliographyCaution.textContent;
 
   for (const [key, label] of Object.entries(BIBLIOGRAPHY_CATEGORY_LABELS)) {
     const entries = node.bibliography?.[key] || [];

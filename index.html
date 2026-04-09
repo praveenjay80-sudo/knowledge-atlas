@@ -14,25 +14,40 @@
     <header class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Knowledge Atlas</p>
-        <h1>A scholarly atlas for concepts, canonical readings, and field structure.</h1>
+        <h1>Fields, concepts, and canonical reading paths.</h1>
         <p class="hero-text">
-          Start from formal sciences, natural sciences, social sciences, or philosophy. Then open a topic,
-          surface its core concepts, and assemble readings grouped as seminal, breakthrough, pedagogical,
-          and reference works.
+          Move through formal sciences, natural sciences, social sciences, and philosophy as if you were opening
+          a serious reference work. Pick a topic, map its neighboring fields, then read it through concepts,
+          seminal works, breakthroughs, teaching texts, and surveys.
         </p>
+        <div class="hero-highlights">
+          <span>Topic-first workspace</span>
+          <span>Core concepts</span>
+          <span>Canonical bibliography</span>
+          <span>Field structure</span>
+        </div>
       </div>
+
       <div class="hero-side">
-        <div class="status-block">
-          <span class="status-label">API status</span>
-          <strong id="apiStatus">Checking API status...</strong>
+        <div class="hero-note">
+          <p class="status-label">Working style</p>
+          <strong>Built as a scholarly atlas, not a dashboard.</strong>
+          <p>Use the left column to steer scope. Use the main workspace to stay with one topic at a time.</p>
         </div>
-        <div class="status-block">
-          <span class="status-label">Loaded topics</span>
-          <strong id="loadedCount">0</strong>
-        </div>
-        <div class="status-block">
-          <span class="status-label">Visible results</span>
-          <strong id="visibleCount">0</strong>
+
+        <div class="hero-stats">
+          <div class="status-block">
+            <span class="status-label">Atlas status</span>
+            <strong id="apiStatus">Checking API status...</strong>
+          </div>
+          <div class="status-block">
+            <span class="status-label">Loaded topics</span>
+            <strong id="loadedCount">0</strong>
+          </div>
+          <div class="status-block">
+            <span class="status-label">Search matches</span>
+            <strong id="visibleCount">0</strong>
+          </div>
         </div>
       </div>
     </header>
@@ -42,48 +57,48 @@
         <section class="panel search-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Search</p>
-              <h2>Find a loaded topic</h2>
+              <p class="eyebrow">Topic Search</p>
+              <h2>Find an opened topic</h2>
             </div>
           </div>
           <label class="control">
             <span>Search loaded topics</span>
-            <input id="searchInput" type="search" placeholder="Try logic, ethics, ecology, macroeconomics, topology..." />
+            <input id="searchInput" type="search" placeholder="logic, ethics, ecology, topology, macroeconomics..." />
           </label>
-          <p id="searchMeta" class="support-copy">Search works across topics that have already been opened or generated.</p>
+          <p id="searchMeta" class="support-copy">Search only works across topics that are already in your atlas.</p>
           <div id="searchResults" class="stack-list"></div>
         </section>
 
         <section class="panel focus-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Generation</p>
-              <h2>Guide the atlas</h2>
+              <p class="eyebrow">Atlas Controls</p>
+              <h2>Set the tone of expansion</h2>
             </div>
           </div>
           <label class="control">
             <span>Coverage mode</span>
             <select id="breadthSelect">
               <option value="compact">Compact</option>
-              <option value="broad">Broad</option>
-              <option value="maximal" selected>Maximal</option>
+              <option value="broad" selected>Broad</option>
+              <option value="maximal">Maximal</option>
             </select>
           </label>
           <label class="control">
             <span>Focus hint</span>
-            <textarea id="focusInput" rows="4" placeholder="Optional: emphasize canonical academic subfields, prioritize philosophy of science, avoid highly applied branches, prefer standard university taxonomy language..."></textarea>
+            <textarea id="focusInput" rows="4" placeholder="Optional: emphasize canonical academic branches, prefer foundational structure, privilege philosophy of science, avoid highly applied offshoots..."></textarea>
           </label>
           <div class="button-row">
-            <button id="growRootsButton" class="primary-button" type="button">Grow Root Domains</button>
-            <button id="resetButton" class="ghost-button" type="button">Reset Atlas</button>
+            <button id="growRootsButton" class="primary-button" type="button">Load Atlas Overview</button>
+            <button id="resetButton" class="ghost-button" type="button">Reset</button>
           </div>
         </section>
 
         <section class="panel domain-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Domains</p>
-              <h2>Start points</h2>
+              <p class="eyebrow">Starting Domains</p>
+              <h2>Choose your entrance</h2>
             </div>
           </div>
           <div id="domainCards" class="stack-list"></div>
@@ -92,11 +107,11 @@
 
       <section class="workspace">
         <section id="emptyState" class="panel empty-panel">
-          <p class="eyebrow">Start Here</p>
-          <h2>Choose a root domain or search a loaded topic.</h2>
+          <p class="eyebrow">Open The Atlas</p>
+          <h2>Start with a root domain, then stay with one topic long enough to understand its shape.</h2>
           <p>
-            This app is designed as a reading and concept atlas, not just a taxonomy tree. Open a domain,
-            generate adjacent fields, then focus on one topic at a time.
+            The atlas works best when you move in small circles: open a domain, generate its first surrounding fields,
+            then load concepts and bibliography for whichever topic feels worth studying.
           </p>
         </section>
 
@@ -110,12 +125,14 @@
               </div>
               <div id="topicBadges" class="badge-row"></div>
             </div>
+
             <div class="button-row">
-              <button id="generateChildrenButton" class="secondary-button" type="button">Generate Direct Fields</button>
-              <button id="findMoreButton" class="ghost-button" type="button">Find More Siblings</button>
+              <button id="generateChildrenButton" class="secondary-button" type="button">Build Field Map</button>
+              <button id="findMoreButton" class="ghost-button" type="button">Find Nearby Fields</button>
               <button id="loadConceptsButton" class="ghost-button" type="button">Load Core Concepts</button>
               <button id="loadBibliographyButton" class="primary-button" type="button">Load Bibliography</button>
             </div>
+
             <div class="topic-notes">
               <p id="topicWhy" class="support-copy"></p>
               <p id="topicStatus" class="support-copy"></p>
@@ -129,7 +146,7 @@
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Field Structure</p>
-                  <h2>Related and direct fields</h2>
+                  <h2>Nearby and direct fields</h2>
                 </div>
               </div>
               <p id="relatedIntro" class="support-copy"></p>
@@ -164,7 +181,7 @@
                 <h2>Bibliography</h2>
               </div>
             </div>
-            <p id="bibliographyStatus" class="support-copy">Load bibliography to group works by role in understanding the field.</p>
+            <p id="bibliographyStatus" class="support-copy">Load bibliography to organize a serious reading path for this field.</p>
             <p id="bibliographyCaution" class="support-copy caution-copy" hidden></p>
             <div id="bibliographyGroups" class="bibliography-grid"></div>
           </section>
@@ -182,7 +199,7 @@
       </div>
       <div class="button-row">
         <button class="open-domain-button secondary-button" type="button">Open</button>
-        <button class="grow-domain-button ghost-button" type="button">Grow</button>
+        <button class="grow-domain-button ghost-button" type="button">Map</button>
       </div>
     </article>
   </template>
@@ -205,7 +222,7 @@
       <div class="badge-row field-badges"></div>
       <div class="button-row">
         <button class="open-field-button secondary-button" type="button">Open</button>
-        <button class="grow-field-button ghost-button" type="button">Grow</button>
+        <button class="grow-field-button ghost-button" type="button">Expand</button>
       </div>
     </article>
   </template>
