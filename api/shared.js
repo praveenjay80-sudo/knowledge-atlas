@@ -296,8 +296,6 @@ const ROOT_CHILDREN = {
   ],
 };
 
-const STATIC_TAXONOMY = require("../data/science_taxonomy.json");
-const STATIC_ROOTS = Array.isArray(STATIC_TAXONOMY?.roots) ? STATIC_TAXONOMY.roots : [];
 
 const BREADTH_TARGETS = {
   compact: "6 to 10",
@@ -465,110 +463,6 @@ function normalizeName(value) {
   return normalizeWhitespace(value).toLowerCase();
 }
 
-function nextScopeLabel(role) {
-  if (role === "domain") {
-    return "fields";
-  }
-  if (role === "field") {
-    return "subfields";
-  }
-  if (role === "subfield") {
-    return "specialties";
-  }
-  return "related fields";
-}
-
-function staticNodeToItem(node, parentName) {
-  return {
-    name: node.name,
-    aliases: [],
-    summary: node.summary || `${node.name} within ${parentName}.`,
-    why_it_belongs: parentName ? `${node.name} sits within ${parentName}.` : "",
-    keywords: Array.isArray(node.keywords) ? node.keywords : [],
-    likely_has_children: Array.isArray(node.children) && node.children.length > 0,
-    child_scope_label: nextScopeLabel(node.taxonomyRole),
-    taxonomy_role: node.taxonomyRole || "field",
-    confidence: "high",
-    caution_note: "",
-  };
-}
-
-function serializeStaticSubtree(node, parentName) {
-  return {
-    ...staticNodeToItem(node, parentName),
-    children: Array.isArray(node.children)
-      ? node.children.map((child) => serializeStaticSubtree(child, node.name))
-      : [],
-  };
-}
-
-function findStaticNode(pathSegments) {
-  if (!Array.isArray(pathSegments) || !pathSegments.length) {
-    return null;
-  }
-
-  let candidates = STATIC_ROOTS;
-  let match = null;
-
-  for (const segment of pathSegments) {
-    match = candidates.find((node) => normalizeName(node.name) === normalizeName(segment));
-    if (!match) {
-      return null;
-    }
-    candidates = Array.isArray(match.children) ? match.children : [];
-  }
-
-  return match;
-}
-
-function getStaticTaxonomyPayload(pathSegments, existingChildren = [], mode = "initial") {
-  if (!Array.isArray(pathSegments) || pathSegments.length === 0) {
-    return {
-      path: [],
-      overview: "Top-level science domains ready for expansion.",
-      remaining_note: "Open a science domain to move into its stored field structure.",
-      dropped_duplicates: [],
-      items: STATIC_ROOTS.map((node) => staticNodeToItem(node, "")),
-    };
-  }
-
-  const node = findStaticNode(pathSegments);
-  if (!node) {
-    return null;
-  }
-
-  if (mode === "all_known") {
-    return {
-      path: pathSegments,
-      overview: `Loaded the stored subtree for ${node.name}.`,
-      remaining_note: "All known stored descendants for this branch are now available in the atlas.",
-      dropped_duplicates: [],
-      items: [],
-      tree: Array.isArray(node.children)
-        ? node.children.map((child) => serializeStaticSubtree(child, node.name))
-        : [],
-    };
-  }
-
-  const existingSet = new Set(existingChildren.map((item) => normalizeName(item)));
-  const rawChildren = Array.isArray(node.children) ? node.children : [];
-  const items = rawChildren
-    .filter((child) => !existingSet.has(normalizeName(child.name)))
-    .map((child) => staticNodeToItem(child, node.name));
-
-  return {
-    path: pathSegments,
-    overview: rawChildren.length
-      ? `Stored ${nextScopeLabel(node.taxonomyRole)} for ${node.name}.`
-      : `Reached the deepest stored layer for ${node.name}.`,
-    remaining_note: rawChildren.length
-      ? "This branch comes from the built-in science taxonomy so you can keep drilling down reliably."
-      : "No deeper stored subfields are available for this branch yet.",
-    dropped_duplicates: [],
-    items,
-  };
-}
-
 function canonicalizeLabel(value) {
   let label = normalizeName(value)
     .replace(/&/g, " and ")
@@ -689,27 +583,94 @@ function hasNearDuplicate(label, collection) {
   return collection.some((candidate) => looksNearDuplicate(label, candidate));
 }
 
-function filterNearDuplicateItems(items, existingChildren) {
+const BLOCKED_TAXONOMY_PATTERNS = [
+  /\btextbooks?\b/i,
+  /\btutorial papers?\b/i,
+  /\bmonographs?\b/i,
+  /\bsurvey articles?\b/i,
+  /\bhandbooks?\b/i,
+  /\bdictionaries\b/i,
+  /\bbibliograph/i,
+  /\bconference\b/i,
+  /\bproceedings\b/i,
+  /\bcollections?\b/i,
+  /\bsoftware\b/i,
+  /\bsource code\b/i,
+  /\bresearch data\b/i,
+  /\bproblem books?\b/i,
+  /\bexternal book reviews?\b/i,
+  /\bnone of the above\b/i,
+  /\bgeneral and miscellaneous\b/i,
+];
+
+function sanitizeTaxonomyItem(item) {
+  return {
+    ...item,
+    name: normalizeWhitespace(item.name),
+    aliases: uniqueStrings(item.aliases || []),
+    summary: normalizeWhitespace(item.summary),
+    why_it_belongs: normalizeWhitespace(item.why_it_belongs),
+    keywords: uniqueStrings(item.keywords || []).slice(0, 6),
+    child_scope_label: normalizeWhitespace(item.child_scope_label) || "subfields",
+    caution_note: normalizeWhitespace(item.caution_note),
+  };
+}
+
+function isSuspiciousTaxonomyItem(item, currentNode) {
+  const name = normalizeWhitespace(item?.name);
+  const summary = normalizeWhitespace(item?.summary);
+  const whyItBelongs = normalizeWhitespace(item?.why_it_belongs);
+  const confidence = normalizeName(item?.confidence || "");
+  const role = normalizeName(item?.taxonomy_role || "");
+
+  if (!name || !summary || !whyItBelongs) {
+    return true;
+  }
+
+  if (normalizeName(name) === normalizeName(currentNode)) {
+    return true;
+  }
+
+  if (name.length > 90) {
+    return true;
+  }
+
+  if (confidence === "low") {
+    return true;
+  }
+
+  if ((role === "topic" || role === "concept_family") && name.split(/\s+/).length > 3) {
+    return true;
+  }
+
+  return BLOCKED_TAXONOMY_PATTERNS.some((pattern) =>
+    pattern.test(name) || pattern.test(summary) || pattern.test(whyItBelongs),
+  );
+}
+
+function filterNearDuplicateItems(items, existingChildren, currentNode) {
   const existingLabels = uniqueStrings(existingChildren);
   const acceptedLabels = [...existingLabels];
   const acceptedItems = [];
   const droppedNames = [];
 
   for (const item of items) {
-    const aliases = makeAliasList(item);
-    const itemLabels = aliases.length ? aliases : [item.name];
-    const duplicate = itemLabels.some((label) => hasNearDuplicate(label, acceptedLabels));
-
-    if (duplicate) {
-      droppedNames.push(item.name);
+    const cleanedItem = sanitizeTaxonomyItem(item);
+    if (isSuspiciousTaxonomyItem(cleanedItem, currentNode)) {
+      droppedNames.push(cleanedItem.name || item.name || "Unknown item");
       continue;
     }
 
-    acceptedItems.push({
-      ...item,
-      aliases: uniqueStrings(item.aliases || []),
-      keywords: uniqueStrings(item.keywords || []),
-    });
+    const aliases = makeAliasList(cleanedItem);
+    const itemLabels = aliases.length ? aliases : [cleanedItem.name];
+    const duplicate = itemLabels.some((label) => hasNearDuplicate(label, acceptedLabels));
+
+    if (duplicate) {
+      droppedNames.push(cleanedItem.name);
+      continue;
+    }
+
+    acceptedItems.push(cleanedItem);
     acceptedLabels.push(...itemLabels);
   }
 
@@ -735,10 +696,13 @@ function taxonomyPrompt({
     "Do not return grandchildren.",
     "Prefer canonical academic branches, recognized subdisciplines, or recognized specialty areas.",
     "Be conservative. If uncertain, omit the item rather than inventing a dubious discipline.",
+    "Do not return meta-categories about textbooks, proceedings, surveys, bibliography, software, history, or general reference material.",
+    "Do not return named theorems, individual models, single methods, or fashionable buzzwords when a stable field or subfield is expected.",
     "Avoid duplicate or near-duplicate labels, abbreviations that duplicate full names, and singular/plural variants of the same concept.",
     "Keep all returned children at the same level of abstraction.",
     "Do not mix disciplines with methods, institutions, named theories, or example case studies unless the current node is already narrow enough that those are the correct direct children.",
     "If mode is 'find_more', focus only on plausible missing siblings not already listed.",
+    "Only use confidence 'high' or 'medium'. Omit anything that would only deserve 'low'.",
     "If an item is interdisciplinary, keep a single canonical label and mention overlap in the summary or caution_note rather than duplicating it under multiple names.",
     "",
     `Target taxonomy path: ${pathLabel}`,
@@ -1003,6 +967,12 @@ function conceptsSchema() {
 function sentence(value, fallback) {
   const cleaned = normalizeWhitespace(value);
   return cleaned || fallback;
+}
+
+function currentNodeLabel(pathSegments) {
+  return Array.isArray(pathSegments) && pathSegments.length
+    ? pathSegments[pathSegments.length - 1]
+    : "";
 }
 
 function titleFromPath(pathSegments) {
@@ -1282,17 +1252,7 @@ async function handleTaxonomyRequest(req, res) {
       : [];
     const breadth = ["compact", "broad", "maximal"].includes(body.breadth) ? body.breadth : "maximal";
     const customFocus = typeof body.customFocus === "string" ? body.customFocus.trim() : "";
-    const mode = body.mode === "find_more"
-      ? "find_more"
-      : body.mode === "all_known"
-        ? "all_known"
-        : "initial";
-
-    const staticPayload = getStaticTaxonomyPayload(pathSegments, existingChildren, mode);
-    if (staticPayload) {
-      sendJson(res, 200, staticPayload);
-      return;
-    }
+    const mode = body.mode === "find_more" ? "find_more" : "initial";
 
     if (pathSegments.length === 0) {
       sendJson(res, 200, {
@@ -1316,27 +1276,6 @@ async function handleTaxonomyRequest(req, res) {
       return;
     }
 
-    if (pathSegments.length === 1 && ROOT_CHILDREN[pathSegments[0]]) {
-      const allItems = ROOT_CHILDREN[pathSegments[0]];
-      const existingSet = new Set(existingChildren.map((item) => normalizeName(item)));
-      const filteredItems = allItems.filter((item) => {
-        const labels = [item.name, ...(item.aliases || [])].map((label) => normalizeName(label));
-        return !labels.some((label) => existingSet.has(label));
-      });
-
-      sendJson(res, 200, {
-        path: pathSegments,
-        overview: `Curated major branches for ${pathSegments[0]}.`,
-        remaining_note:
-          filteredItems.length === 0
-            ? "The main branches for this domain are already in view."
-            : "This first layer is ready so you can move deeper into the field without waiting.",
-        dropped_duplicates: [],
-        items: filteredItems,
-      });
-      return;
-    }
-
     const payload = await callOpenAI({
       prompt: taxonomyPrompt({
         pathSegments,
@@ -1352,7 +1291,11 @@ async function handleTaxonomyRequest(req, res) {
       timeoutMs: 30000,
     });
 
-    const { acceptedItems, droppedNames } = filterNearDuplicateItems(payload.items, existingChildren);
+    const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+      payload.items,
+      existingChildren,
+      currentNodeLabel(pathSegments),
+    );
 
     sendJson(res, 200, {
       path: pathSegments,
@@ -1362,27 +1305,8 @@ async function handleTaxonomyRequest(req, res) {
       items: acceptedItems,
     });
   } catch (error) {
-    const body = req.body && typeof req.body === "object" ? req.body : null;
-    const pathSegments = Array.isArray(body?.path)
-      ? body.path.map((item) => String(item).trim()).filter(Boolean)
-      : [];
-    if (pathSegments.length) {
-      const items =
-        pathSegments.length === 1 && ROOT_CHILDREN[pathSegments[0]]
-          ? ROOT_CHILDREN[pathSegments[0]]
-          : fallbackTaxonomyChildren(pathSegments);
-      sendJson(res, 200, {
-        path: pathSegments,
-        overview: `Starter field map for ${titleFromPath(pathSegments)}.`,
-        remaining_note:
-          "A stable first layer has been loaded for this topic so you can keep exploring without interruption.",
-        dropped_duplicates: [],
-        items,
-      });
-      return;
-    }
     sendJson(res, error.statusCode || 500, {
-      error: error.message || "Unexpected server error.",
+      error: error.message || "Unable to generate taxonomy for this branch right now.",
     });
   }
 }

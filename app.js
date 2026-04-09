@@ -50,7 +50,6 @@ const refs = {
   topicRemaining: document.querySelector("#topicRemaining"),
   topicCaution: document.querySelector("#topicCaution"),
   generateChildrenButton: document.querySelector("#generateChildrenButton"),
-  loadAllKnownButton: document.querySelector("#loadAllKnownButton"),
   loadBibliographyButton: document.querySelector("#loadBibliographyButton"),
   relatedIntro: document.querySelector("#relatedIntro"),
   relatedFields: document.querySelector("#relatedFields"),
@@ -279,17 +278,6 @@ function mergeChildren(node, incomingItems) {
   node.children.sort((left, right) => left.name.localeCompare(right.name));
 }
 
-function countIncomingItems(items = []) {
-  let total = 0;
-  for (const item of items) {
-    total += 1;
-    if (Array.isArray(item.children) && item.children.length) {
-      total += countIncomingItems(item.children);
-    }
-  }
-  return total;
-}
-
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
   const rawText = await response.text();
@@ -336,7 +324,8 @@ function selectNode(node) {
   render();
 }
 
-async function ensureChildrenVisible(node) {
+function openNode(node) {
+  selectNode(node);
   if (!node || !node.likelyHasChildren) {
     return;
   }
@@ -345,7 +334,7 @@ async function ensureChildrenVisible(node) {
     return;
   }
 
-  await loadChildren(node, "initial");
+  loadChildren(node, "initial");
 }
 
 async function loadChildren(node, mode = "initial") {
@@ -381,40 +370,6 @@ async function loadChildren(node, mode = "initial") {
   } catch (error) {
     node.childrenStatus = "error";
     node.childrenMessage = error.message || "Unable to generate direct fields.";
-  }
-
-  render();
-}
-
-async function loadAllKnownSubfields(node) {
-  node.childrenStatus = "loading";
-  node.childrenMessage = `Loading the full known subtree under ${node.name}...`;
-  render();
-
-  try {
-    const payload = await fetchJson("/api/taxonomy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: node.path,
-        existingChildren: node.children.flatMap((child) => [child.name, ...(child.aliases || [])]),
-        breadth: state.breadth,
-        customFocus: state.focus,
-        mode: "all_known",
-      }),
-    });
-
-    const incomingTree = Array.isArray(payload.tree) && payload.tree.length ? payload.tree : payload.items || [];
-    mergeChildren(node, incomingTree);
-    const loadedCount = countIncomingItems(incomingTree);
-    node.childrenStatus = "success";
-    node.childrenMessage = loadedCount
-      ? `Loaded ${loadedCount} known subfields under ${node.name}.`
-      : `All known stored subfields for ${node.name} are already loaded.`;
-    node.remainingMessage = payload.remaining_note || "";
-  } catch (error) {
-    node.childrenStatus = "error";
-    node.childrenMessage = error.message || "Unable to load all known subfields.";
   }
 
   render();
@@ -518,8 +473,7 @@ function renderDomainCards() {
     fragment.querySelector(".domain-summary").textContent = node.summary;
 
     fragment.querySelector(".open-domain-button").addEventListener("click", () => {
-      selectNode(node);
-      ensureChildrenVisible(node);
+      openNode(node);
     });
     fragment.querySelector(".bibliography-domain-button").addEventListener("click", async () => {
       selectNode(node);
@@ -553,7 +507,7 @@ function renderSearch() {
     fragment.querySelector(".search-result-name").textContent = node.name;
     fragment.querySelector(".search-result-summary").textContent = node.summary;
     fragment.querySelector(".search-result").addEventListener("click", () => {
-      selectNode(node);
+      openNode(node);
     });
     refs.searchResults.appendChild(fragment);
   }
@@ -592,7 +546,6 @@ function renderTopicHeader(node) {
     ? "Refresh field map"
     : "Build field map";
   refs.generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
-  refs.loadAllKnownButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
   refs.loadBibliographyButton.disabled = node.bibliographyStatus === "loading";
 }
 
@@ -623,7 +576,7 @@ function renderRelatedFields(node) {
     }
 
     fragment.querySelector(".open-field-button").addEventListener("click", () => {
-      selectNode(child);
+      openNode(child);
     });
     fragment.querySelector(".bibliography-field-button").addEventListener("click", async () => {
       selectNode(child);
@@ -753,13 +706,6 @@ refs.generateChildrenButton.addEventListener("click", () => {
   }
 });
 
-refs.loadAllKnownButton.addEventListener("click", () => {
-  const node = selectedNode();
-  if (node) {
-    loadAllKnownSubfields(node);
-  }
-});
-
 refs.loadBibliographyButton.addEventListener("click", () => {
   const node = selectedNode();
   if (node) {
@@ -769,4 +715,4 @@ refs.loadBibliographyButton.addEventListener("click", () => {
 
 render();
 refreshHealth();
-growRootDomains();
+openNode(state.roots[0]);
