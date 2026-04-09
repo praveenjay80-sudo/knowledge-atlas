@@ -235,9 +235,27 @@ function mergeChildren(node, incomingItems) {
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
-  const data = await response.json();
+  const rawText = await response.text();
+  const contentType = response.headers.get("content-type") || "";
+  let data = {};
+
+  if (contentType.includes("application/json")) {
+    data = rawText ? JSON.parse(rawText) : {};
+  } else if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      const preview = rawText.replace(/\s+/g, " ").trim().slice(0, 180);
+      throw new Error(
+        preview
+          ? `Server returned non-JSON output: ${preview}`
+          : "Server returned an empty non-JSON response.",
+      );
+    }
+  }
+
   if (!response.ok) {
-    throw new Error(data.error || "Request failed.");
+    throw new Error(data.error || data.detail || "Request failed.");
   }
   return data;
 }
