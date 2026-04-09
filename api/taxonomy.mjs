@@ -1,17 +1,17 @@
 import shared from "./shared.js";
+import { runLegacyHandler } from "./_adapter.mjs";
 
 const { handleTaxonomyRequest } = shared;
 
-export default async function handler(req, res) {
+export async function POST(request) {
   try {
-    await handleTaxonomyRequest(req, res);
+    return await runLegacyHandler(request, handleTaxonomyRequest);
   } catch (error) {
-    res.statusCode = error?.statusCode || 500;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(
-      JSON.stringify({
+    return Response.json(
+      {
         error: error?.message || "Taxonomy handler crashed.",
-      }),
+      },
+      { status: error?.statusCode || 500 },
     );
   }
 }
