@@ -893,6 +893,272 @@ function conceptsSchema() {
   };
 }
 
+function sentence(value, fallback) {
+  const cleaned = normalizeWhitespace(value);
+  return cleaned || fallback;
+}
+
+function titleFromPath(pathSegments) {
+  return pathSegments[pathSegments.length - 1] || "This topic";
+}
+
+function fallbackTaxonomyChildren(pathSegments) {
+  const topic = titleFromPath(pathSegments);
+  const lowerTopic = normalizeName(topic);
+
+  const byTopic = {
+    mathematics: [
+      "Algebra",
+      "Analysis",
+      "Geometry and Topology",
+      "Number Theory",
+      "Probability",
+      "Applied Mathematics",
+    ],
+    logic: [
+      "Philosophical Logic",
+      "Mathematical Logic",
+      "Proof Theory",
+      "Model Theory",
+      "Computability Theory",
+      "Logic and Language",
+    ],
+    "computer science": [
+      "Algorithms and Complexity",
+      "Programming Languages",
+      "Systems and Architecture",
+      "Artificial Intelligence",
+      "Theory of Computation",
+      "Human-Computer Interaction",
+    ],
+    statistics: [
+      "Probability Theory",
+      "Statistical Inference",
+      "Bayesian Statistics",
+      "Applied Statistics",
+      "Causal Inference",
+      "Experimental Design",
+    ],
+    physics: [
+      "Classical Mechanics",
+      "Electromagnetism",
+      "Quantum Physics",
+      "Statistical Physics",
+      "Relativity",
+      "Condensed Matter Physics",
+    ],
+    chemistry: [
+      "Organic Chemistry",
+      "Inorganic Chemistry",
+      "Physical Chemistry",
+      "Analytical Chemistry",
+      "Biochemistry",
+      "Materials Chemistry",
+    ],
+    biology: [
+      "Molecular Biology",
+      "Cell Biology",
+      "Genetics",
+      "Evolutionary Biology",
+      "Ecology",
+      "Physiology",
+    ],
+    economics: [
+      "Microeconomics",
+      "Macroeconomics",
+      "Econometrics",
+      "Development Economics",
+      "Political Economy",
+      "Behavioral Economics",
+    ],
+    sociology: [
+      "Social Theory",
+      "Cultural Sociology",
+      "Political Sociology",
+      "Economic Sociology",
+      "Sociology of Institutions",
+      "Sociology of Inequality",
+    ],
+    psychology: [
+      "Cognitive Psychology",
+      "Developmental Psychology",
+      "Social Psychology",
+      "Clinical Psychology",
+      "Neuropsychology",
+      "Psychometrics",
+    ],
+    philosophy: [
+      "Metaphysics",
+      "Epistemology",
+      "Ethics",
+      "Logic",
+      "Aesthetics",
+      "Philosophy of Science",
+    ],
+    metaphysics: [
+      "Ontology",
+      "Causation",
+      "Time and Persistence",
+      "Modality",
+      "Identity",
+      "Mind and Reality",
+    ],
+    epistemology: [
+      "Knowledge",
+      "Justification",
+      "Evidence",
+      "Skepticism",
+      "Rationality",
+      "Social Epistemology",
+    ],
+    ethics: [
+      "Normative Ethics",
+      "Metaethics",
+      "Applied Ethics",
+      "Virtue Ethics",
+      "Political Ethics",
+      "Moral Psychology",
+    ],
+  };
+
+  const names = byTopic[lowerTopic] || [
+    `${topic} Theory`,
+    `${topic} Methods`,
+    `History of ${topic}`,
+    `${topic} Applications`,
+    `${topic} Foundations`,
+    `Contemporary ${topic}`,
+  ];
+
+  return names.map((name) => ({
+    name,
+    aliases: [],
+    summary: `${name} as a direct branch or organizing lens within ${topic}.`,
+    why_it_belongs: `${name} helps structure the topic ${topic} into a coherent first layer for exploration.`,
+    keywords: uniqueStrings([topic, ...name.split(" ").slice(0, 4)]).slice(0, 5),
+    likely_has_children: true,
+    child_scope_label: "related fields",
+    taxonomy_role: "subfield",
+    confidence: "medium",
+    caution_note: "This is a deterministic fallback branch generated because the live model request did not complete.",
+  }));
+}
+
+function fallbackBibliography(pathSegments, summary, keywords) {
+  const topic = titleFromPath(pathSegments);
+  const baseSource = sentence(summary, `${topic} as a field of study.`);
+  const keywordText = uniqueStrings(keywords).slice(0, 4).join(", ");
+
+  const makeEntry = (title, why, confidence = "low") => ({
+    authors: "Fallback atlas entry",
+    title,
+    year: "Check source",
+    source: "Use library catalogs, Google Scholar, JSTOR, PhilPapers, Crossref, and OpenAlex to verify.",
+    why_it_matters: why,
+    confidence,
+  });
+
+  return {
+    note: `Fallback bibliography scaffold for ${topic}. Use it as a structured reading plan while live bibliography generation is unavailable.`,
+    caution_note:
+      "The live model-backed bibliography request failed, so these entries are placeholders for search strategy rather than verified citations.",
+    categories: {
+      seminal_works: [
+        makeEntry(
+          `${topic}: early field-defining works`,
+          `Start by locating classic works that established the central questions of ${topic}. ${baseSource}`,
+        ),
+      ],
+      breakthrough_works: [
+        makeEntry(
+          `${topic}: breakthrough papers and turning points`,
+          `Look for papers or books widely described as changing the direction of ${topic}. Keywords: ${keywordText || topic}.`,
+        ),
+      ],
+      pedagogy_texts: [
+        makeEntry(
+          `${topic}: introductory textbooks and teaching texts`,
+          `Use pedagogy-first works to build vocabulary and conceptual structure before reading specialist literature.`,
+          "medium",
+        ),
+      ],
+      reference_works: [
+        makeEntry(
+          `${topic}: handbooks, companions, and surveys`,
+          `Reference works help you map the field before going deep into one subproblem.`,
+          "medium",
+        ),
+      ],
+      recent_syntheses: [
+        makeEntry(
+          `${topic}: recent syntheses and state-of-the-field reviews`,
+          `Recent surveys can show how the field is currently organized and what debates or open problems matter now.`,
+        ),
+      ],
+    },
+  };
+}
+
+function fallbackConceptMap(pathSegments, summary, keywords) {
+  const topic = titleFromPath(pathSegments);
+  const keywordList = uniqueStrings(keywords).slice(0, 4);
+  return {
+    note: `Fallback concept map for ${topic}. This gives a stable learning scaffold while live generation is unavailable.`,
+    caution_note:
+      "The live model-backed concept map request failed, so this roadmap is a deterministic scaffold rather than a topic-specific expert synthesis.",
+    prerequisites: uniqueStrings([
+      `Basic orientation to ${topic}`,
+      `Key terms and vocabulary in ${topic}`,
+      "How the field defines its central objects or problems",
+      "How arguments or evidence are typically evaluated",
+    ]).slice(0, 6),
+    learning_stages: {
+      beginner: [
+        {
+          name: `Foundational questions in ${topic}`,
+          summary: `Start with the central questions, scope, and vocabulary that define ${topic}.`,
+        },
+        {
+          name: `${topic} core terminology`,
+          summary: "Learn the main terms, distinctions, and canonical formulations used in the field.",
+        },
+      ],
+      intermediate: [
+        {
+          name: `${topic} major frameworks`,
+          summary: "Study the leading frameworks, schools, or methodological approaches that organize the area.",
+        },
+        {
+          name: `${topic} debates and methods`,
+          summary: "Understand how arguments are made, what counts as evidence, and which debates structure the field.",
+        },
+      ],
+      advanced: [
+        {
+          name: `${topic} frontier problems`,
+          summary: "Move from standard formulations into current tensions, unresolved problems, or research programs.",
+        },
+        {
+          name: `${topic} synthesis with nearby fields`,
+          summary: `Study how ${topic} interacts with adjacent areas such as ${keywordList.join(", ") || "its neighboring fields"}.`,
+        },
+      ],
+    },
+    milestone_capabilities: [
+      `Explain the basic scope and purpose of ${topic}.`,
+      `Identify core concepts, major frameworks, and canonical questions in ${topic}.`,
+      `Read an introductory text in ${topic} without losing the overall structure.`,
+      `Distinguish foundational works from pedagogical and survey literature in ${topic}.`,
+    ],
+    bibliography_by_level: {
+      pedagogy_texts: fallbackBibliography(pathSegments, summary, keywords).categories.pedagogy_texts,
+      seminal_works: fallbackBibliography(pathSegments, summary, keywords).categories.seminal_works,
+      breakthrough_works: fallbackBibliography(pathSegments, summary, keywords).categories.breakthrough_works,
+      advanced_syntheses: fallbackBibliography(pathSegments, summary, keywords).categories.reference_works,
+    },
+  };
+}
+
 async function handleTaxonomyRequest(req, res) {
   try {
     if (req.method !== "POST") {
@@ -979,14 +1245,22 @@ async function handleTaxonomyRequest(req, res) {
       items: acceptedItems,
     });
   } catch (error) {
-    if (Array.isArray(req.body?.path) && req.body.path.length === 1 && ROOT_CHILDREN[req.body.path[0]]) {
+    const body = req.body && typeof req.body === "object" ? req.body : null;
+    const pathSegments = Array.isArray(body?.path)
+      ? body.path.map((item) => String(item).trim()).filter(Boolean)
+      : [];
+    if (pathSegments.length) {
+      const items =
+        pathSegments.length === 1 && ROOT_CHILDREN[pathSegments[0]]
+          ? ROOT_CHILDREN[pathSegments[0]]
+          : fallbackTaxonomyChildren(pathSegments);
       sendJson(res, 200, {
-        path: req.body.path,
-        overview: `Fallback curated major branches for ${req.body.path[0]}.`,
+        path: pathSegments,
+        overview: `Fallback direct fields for ${titleFromPath(pathSegments)}.`,
         remaining_note:
-          "The live model request failed, so the atlas used its built-in root-domain branches instead.",
+          "The live taxonomy request failed, so the atlas returned a deterministic fallback structure instead.",
         dropped_duplicates: [],
-        items: ROOT_CHILDREN[req.body.path[0]],
+        items,
       });
       return;
     }
@@ -997,6 +1271,9 @@ async function handleTaxonomyRequest(req, res) {
 }
 
 async function handleBibliographyRequest(req, res) {
+  let pathSegments = [];
+  let summary = "";
+  let keywords = [];
   try {
     if (req.method !== "POST") {
       sendJson(res, 405, { error: "Method not allowed." });
@@ -1004,7 +1281,7 @@ async function handleBibliographyRequest(req, res) {
     }
 
     const body = await readJsonBody(req);
-    const pathSegments = Array.isArray(body.path)
+    pathSegments = Array.isArray(body.path)
       ? body.path.map((item) => String(item).trim()).filter(Boolean)
       : [];
 
@@ -1013,8 +1290,8 @@ async function handleBibliographyRequest(req, res) {
       return;
     }
 
-    const summary = typeof body.summary === "string" ? body.summary.trim() : "";
-    const keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
+    summary = typeof body.summary === "string" ? body.summary.trim() : "";
+    keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
 
     const payload = await callOpenAI({
       prompt: bibliographyPrompt({ pathSegments, summary, keywords }),
@@ -1027,13 +1304,14 @@ async function handleBibliographyRequest(req, res) {
 
     sendJson(res, 200, payload);
   } catch (error) {
-    sendJson(res, error.statusCode || 500, {
-      error: error.message || "Unexpected server error.",
-    });
+    sendJson(res, 200, fallbackBibliography(pathSegments, summary, keywords));
   }
 }
 
 async function handleConceptTreeRequest(req, res) {
+  let pathSegments = [];
+  let summary = "";
+  let keywords = [];
   try {
     if (req.method !== "POST") {
       sendJson(res, 405, { error: "Method not allowed." });
@@ -1041,7 +1319,7 @@ async function handleConceptTreeRequest(req, res) {
     }
 
     const body = await readJsonBody(req);
-    const pathSegments = Array.isArray(body.path)
+    pathSegments = Array.isArray(body.path)
       ? body.path.map((item) => String(item).trim()).filter(Boolean)
       : [];
 
@@ -1050,8 +1328,8 @@ async function handleConceptTreeRequest(req, res) {
       return;
     }
 
-    const summary = typeof body.summary === "string" ? body.summary.trim() : "";
-    const keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
+    summary = typeof body.summary === "string" ? body.summary.trim() : "";
+    keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
 
     const payload = await callOpenAI({
       prompt: conceptTreePrompt({ pathSegments, summary, keywords }),
@@ -1064,9 +1342,7 @@ async function handleConceptTreeRequest(req, res) {
 
     sendJson(res, 200, payload);
   } catch (error) {
-    sendJson(res, error.statusCode || 500, {
-      error: error.message || "Unexpected server error.",
-    });
+    sendJson(res, 200, fallbackConceptMap(pathSegments, summary, keywords));
   }
 }
 
