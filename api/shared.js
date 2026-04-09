@@ -296,6 +296,9 @@ const ROOT_CHILDREN = {
   ],
 };
 
+const STATIC_TAXONOMY = require("../data/science_taxonomy.json");
+const STATIC_ROOTS = Array.isArray(STATIC_TAXONOMY?.roots) ? STATIC_TAXONOMY.roots : [];
+
 const BREADTH_TARGETS = {
   compact: "6 to 10",
   broad: "10 to 16",
@@ -460,6 +463,88 @@ function normalizeWhitespace(value) {
 
 function normalizeName(value) {
   return normalizeWhitespace(value).toLowerCase();
+}
+
+function nextScopeLabel(role) {
+  if (role === "domain") {
+    return "fields";
+  }
+  if (role === "field") {
+    return "subfields";
+  }
+  if (role === "subfield") {
+    return "specialties";
+  }
+  return "related fields";
+}
+
+function staticNodeToItem(node, parentName) {
+  return {
+    name: node.name,
+    aliases: [],
+    summary: node.summary || `${node.name} within ${parentName}.`,
+    why_it_belongs: parentName ? `${node.name} sits within ${parentName}.` : "",
+    keywords: Array.isArray(node.keywords) ? node.keywords : [],
+    likely_has_children: Array.isArray(node.children) && node.children.length > 0,
+    child_scope_label: nextScopeLabel(node.taxonomyRole),
+    taxonomy_role: node.taxonomyRole || "field",
+    confidence: "high",
+    caution_note: "",
+  };
+}
+
+function findStaticNode(pathSegments) {
+  if (!Array.isArray(pathSegments) || !pathSegments.length) {
+    return null;
+  }
+
+  let candidates = STATIC_ROOTS;
+  let match = null;
+
+  for (const segment of pathSegments) {
+    match = candidates.find((node) => normalizeName(node.name) === normalizeName(segment));
+    if (!match) {
+      return null;
+    }
+    candidates = Array.isArray(match.children) ? match.children : [];
+  }
+
+  return match;
+}
+
+function getStaticTaxonomyPayload(pathSegments, existingChildren = []) {
+  if (!Array.isArray(pathSegments) || pathSegments.length === 0) {
+    return {
+      path: [],
+      overview: "Top-level science domains ready for expansion.",
+      remaining_note: "Open a science domain to move into its stored field structure.",
+      dropped_duplicates: [],
+      items: STATIC_ROOTS.map((node) => staticNodeToItem(node, "")),
+    };
+  }
+
+  const node = findStaticNode(pathSegments);
+  if (!node) {
+    return null;
+  }
+
+  const existingSet = new Set(existingChildren.map((item) => normalizeName(item)));
+  const rawChildren = Array.isArray(node.children) ? node.children : [];
+  const items = rawChildren
+    .filter((child) => !existingSet.has(normalizeName(child.name)))
+    .map((child) => staticNodeToItem(child, node.name));
+
+  return {
+    path: pathSegments,
+    overview: rawChildren.length
+      ? `Stored ${nextScopeLabel(node.taxonomyRole)} for ${node.name}.`
+      : `Reached the deepest stored layer for ${node.name}.`,
+    remaining_note: rawChildren.length
+      ? "This branch comes from the built-in science taxonomy so you can keep drilling down reliably."
+      : "No deeper stored subfields are available for this branch yet.",
+    dropped_duplicates: [],
+    items,
+  };
 }
 
 function canonicalizeLabel(value) {
@@ -1176,6 +1261,12 @@ async function handleTaxonomyRequest(req, res) {
     const breadth = ["compact", "broad", "maximal"].includes(body.breadth) ? body.breadth : "maximal";
     const customFocus = typeof body.customFocus === "string" ? body.customFocus.trim() : "";
     const mode = body.mode === "find_more" ? "find_more" : "initial";
+
+    const staticPayload = getStaticTaxonomyPayload(pathSegments, existingChildren);
+    if (staticPayload) {
+      sendJson(res, 200, staticPayload);
+      return;
+    }
 
     if (pathSegments.length === 0) {
       sendJson(res, 200, {
