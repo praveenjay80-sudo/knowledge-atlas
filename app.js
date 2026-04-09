@@ -29,12 +29,6 @@ const BIBLIOGRAPHY_CATEGORY_LABELS = {
   recent_syntheses: "Recent Syntheses",
 };
 
-const CONCEPT_STAGE_LABELS = {
-  beginner: "Beginner Concepts",
-  intermediate: "Intermediate Concepts",
-  advanced: "Advanced Concepts",
-};
-
 const refs = {
   apiStatus: document.querySelector("#apiStatus"),
   loadedCount: document.querySelector("#loadedCount"),
@@ -42,8 +36,6 @@ const refs = {
   searchInput: document.querySelector("#searchInput"),
   searchMeta: document.querySelector("#searchMeta"),
   searchResults: document.querySelector("#searchResults"),
-  breadthSelect: document.querySelector("#breadthSelect"),
-  focusInput: document.querySelector("#focusInput"),
   growRootsButton: document.querySelector("#growRootsButton"),
   resetButton: document.querySelector("#resetButton"),
   domainCards: document.querySelector("#domainCards"),
@@ -59,16 +51,9 @@ const refs = {
   topicCaution: document.querySelector("#topicCaution"),
   generateChildrenButton: document.querySelector("#generateChildrenButton"),
   loadAllKnownButton: document.querySelector("#loadAllKnownButton"),
-  findMoreButton: document.querySelector("#findMoreButton"),
-  loadConceptsButton: document.querySelector("#loadConceptsButton"),
   loadBibliographyButton: document.querySelector("#loadBibliographyButton"),
   relatedIntro: document.querySelector("#relatedIntro"),
   relatedFields: document.querySelector("#relatedFields"),
-  conceptsStatus: document.querySelector("#conceptsStatus"),
-  conceptsCaution: document.querySelector("#conceptsCaution"),
-  prerequisitesList: document.querySelector("#prerequisitesList"),
-  conceptStages: document.querySelector("#conceptStages"),
-  milestonesList: document.querySelector("#milestonesList"),
   bibliographyStatus: document.querySelector("#bibliographyStatus"),
   bibliographyCaution: document.querySelector("#bibliographyCaution"),
   bibliographyGroups: document.querySelector("#bibliographyGroups"),
@@ -120,9 +105,6 @@ function createNode(
     childrenStatus: "idle",
     childrenMessage: "",
     remainingMessage: "",
-    conceptStatus: "idle",
-    conceptMap: null,
-    conceptError: "",
     bibliographyStatus: "idle",
     bibliography: null,
     bibliographyNote: "",
@@ -453,30 +435,6 @@ async function loadBibliography(node) {
   render();
 }
 
-async function loadConcepts(node) {
-  node.conceptStatus = "loading";
-  node.conceptError = "";
-  render();
-
-  try {
-    const payload = await fetchJson("/api/concepts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: node.path,
-        summary: node.summary,
-        keywords: node.keywords,
-      }),
-    });
-    node.conceptMap = payload;
-    node.conceptStatus = "success";
-  } catch (error) {
-    node.conceptStatus = "error";
-    node.conceptError = error.message || "Unable to generate core concepts.";
-  }
-  render();
-}
-
 async function growRootDomains() {
   state.loadingRoots = true;
   render();
@@ -547,6 +505,10 @@ function renderDomainCards() {
     fragment.querySelector(".open-domain-button").addEventListener("click", () => {
       selectNode(node);
     });
+    fragment.querySelector(".bibliography-domain-button").addEventListener("click", async () => {
+      selectNode(node);
+      await loadBibliography(node);
+    });
     fragment.querySelector(".grow-domain-button").addEventListener("click", () => {
       loadChildren(node, "initial");
     });
@@ -615,16 +577,14 @@ function renderTopicHeader(node) {
     : "Build field map";
   refs.generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
   refs.loadAllKnownButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
-  refs.findMoreButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
-  refs.loadConceptsButton.disabled = node.conceptStatus === "loading";
   refs.loadBibliographyButton.disabled = node.bibliographyStatus === "loading";
 }
 
 function renderRelatedFields(node) {
   clearChildren(refs.relatedFields);
   refs.relatedIntro.textContent = node.children.length
-    ? `Open any card to keep moving through the first ring around ${node.name}.`
-    : "Build a first ring of related fields around this topic.";
+    ? `Open, expand, or generate bibliography from any branch under ${node.name}.`
+    : "Build the first layer of fields or subfields around this topic.";
 
   if (!node.children.length) {
     const empty = document.createElement("div");
@@ -649,78 +609,15 @@ function renderRelatedFields(node) {
     fragment.querySelector(".open-field-button").addEventListener("click", () => {
       selectNode(child);
     });
+    fragment.querySelector(".bibliography-field-button").addEventListener("click", async () => {
+      selectNode(child);
+      await loadBibliography(child);
+    });
     fragment.querySelector(".grow-field-button").addEventListener("click", () => {
       loadChildren(child, "initial");
     });
 
     refs.relatedFields.appendChild(fragment);
-  }
-}
-
-function renderConcepts(node) {
-  clearChildren(refs.prerequisitesList);
-  clearChildren(refs.conceptStages);
-  clearChildren(refs.milestonesList);
-
-  if (node.conceptStatus === "idle" && !node.conceptMap) {
-    refs.conceptsStatus.textContent = "Load core concepts to see prerequisites, staged ideas, and milestone capabilities.";
-    refs.conceptsCaution.hidden = true;
-    return;
-  }
-
-  if (node.conceptStatus === "loading") {
-    refs.conceptsStatus.textContent = "Generating core concepts and staged learning map...";
-    refs.conceptsCaution.hidden = true;
-    return;
-  }
-
-  if (node.conceptStatus === "error") {
-    refs.conceptsStatus.textContent = node.conceptError || "Unable to generate core concepts.";
-    refs.conceptsCaution.hidden = true;
-    return;
-  }
-
-  refs.conceptsStatus.textContent = friendlySupportNote(node.conceptMap?.note || "Core concepts loaded.");
-  refs.conceptsCaution.textContent = friendlyCautionNote(node.conceptMap?.caution_note || "");
-  refs.conceptsCaution.hidden = !refs.conceptsCaution.textContent;
-
-  for (const item of node.conceptMap?.prerequisites || []) {
-    const listItem = document.createElement("li");
-    listItem.textContent = item;
-    refs.prerequisitesList.appendChild(listItem);
-  }
-
-  for (const [key, label] of Object.entries(CONCEPT_STAGE_LABELS)) {
-    const entries = node.conceptMap?.learning_stages?.[key] || [];
-    if (!entries.length) {
-      continue;
-    }
-
-    const section = document.createElement("section");
-    section.className = "stage-card";
-    const title = document.createElement("h3");
-    title.textContent = label;
-    section.appendChild(title);
-
-    const list = document.createElement("ul");
-    list.className = "plain-list";
-    for (const entry of entries) {
-      const item = document.createElement("li");
-      const strong = document.createElement("strong");
-      strong.textContent = entry.name;
-      const text = document.createElement("p");
-      text.textContent = entry.summary;
-      item.append(strong, text);
-      list.appendChild(item);
-    }
-    section.appendChild(list);
-    refs.conceptStages.appendChild(section);
-  }
-
-  for (const item of node.conceptMap?.milestone_capabilities || []) {
-    const listItem = document.createElement("li");
-    listItem.textContent = item;
-    refs.milestonesList.appendChild(listItem);
   }
 }
 
@@ -798,7 +695,6 @@ function renderWorkspace() {
 
   renderTopicHeader(node);
   renderRelatedFields(node);
-  renderConcepts(node);
   renderBibliography(node);
 }
 
@@ -819,14 +715,6 @@ refs.searchInput.addEventListener("input", (event) => {
   render();
 });
 
-refs.breadthSelect.addEventListener("change", (event) => {
-  state.breadth = event.target.value;
-});
-
-refs.focusInput.addEventListener("input", (event) => {
-  state.focus = event.target.value.trim();
-});
-
 refs.growRootsButton.addEventListener("click", () => {
   growRootDomains();
 });
@@ -838,7 +726,6 @@ refs.resetButton.addEventListener("click", () => {
   state.loadingRoots = false;
   state.roots = createInitialRoots();
   refs.searchInput.value = "";
-  refs.focusInput.value = "";
   render();
 });
 
@@ -853,20 +740,6 @@ refs.loadAllKnownButton.addEventListener("click", () => {
   const node = selectedNode();
   if (node) {
     loadAllKnownSubfields(node);
-  }
-});
-
-refs.findMoreButton.addEventListener("click", () => {
-  const node = selectedNode();
-  if (node) {
-    loadChildren(node, "find_more");
-  }
-});
-
-refs.loadConceptsButton.addEventListener("click", () => {
-  const node = selectedNode();
-  if (node) {
-    loadConcepts(node);
   }
 });
 

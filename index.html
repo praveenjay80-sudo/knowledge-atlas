@@ -14,17 +14,17 @@
     <header class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Knowledge Atlas</p>
-        <h1>Fields, concepts, and canonical reading paths.</h1>
+        <h1>Fields, subfields, and canonical bibliographies.</h1>
         <p class="hero-text">
           Move through formal sciences, natural sciences, social sciences, and philosophy as if you were opening
-          a serious reference work. Pick a topic, map its neighboring fields, then read it through concepts,
-          seminal works, breakthroughs, teaching texts, and surveys.
+          a serious reference work. Pick any field or subfield, expand its known descendants, then generate a
+          reading list grouped into seminal works, breakthroughs, teaching texts, and surveys.
         </p>
         <div class="hero-highlights">
-          <span>Topic-first workspace</span>
-          <span>Core concepts</span>
+          <span>Field-first workspace</span>
+          <span>Deep subfield tree</span>
           <span>Canonical bibliography</span>
-          <span>Field structure</span>
+          <span>One-click bibliography</span>
         </div>
       </div>
 
@@ -73,21 +73,13 @@
           <div class="panel-head">
             <div>
               <p class="eyebrow">Atlas Controls</p>
-              <h2>Set the tone of expansion</h2>
+              <h2>Load and reset</h2>
             </div>
           </div>
-          <label class="control">
-            <span>Coverage mode</span>
-            <select id="breadthSelect">
-              <option value="compact">Compact</option>
-              <option value="broad" selected>Broad</option>
-              <option value="maximal">Maximal</option>
-            </select>
-          </label>
-          <label class="control">
-            <span>Focus hint</span>
-            <textarea id="focusInput" rows="4" placeholder="Optional: emphasize canonical academic branches, prefer foundational structure, privilege philosophy of science, avoid highly applied offshoots..."></textarea>
-          </label>
+          <p class="support-copy">
+            Use the atlas overview to open the main science domains, then expand any field as deeply as the stored
+            taxonomy allows.
+          </p>
           <div class="button-row">
             <button id="growRootsButton" class="primary-button" type="button">Load Atlas Overview</button>
             <button id="resetButton" class="ghost-button" type="button">Reset</button>
@@ -108,10 +100,10 @@
       <section class="workspace">
         <section id="emptyState" class="panel empty-panel">
           <p class="eyebrow">Open The Atlas</p>
-          <h2>Start with a root domain, then stay with one topic long enough to understand its shape.</h2>
+          <h2>Start with a domain, expand a field, then generate its bibliography.</h2>
           <p>
-            The atlas works best when you move in small circles: open a domain, generate its first surrounding fields,
-            then load concepts and bibliography for whichever topic feels worth studying.
+            This version is built around one purpose: field and subfield coverage with reading lists. Expand the tree,
+            click any branch, and generate bibliography wherever you stop.
           </p>
         </section>
 
@@ -129,8 +121,6 @@
             <div class="button-row">
               <button id="generateChildrenButton" class="secondary-button" type="button">Build Field Map</button>
               <button id="loadAllKnownButton" class="secondary-button" type="button">Generate All Known Subfields</button>
-              <button id="findMoreButton" class="ghost-button" type="button">Find Nearby Fields</button>
-              <button id="loadConceptsButton" class="ghost-button" type="button">Load Core Concepts</button>
               <button id="loadBibliographyButton" class="primary-button" type="button">Load Bibliography</button>
             </div>
 
@@ -142,38 +132,16 @@
             </div>
           </section>
 
-          <div class="workspace-columns">
-            <section class="panel related-panel">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Field Structure</p>
-                  <h2>Nearby and direct fields</h2>
-                </div>
+          <section class="panel related-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Field Structure</p>
+                <h2>Fields and subfields</h2>
               </div>
-              <p id="relatedIntro" class="support-copy"></p>
-              <div id="relatedFields" class="card-grid"></div>
-            </section>
-
-            <section class="panel concepts-panel">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">Core Concepts</p>
-                  <h2>Learning map</h2>
-                </div>
-              </div>
-              <p id="conceptsStatus" class="support-copy">Load core concepts to see prerequisites, staged ideas, and milestone capabilities.</p>
-              <p id="conceptsCaution" class="support-copy caution-copy" hidden></p>
-              <div class="concept-block">
-                <h3>Prerequisites</h3>
-                <ul id="prerequisitesList" class="plain-list"></ul>
-              </div>
-              <div id="conceptStages" class="stage-grid"></div>
-              <div class="concept-block">
-                <h3>Milestone capabilities</h3>
-                <ul id="milestonesList" class="plain-list"></ul>
-              </div>
-            </section>
-          </div>
+            </div>
+            <p id="relatedIntro" class="support-copy"></p>
+            <div id="relatedFields" class="card-grid"></div>
+          </section>
 
           <section class="panel bibliography-panel">
             <div class="panel-head">
@@ -200,6 +168,7 @@
       </div>
       <div class="button-row">
         <button class="open-domain-button secondary-button" type="button">Open</button>
+        <button class="bibliography-domain-button primary-button" type="button">Bibliography</button>
         <button class="grow-domain-button ghost-button" type="button">Map</button>
       </div>
     </article>
@@ -223,6 +192,7 @@
       <div class="badge-row field-badges"></div>
       <div class="button-row">
         <button class="open-field-button secondary-button" type="button">Open</button>
+        <button class="bibliography-field-button primary-button" type="button">Bibliography</button>
         <button class="grow-field-button ghost-button" type="button">Expand</button>
       </div>
     </article>
