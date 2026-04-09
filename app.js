@@ -336,6 +336,18 @@ function selectNode(node) {
   render();
 }
 
+async function ensureChildrenVisible(node) {
+  if (!node || !node.likelyHasChildren) {
+    return;
+  }
+
+  if (node.children.length || node.childrenStatus === "loading") {
+    return;
+  }
+
+  await loadChildren(node, "initial");
+}
+
 async function loadChildren(node, mode = "initial") {
   node.childrenStatus = "loading";
   node.childrenMessage = mode === "find_more"
@@ -437,6 +449,9 @@ async function loadBibliography(node) {
 
 async function growRootDomains() {
   state.loadingRoots = true;
+  if (!state.selectedNodeId && state.roots[0]) {
+    state.selectedNodeId = state.roots[0].id;
+  }
   render();
   for (const node of state.roots) {
     await loadChildren(node, "initial");
@@ -504,6 +519,7 @@ function renderDomainCards() {
 
     fragment.querySelector(".open-domain-button").addEventListener("click", () => {
       selectNode(node);
+      ensureChildrenVisible(node);
     });
     fragment.querySelector(".bibliography-domain-button").addEventListener("click", async () => {
       selectNode(node);
@@ -727,6 +743,7 @@ refs.resetButton.addEventListener("click", () => {
   state.roots = createInitialRoots();
   refs.searchInput.value = "";
   render();
+  growRootDomains();
 });
 
 refs.generateChildrenButton.addEventListener("click", () => {
@@ -752,3 +769,4 @@ refs.loadBibliographyButton.addEventListener("click", () => {
 
 render();
 refreshHealth();
+growRootDomains();
