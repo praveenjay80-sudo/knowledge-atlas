@@ -21,6 +21,281 @@ const ROOT_TAXONOMY = [
   },
 ];
 
+const ROOT_CHILDREN = {
+  "Formal sciences": [
+    {
+      name: "Mathematics",
+      aliases: [],
+      summary: "The study of abstract structures, quantity, space, change, proof, and formal patterns.",
+      why_it_belongs: "Mathematics is the central formal science and supplies the language, methods, and structures used across the rest of the formal domain.",
+      keywords: ["proof", "structure", "quantity", "space", "abstraction"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Logic",
+      aliases: ["formal logic", "symbolic logic"],
+      summary: "The study of valid inference, formal languages, proof systems, and semantic consequence.",
+      why_it_belongs: "Logic is a core formal science because it studies inference, formal representation, and the structure of reasoning itself.",
+      keywords: ["inference", "proof theory", "semantics", "syntax", "reasoning"],
+      likely_has_children: true,
+      child_scope_label: "branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Statistics",
+      aliases: ["statistical science"],
+      summary: "The formal study of uncertainty, variation, inference from data, and probabilistic modeling.",
+      why_it_belongs: "Statistics belongs here as a formal discipline built around inference, uncertainty, and model-based reasoning.",
+      keywords: ["inference", "uncertainty", "estimation", "testing", "models"],
+      likely_has_children: true,
+      child_scope_label: "branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Computer science",
+      aliases: ["theoretical computer science", "computing science"],
+      summary: "The study of computation, algorithms, formal languages, data structures, and computational systems.",
+      why_it_belongs: "Computer science belongs in the formal sciences because its foundations are algorithmic, symbolic, and mathematically formal.",
+      keywords: ["algorithms", "computation", "formal languages", "complexity", "data structures"],
+      likely_has_children: true,
+      child_scope_label: "branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Systems science",
+      aliases: ["systems theory"],
+      summary: "The formal study of organized systems, interactions, structure, feedback, and general systemic behavior.",
+      why_it_belongs: "Systems science belongs here because it studies general formal patterns of organization and interaction across domains.",
+      keywords: ["systems", "feedback", "organization", "interaction", "models"],
+      likely_has_children: true,
+      child_scope_label: "branches",
+      taxonomy_role: "field",
+      confidence: "medium",
+      caution_note: "This field overlaps with applied and interdisciplinary domains, so later expansions should keep boundaries explicit.",
+    },
+    {
+      name: "Decision theory",
+      aliases: [],
+      summary: "The formal study of rational choice, preference, utility, and decision under certainty or uncertainty.",
+      why_it_belongs: "Decision theory belongs here because it formalizes choice, preference, and rational action using abstract models.",
+      keywords: ["choice", "utility", "preference", "uncertainty", "rationality"],
+      likely_has_children: true,
+      child_scope_label: "branches",
+      taxonomy_role: "field",
+      confidence: "medium",
+      caution_note: "This field also overlaps with economics, philosophy, and cognitive science.",
+    },
+  ],
+  "Natural sciences": [
+    {
+      name: "Physics",
+      aliases: [],
+      summary: "The study of matter, energy, motion, force, fields, and the fundamental structure of the physical universe.",
+      why_it_belongs: "Physics is a primary natural science focused on the most general physical laws and structures.",
+      keywords: ["matter", "energy", "force", "fields", "laws"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Chemistry",
+      aliases: [],
+      summary: "The study of substances, composition, reaction, bonding, and transformation at molecular and atomic scales.",
+      why_it_belongs: "Chemistry is a central natural science concerned with the composition and transformation of matter.",
+      keywords: ["matter", "reaction", "bonding", "molecules", "transformation"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Biology",
+      aliases: ["life sciences"],
+      summary: "The study of living systems, organisms, heredity, development, evolution, and biological organization.",
+      why_it_belongs: "Biology is a principal natural science because it studies life and living organization directly.",
+      keywords: ["life", "organisms", "evolution", "heredity", "cells"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Earth science",
+      aliases: ["geoscience"],
+      summary: "The study of Earth systems, geology, atmosphere, oceans, and planetary-scale processes of the Earth.",
+      why_it_belongs: "Earth science belongs here because it studies the natural systems and material history of the Earth.",
+      keywords: ["geology", "atmosphere", "oceans", "earth systems", "planet"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Astronomy",
+      aliases: ["astrophysics"],
+      summary: "The study of celestial bodies, cosmic structure, and physical processes in the universe beyond Earth.",
+      why_it_belongs: "Astronomy belongs here because it studies the natural universe at cosmic scales.",
+      keywords: ["stars", "galaxies", "cosmos", "observation", "universe"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+  ],
+  "Social sciences": [
+    {
+      name: "Economics",
+      aliases: [],
+      summary: "The study of production, exchange, allocation, incentives, markets, and economic systems.",
+      why_it_belongs: "Economics is a major social science concerned with allocation, incentives, and social systems of production and exchange.",
+      keywords: ["markets", "allocation", "incentives", "production", "exchange"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Political science",
+      aliases: [],
+      summary: "The study of power, institutions, governance, states, political behavior, and public decision-making.",
+      why_it_belongs: "Political science belongs here because it studies institutions of power, governance, and collective decision-making.",
+      keywords: ["power", "governance", "institutions", "state", "politics"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Sociology",
+      aliases: [],
+      summary: "The study of social structure, institutions, culture, inequality, and collective human behavior.",
+      why_it_belongs: "Sociology is a core social science because it studies patterned social relations and institutions.",
+      keywords: ["society", "institutions", "culture", "inequality", "social structure"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Anthropology",
+      aliases: [],
+      summary: "The study of human beings across cultures, history, language, society, and biological variation.",
+      why_it_belongs: "Anthropology belongs here because it studies human life comparatively across social and cultural settings.",
+      keywords: ["culture", "human variation", "ethnography", "society", "language"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Psychology",
+      aliases: [],
+      summary: "The study of mind, behavior, cognition, development, emotion, and mental processes.",
+      why_it_belongs: "Psychology belongs here because it studies individual behavior and mental processes within human and animal life.",
+      keywords: ["mind", "behavior", "cognition", "emotion", "development"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+  ],
+  Philosophy: [
+    {
+      name: "Metaphysics",
+      aliases: [],
+      summary: "The study of being, existence, objects, properties, causation, time, and the basic structure of reality.",
+      why_it_belongs: "Metaphysics is one of the central branches of philosophy because it asks what exists and how reality is structured.",
+      keywords: ["existence", "reality", "causation", "time", "being"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Epistemology",
+      aliases: [],
+      summary: "The study of knowledge, belief, justification, evidence, skepticism, and rational inquiry.",
+      why_it_belongs: "Epistemology is a core branch of philosophy because it studies what knowledge is and how it is possible.",
+      keywords: ["knowledge", "belief", "justification", "evidence", "skepticism"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Ethics",
+      aliases: ["moral philosophy"],
+      summary: "The study of value, moral judgment, obligation, virtue, right action, and the good life.",
+      why_it_belongs: "Ethics is a fundamental branch of philosophy because it studies value and moral evaluation.",
+      keywords: ["morality", "value", "obligation", "virtue", "justice"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Logic",
+      aliases: ["philosophical logic"],
+      summary: "The study of inference, argument form, consequence, validity, and formal reasoning within philosophical analysis.",
+      why_it_belongs: "Logic belongs here because it is both a formal science and a foundational branch of philosophy.",
+      keywords: ["argument", "validity", "inference", "reasoning", "consequence"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "This field overlaps strongly with the formal-science branch of logic.",
+    },
+    {
+      name: "Aesthetics",
+      aliases: [],
+      summary: "The study of beauty, art, taste, interpretation, and aesthetic experience.",
+      why_it_belongs: "Aesthetics belongs here because it studies artistic value and aesthetic judgment as philosophical problems.",
+      keywords: ["art", "beauty", "taste", "interpretation", "experience"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+    {
+      name: "Philosophy of science",
+      aliases: [],
+      summary: "The study of scientific explanation, theory, evidence, confirmation, realism, and the logic of inquiry.",
+      why_it_belongs: "Philosophy of science belongs here because it reflects critically on the structure and justification of science itself.",
+      keywords: ["science", "explanation", "theory", "evidence", "realism"],
+      likely_has_children: true,
+      child_scope_label: "major branches",
+      taxonomy_role: "field",
+      confidence: "high",
+      caution_note: "",
+    },
+  ],
+};
+
 const BREADTH_TARGETS = {
   compact: "6 to 10",
   broad: "10 to 16",
@@ -658,6 +933,27 @@ async function handleTaxonomyRequest(req, res) {
       return;
     }
 
+    if (pathSegments.length === 1 && ROOT_CHILDREN[pathSegments[0]]) {
+      const allItems = ROOT_CHILDREN[pathSegments[0]];
+      const existingSet = new Set(existingChildren.map((item) => normalizeName(item)));
+      const filteredItems = allItems.filter((item) => {
+        const labels = [item.name, ...(item.aliases || [])].map((label) => normalizeName(label));
+        return !labels.some((label) => existingSet.has(label));
+      });
+
+      sendJson(res, 200, {
+        path: pathSegments,
+        overview: `Curated major branches for ${pathSegments[0]}.`,
+        remaining_note:
+          filteredItems.length === 0
+            ? "The built-in major branches for this root domain are already loaded."
+            : "These first-layer branches are curated locally to make the atlas reliable and fast at the top level.",
+        dropped_duplicates: [],
+        items: filteredItems,
+      });
+      return;
+    }
+
     const payload = await callOpenAI({
       prompt: taxonomyPrompt({
         pathSegments,
@@ -683,6 +979,17 @@ async function handleTaxonomyRequest(req, res) {
       items: acceptedItems,
     });
   } catch (error) {
+    if (Array.isArray(req.body?.path) && req.body.path.length === 1 && ROOT_CHILDREN[req.body.path[0]]) {
+      sendJson(res, 200, {
+        path: req.body.path,
+        overview: `Fallback curated major branches for ${req.body.path[0]}.`,
+        remaining_note:
+          "The live model request failed, so the atlas used its built-in root-domain branches instead.",
+        dropped_duplicates: [],
+        items: ROOT_CHILDREN[req.body.path[0]],
+      });
+      return;
+    }
     sendJson(res, error.statusCode || 500, {
       error: error.message || "Unexpected server error.",
     });
