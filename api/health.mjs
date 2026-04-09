@@ -1,4 +1,4 @@
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     if (req.method !== "GET") {
       res.statusCode = 405;
@@ -22,8 +22,7 @@ module.exports = async (req, res) => {
     res.end(
       JSON.stringify({
         error: error?.message || "Health check crashed.",
-        stack: process.env.NODE_ENV === "development" ? error?.stack || "" : undefined,
       }),
     );
   }
-};
+}

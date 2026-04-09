@@ -1,6 +1,9 @@
-module.exports = async (req, res) => {
+import shared from "./shared.js";
+
+const { handleTaxonomyRequest } = shared;
+
+export default async function handler(req, res) {
   try {
-    const { handleTaxonomyRequest } = require("./shared");
     await handleTaxonomyRequest(req, res);
   } catch (error) {
     res.statusCode = error?.statusCode || 500;
@@ -8,8 +11,7 @@ module.exports = async (req, res) => {
     res.end(
       JSON.stringify({
         error: error?.message || "Taxonomy handler crashed.",
-        stack: process.env.NODE_ENV === "development" ? error?.stack || "" : undefined,
       }),
     );
   }
-};
+}
