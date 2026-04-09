@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">Vercel-Ready Knowledge Cartography</p>
+      <h1>Knowledge Atlas</h1>
+      <p class="hero-copy">
+        Dynamically generate an expandable taxonomy across formal sciences, natural sciences,
+        social sciences, and philosophy, then request concept maps and categorized bibliographies
+        for any node in the tree. The app is structured as static files plus serverless API routes,
+        so it fits Vercel directly.
+      </p>
+      <div class="hero-note">
+        <strong>Honesty note:</strong> no model can guarantee a perfectly exhaustive taxonomy in one pass.
+        This app is designed to keep expanding, refining, and finding missing siblings so you can push
+        coverage deeper over time without pretending the first pass is final.
+      </div>
+    </header>
+
+    <main>
+      <section class="status-panel">
+        <div>
+          <p class="panel-title">API Status</p>
+          <p class="panel-copy">
+            This app talks to protected Vercel-style API routes for taxonomy generation,
+            categorized bibliography generation, and core-concept learning maps.
+          </p>
+        </div>
+        <p id="apiStatus" class="api-status">Checking API status...</p>
+      </section>
+
+      <section class="control-panel">
+        <div class="control-grid">
+          <label class="control">
+            <span>Coverage Mode</span>
+            <select id="breadthSelect">
+              <option value="compact">Compact</option>
+              <option value="broad">Broad</option>
+              <option value="maximal" selected>Maximal</option>
+            </select>
+          </label>
+          <label class="control search-control">
+            <span>Search Loaded Nodes</span>
+            <input id="searchInput" type="search" placeholder="Search loaded fields, subfields, or keywords" />
+          </label>
+        </div>
+        <label class="control">
+          <span>Taxonomy Focus Hint</span>
+          <textarea id="focusInput" rows="3" placeholder="Optional: for example, emphasize canonical academic disciplines, include interdisciplinary branches, or prefer contemporary university taxonomy language."></textarea>
+        </label>
+        <div class="action-row">
+          <button id="loadRootsButton" class="primary-button" type="button">Generate Major Branches</button>
+          <button id="collapseButton" class="secondary-button" type="button">Collapse All</button>
+          <button id="resetButton" class="ghost-button" type="button">Reset Tree</button>
+        </div>
+      </section>
+
+      <section class="summary-panel">
+        <div class="summary-metric">
+          <span class="metric-label">Loaded Nodes</span>
+          <strong id="loadedCount">0</strong>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-label">Visible Nodes</span>
+          <strong id="visibleCount">0</strong>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-label">Root Domains</span>
+          <strong>Formal, Natural, Social, Philosophy</strong>
+        </div>
+      </section>
+
+      <section class="taxonomy-panel">
+        <div class="taxonomy-panel-head">
+          <div>
+          <p class="panel-title">Expandable Taxonomy</p>
+          <p class="panel-copy">
+              Each node can generate direct children, look for additional missing siblings,
+              produce categorized bibliography buckets like seminal, breakthrough, and pedagogy,
+              and build a core-concept learning map.
+            </p>
+          </div>
+        </div>
+        <div id="taxonomyTree" class="taxonomy-tree" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="nodeTemplate">
+    <article class="taxonomy-node">
+      <div class="node-head">
+        <div class="node-heading">
+          <div class="node-title-row">
+            <button class="toggle-button" type="button" aria-label="Toggle children">+</button>
+            <div>
+              <p class="node-path"></p>
+              <h2 class="node-name"></h2>
+            </div>
+          </div>
+          <p class="node-summary"></p>
+        </div>
+        <div class="node-badges"></div>
+      </div>
+      <div class="node-actions">
+        <button class="generate-children-button primary-button" type="button">Generate Children</button>
+        <button class="find-more-button secondary-button" type="button">Find More</button>
+        <button class="bibliography-button ghost-button" type="button">Research Bibliography</button>
+        <button class="concepts-button ghost-button" type="button">Core Concepts</button>
+      </div>
+      <div class="node-notes">
+        <p class="node-why"></p>
+        <p class="node-status"></p>
+        <p class="node-remaining"></p>
+        <p class="node-caution"></p>
+      </div>
+      <div class="bibliography-panel" hidden>
+        <div class="bibliography-head">
+          <h3>Research Bibliography</h3>
+          <p class="bibliography-note"></p>
+        </div>
+        <div class="bibliography-groups"></div>
+      </div>
+      <div class="concepts-panel" hidden>
+        <div class="concepts-head">
+          <h3>Core Concepts and Learning Map</h3>
+          <p class="concepts-note"></p>
+        </div>
+        <p class="concepts-caution"></p>
+        <div class="concepts-prerequisites">
+          <h4>Prerequisites</h4>
+          <ul class="prerequisites-list"></ul>
+        </div>
+        <div class="concept-stages"></div>
+        <div class="milestones-panel">
+          <h4>Milestone Capabilities</h4>
+          <ul class="milestones-list"></ul>
+        </div>
+        <div class="level-bibliography">
+          <h4>Concept Bibliography</h4>
+          <div class="concept-bibliography-groups"></div>
+        </div>
+      </div>
+      <div class="children-shell" hidden>
+        <div class="children-label"></div>
+        <div class="children-list"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

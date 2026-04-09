@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSC Mastery Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="hero-kicker">MSC-guided learning system</p>
+        <h1>MSC Mastery Atlas</h1>
+        <p class="hero-lead">
+          Use MSC as the formal map, zbMATH as the literature signal, and the app as a study system that helps you
+          understand a topic, decide what to read, discover adjacent areas, and build real mastery.
+        </p>
+      </div>
+      <div class="hero-status">
+        <div class="status-item">
+          <span class="status-label">API</span>
+          <strong id="apiStatus">Checking...</strong>
+        </div>
+        <div class="status-item">
+          <span class="status-label">MSC sections</span>
+          <strong id="sectionCount">...</strong>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Branches</span>
+          <strong id="branchCount">...</strong>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Leaves</span>
+          <strong id="leafCount">...</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="navigator">
+        <section class="nav-card">
+          <div class="nav-head">
+            <p class="eyebrow">Navigator</p>
+            <h2>Find a topic</h2>
+          </div>
+          <label class="control">
+            <span>Search MSC code or title</span>
+            <input id="searchInput" type="search" placeholder="03, model theory, automata, topology..." />
+          </label>
+          <p id="searchMeta" class="microcopy"></p>
+          <div id="searchResults" class="search-results"></div>
+        </section>
+
+        <section class="nav-card tree-card">
+          <div class="nav-head">
+            <p class="eyebrow">Hierarchy</p>
+            <h2>Browse MSC 2020</h2>
+          </div>
+          <div id="tree" class="tree"></div>
+        </section>
+      </aside>
+
+      <section class="studio">
+        <section id="emptyState" class="empty-state">
+          <h3>Select an MSC topic</h3>
+          <p>Choose a node from the tree or search for a field to open the learning studio.</p>
+        </section>
+
+        <div id="studioShell" hidden>
+          <section class="topic-banner">
+            <div class="topic-main">
+              <p class="eyebrow">Current topic</p>
+              <h2 id="topicTitle"></h2>
+              <p id="topicSummary" class="topic-summary"></p>
+              <div id="topicLineage" class="lineage"></div>
+            </div>
+            <div class="topic-actions">
+              <div id="topicBadges" class="badge-row"></div>
+              <button id="buildLearningButton" class="primary-button" type="button">Build learning profile</button>
+              <button id="generateBibliographyButton" class="secondary-button" type="button">Generate reading list</button>
+            </div>
+          </section>
+
+          <section class="stage-strip">
+            <article class="stage-card">
+              <span class="stage-index">1</span>
+              <div>
+                <h3>Learn the shape</h3>
+                <p>Understand what the topic is, why it matters, and which concepts unlock it.</p>
+              </div>
+            </article>
+            <article class="stage-card">
+              <span class="stage-index">2</span>
+              <div>
+                <h3>Read the right things</h3>
+                <p>Use zbMATH evidence and grounded bibliography to decide what to read next.</p>
+              </div>
+            </article>
+            <article class="stage-card">
+              <span class="stage-index">3</span>
+              <div>
+                <h3>Master and branch out</h3>
+                <p>Track checkpoints, misconceptions, and nearby MSC areas worth learning next.</p>
+              </div>
+            </article>
+          </section>
+
+          <nav class="tab-row">
+            <button class="tab-button active" data-tab="learn" type="button">Learn</button>
+            <button class="tab-button" data-tab="read" type="button">Read</button>
+            <button class="tab-button" data-tab="explore" type="button">Explore</button>
+            <button class="tab-button" data-tab="master" type="button">Master</button>
+          </nav>
+
+          <section id="learnTab" class="tab-panel">
+            <div class="panel-grid learn-grid">
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Orientation</p>
+                    <h3>Topic brief</h3>
+                  </div>
+                  <button id="refreshLearningButton" class="ghost-button" type="button">Refresh learning profile</button>
+                </div>
+                <p id="learnStatus" class="hint-text">Generate a learning profile to load explanations and concept progression.</p>
+                <p id="learnError" class="error-text"></p>
+                <div id="learnBrief"></div>
+              </article>
+
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Concept ladder</p>
+                    <h3>What to learn first</h3>
+                  </div>
+                </div>
+                <div id="conceptLadder"></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="readTab" class="tab-panel" hidden>
+            <div class="panel-grid read-grid">
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Seminal shelf</p>
+                    <h3>Seminal and anchor works</h3>
+                  </div>
+                </div>
+                <p id="readStatus" class="hint-text">Loading literature evidence from zbMATH...</p>
+                <div id="representativeWorks"></div>
+              </article>
+
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Grounded reading list</p>
+                    <h3>Generate bibliography</h3>
+                  </div>
+                </div>
+                <form id="bibliographyForm" class="form-stack">
+                  <label class="control">
+                    <span>Audience</span>
+                    <select id="audienceSelect">
+                      <option value="beginner" selected>Beginner</option>
+                      <option value="broad">Broad</option>
+                      <option value="graduate">Graduate</option>
+                      <option value="research">Research</option>
+                    </select>
+                  </label>
+                  <label class="control">
+                    <span>Focus</span>
+                    <input id="focusInput" type="text" placeholder="Optional angle such as model completeness or automata" />
+                  </label>
+                  <label class="control">
+                    <span>Notes</span>
+                    <textarea id="notesInput" rows="3" placeholder="Optional constraints, exclusions, or reading goal"></textarea>
+                  </label>
+                  <label class="control">
+                    <span>Maximum entries</span>
+                    <input id="maxEntriesInput" type="range" min="4" max="16" value="10" />
+                    <small id="maxEntriesLabel">10 references</small>
+                  </label>
+                  <button class="primary-button" type="submit">Build grounded bibliography</button>
+                </form>
+                <p id="activeTargetLabel" class="microcopy"></p>
+                <p id="bibliographyError" class="error-text"></p>
+                <div id="bibliographyOutput"></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="exploreTab" class="tab-panel" hidden>
+            <div class="panel-grid explore-grid">
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Literature fingerprint</p>
+                    <h3>How this field appears in zbMATH</h3>
+                  </div>
+                </div>
+                <div id="fingerprintPanel"></div>
+              </article>
+
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Keyword bridges</p>
+                    <h3>Concepts and adjacent areas</h3>
+                  </div>
+                </div>
+                <div id="exploreKeywords"></div>
+              </article>
+
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Field expansion</p>
+                    <h3>Related MSC areas</h3>
+                  </div>
+                </div>
+                <div id="relatedTopics"></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="masterTab" class="tab-panel" hidden>
+            <div class="panel-grid master-grid">
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Mastery guide</p>
+                    <h3>School-to-advanced explanation</h3>
+                  </div>
+                  <button id="refreshMasteryButton" class="ghost-button" type="button">Refresh mastery guide</button>
+                </div>
+                <div class="inline-controls">
+                  <label class="control compact">
+                    <span>Audience</span>
+                    <select id="masteryAudienceSelect">
+                      <option value="school" selected>School</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="undergraduate">Undergraduate</option>
+                      <option value="graduate">Graduate</option>
+                      <option value="research">Research</option>
+                    </select>
+                  </label>
+                  <label class="control compact grow">
+                    <span>Focus</span>
+                    <input id="masteryFocusInput" type="text" placeholder="Optional lens such as intuition or proof ideas" />
+                  </label>
+                </div>
+                <p id="masterStatus" class="hint-text">Generate a mastery guide to load explanations, examples, and checkpoints.</p>
+                <p id="masteryError" class="error-text"></p>
+                <div id="masteryOutput"></div>
+              </article>
+
+              <article class="section-card">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow">Study route</p>
+                    <h3>Reading path and checkpoints</h3>
+                  </div>
+                </div>
+                <div id="readingPath"></div>
+                <div id="checkpointPanel"></div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
