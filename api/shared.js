@@ -493,6 +493,15 @@ function staticNodeToItem(node, parentName) {
   };
 }
 
+function serializeStaticSubtree(node, parentName) {
+  return {
+    ...staticNodeToItem(node, parentName),
+    children: Array.isArray(node.children)
+      ? node.children.map((child) => serializeStaticSubtree(child, node.name))
+      : [],
+  };
+}
+
 function findStaticNode(pathSegments) {
   if (!Array.isArray(pathSegments) || !pathSegments.length) {
     return null;
@@ -512,7 +521,7 @@ function findStaticNode(pathSegments) {
   return match;
 }
 
-function getStaticTaxonomyPayload(pathSegments, existingChildren = []) {
+function getStaticTaxonomyPayload(pathSegments, existingChildren = [], mode = "initial") {
   if (!Array.isArray(pathSegments) || pathSegments.length === 0) {
     return {
       path: [],
@@ -526,6 +535,19 @@ function getStaticTaxonomyPayload(pathSegments, existingChildren = []) {
   const node = findStaticNode(pathSegments);
   if (!node) {
     return null;
+  }
+
+  if (mode === "all_known") {
+    return {
+      path: pathSegments,
+      overview: `Loaded the stored subtree for ${node.name}.`,
+      remaining_note: "All known stored descendants for this branch are now available in the atlas.",
+      dropped_duplicates: [],
+      items: [],
+      tree: Array.isArray(node.children)
+        ? node.children.map((child) => serializeStaticSubtree(child, node.name))
+        : [],
+    };
   }
 
   const existingSet = new Set(existingChildren.map((item) => normalizeName(item)));
@@ -1260,9 +1282,13 @@ async function handleTaxonomyRequest(req, res) {
       : [];
     const breadth = ["compact", "broad", "maximal"].includes(body.breadth) ? body.breadth : "maximal";
     const customFocus = typeof body.customFocus === "string" ? body.customFocus.trim() : "";
-    const mode = body.mode === "find_more" ? "find_more" : "initial";
+    const mode = body.mode === "find_more"
+      ? "find_more"
+      : body.mode === "all_known"
+        ? "all_known"
+        : "initial";
 
-    const staticPayload = getStaticTaxonomyPayload(pathSegments, existingChildren);
+    const staticPayload = getStaticTaxonomyPayload(pathSegments, existingChildren, mode);
     if (staticPayload) {
       sendJson(res, 200, staticPayload);
       return;

@@ -58,6 +58,7 @@ const refs = {
   topicRemaining: document.querySelector("#topicRemaining"),
   topicCaution: document.querySelector("#topicCaution"),
   generateChildrenButton: document.querySelector("#generateChildrenButton"),
+  loadAllKnownButton: document.querySelector("#loadAllKnownButton"),
   findMoreButton: document.querySelector("#findMoreButton"),
   loadConceptsButton: document.querySelector("#loadConceptsButton"),
   loadBibliographyButton: document.querySelector("#loadBibliographyButton"),
@@ -264,29 +265,47 @@ function mergeChildren(node, incomingItems) {
       existing.taxonomyRole = item.taxonomy_role || existing.taxonomyRole;
       existing.confidence = item.confidence || existing.confidence;
       existing.cautionNote = item.caution_note || existing.cautionNote;
+      if (Array.isArray(item.children) && item.children.length) {
+        mergeChildren(existing, item.children);
+      }
       continue;
     }
 
-    node.children.push(
-      createNode(
-        {
-          name: item.name,
-          summary: item.summary,
-          whyItBelongs: item.why_it_belongs,
-          keywords: item.keywords,
-          aliases: item.aliases,
-          likelyHasChildren: item.likely_has_children,
-          childScopeLabel: item.child_scope_label,
-          taxonomyRole: item.taxonomy_role,
-          confidence: item.confidence,
-          cautionNote: item.caution_note,
-        },
-        [...node.path, item.name],
-      ),
+    const created = createNode(
+      {
+        name: item.name,
+        summary: item.summary,
+        whyItBelongs: item.why_it_belongs,
+        keywords: item.keywords,
+        aliases: item.aliases,
+        likelyHasChildren: item.likely_has_children,
+        childScopeLabel: item.child_scope_label,
+        taxonomyRole: item.taxonomy_role,
+        confidence: item.confidence,
+        cautionNote: item.caution_note,
+      },
+      [...node.path, item.name],
     );
+
+    if (Array.isArray(item.children) && item.children.length) {
+      mergeChildren(created, item.children);
+    }
+
+    node.children.push(created);
   }
 
   node.children.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function countIncomingItems(items = []) {
+  let total = 0;
+  for (const item of items) {
+    total += 1;
+    if (Array.isArray(item.children) && item.children.length) {
+      total += countIncomingItems(item.children);
+    }
+  }
+  return total;
 }
 
 async function fetchJson(url, options = {}) {
@@ -368,6 +387,40 @@ async function loadChildren(node, mode = "initial") {
   } catch (error) {
     node.childrenStatus = "error";
     node.childrenMessage = error.message || "Unable to generate direct fields.";
+  }
+
+  render();
+}
+
+async function loadAllKnownSubfields(node) {
+  node.childrenStatus = "loading";
+  node.childrenMessage = `Loading the full known subtree under ${node.name}...`;
+  render();
+
+  try {
+    const payload = await fetchJson("/api/taxonomy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: node.path,
+        existingChildren: node.children.flatMap((child) => [child.name, ...(child.aliases || [])]),
+        breadth: state.breadth,
+        customFocus: state.focus,
+        mode: "all_known",
+      }),
+    });
+
+    const incomingTree = Array.isArray(payload.tree) && payload.tree.length ? payload.tree : payload.items || [];
+    mergeChildren(node, incomingTree);
+    const loadedCount = countIncomingItems(incomingTree);
+    node.childrenStatus = "success";
+    node.childrenMessage = loadedCount
+      ? `Loaded ${loadedCount} known subfields under ${node.name}.`
+      : `All known stored subfields for ${node.name} are already loaded.`;
+    node.remainingMessage = payload.remaining_note || "";
+  } catch (error) {
+    node.childrenStatus = "error";
+    node.childrenMessage = error.message || "Unable to load all known subfields.";
   }
 
   render();
@@ -561,6 +614,7 @@ function renderTopicHeader(node) {
     ? "Refresh field map"
     : "Build field map";
   refs.generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
+  refs.loadAllKnownButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
   refs.findMoreButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
   refs.loadConceptsButton.disabled = node.conceptStatus === "loading";
   refs.loadBibliographyButton.disabled = node.bibliographyStatus === "loading";
@@ -792,6 +846,13 @@ refs.generateChildrenButton.addEventListener("click", () => {
   const node = selectedNode();
   if (node) {
     loadChildren(node, "initial");
+  }
+});
+
+refs.loadAllKnownButton.addEventListener("click", () => {
+  const node = selectedNode();
+  if (node) {
+    loadAllKnownSubfields(node);
   }
 });
 
