@@ -21,18 +21,6 @@ const ROOT_DEFINITIONS = [
   },
 ];
 
-const nodeTemplate = document.querySelector("#nodeTemplate");
-const taxonomyTree = document.querySelector("#taxonomyTree");
-const apiStatus = document.querySelector("#apiStatus");
-const breadthSelect = document.querySelector("#breadthSelect");
-const searchInput = document.querySelector("#searchInput");
-const focusInput = document.querySelector("#focusInput");
-const loadRootsButton = document.querySelector("#loadRootsButton");
-const collapseButton = document.querySelector("#collapseButton");
-const resetButton = document.querySelector("#resetButton");
-const loadedCount = document.querySelector("#loadedCount");
-const visibleCount = document.querySelector("#visibleCount");
-
 const BIBLIOGRAPHY_CATEGORY_LABELS = {
   seminal_works: "Seminal Works",
   breakthrough_works: "Breakthrough Works",
@@ -41,23 +29,61 @@ const BIBLIOGRAPHY_CATEGORY_LABELS = {
   recent_syntheses: "Recent Syntheses",
 };
 
-const CONCEPT_BIBLIOGRAPHY_LABELS = {
-  pedagogy_texts: "Pedagogy Texts",
-  seminal_works: "Seminal Works",
-  breakthrough_works: "Breakthrough Works",
-  advanced_syntheses: "Advanced Syntheses",
+const CONCEPT_STAGE_LABELS = {
+  beginner: "Beginner Concepts",
+  intermediate: "Intermediate Concepts",
+  advanced: "Advanced Concepts",
+};
+
+const refs = {
+  apiStatus: document.querySelector("#apiStatus"),
+  loadedCount: document.querySelector("#loadedCount"),
+  visibleCount: document.querySelector("#visibleCount"),
+  searchInput: document.querySelector("#searchInput"),
+  searchMeta: document.querySelector("#searchMeta"),
+  searchResults: document.querySelector("#searchResults"),
+  breadthSelect: document.querySelector("#breadthSelect"),
+  focusInput: document.querySelector("#focusInput"),
+  growRootsButton: document.querySelector("#growRootsButton"),
+  resetButton: document.querySelector("#resetButton"),
+  domainCards: document.querySelector("#domainCards"),
+  emptyState: document.querySelector("#emptyState"),
+  topicWorkspace: document.querySelector("#topicWorkspace"),
+  topicPath: document.querySelector("#topicPath"),
+  topicTitle: document.querySelector("#topicTitle"),
+  topicSummary: document.querySelector("#topicSummary"),
+  topicBadges: document.querySelector("#topicBadges"),
+  topicWhy: document.querySelector("#topicWhy"),
+  topicStatus: document.querySelector("#topicStatus"),
+  topicRemaining: document.querySelector("#topicRemaining"),
+  topicCaution: document.querySelector("#topicCaution"),
+  generateChildrenButton: document.querySelector("#generateChildrenButton"),
+  findMoreButton: document.querySelector("#findMoreButton"),
+  loadConceptsButton: document.querySelector("#loadConceptsButton"),
+  loadBibliographyButton: document.querySelector("#loadBibliographyButton"),
+  relatedIntro: document.querySelector("#relatedIntro"),
+  relatedFields: document.querySelector("#relatedFields"),
+  conceptsStatus: document.querySelector("#conceptsStatus"),
+  conceptsCaution: document.querySelector("#conceptsCaution"),
+  prerequisitesList: document.querySelector("#prerequisitesList"),
+  conceptStages: document.querySelector("#conceptStages"),
+  milestonesList: document.querySelector("#milestonesList"),
+  bibliographyStatus: document.querySelector("#bibliographyStatus"),
+  bibliographyCaution: document.querySelector("#bibliographyCaution"),
+  bibliographyGroups: document.querySelector("#bibliographyGroups"),
+  domainCardTemplate: document.querySelector("#domainCardTemplate"),
+  searchResultTemplate: document.querySelector("#searchResultTemplate"),
+  fieldCardTemplate: document.querySelector("#fieldCardTemplate"),
 };
 
 const state = {
   breadth: "maximal",
-  search: "",
   focus: "",
+  search: "",
   loadingRoots: false,
-  health: {
-    ok: false,
-    model: null,
-    message: "Checking API status...",
-  },
+  selectedNodeId: null,
+  healthMessage: "Checking API status...",
+  healthOk: false,
   roots: createInitialRoots(),
 };
 
@@ -69,7 +95,7 @@ function createNode(
     keywords = [],
     aliases = [],
     likelyHasChildren = true,
-    childScopeLabel = "subfields",
+    childScopeLabel = "related fields",
     taxonomyRole = "field",
     confidence = "high",
     cautionNote = "",
@@ -90,18 +116,17 @@ function createNode(
     confidence,
     cautionNote,
     children: [],
-    expanded: false,
     childrenStatus: "idle",
     childrenMessage: "",
     remainingMessage: "",
+    conceptStatus: "idle",
+    conceptMap: null,
+    conceptError: "",
     bibliographyStatus: "idle",
-    bibliographyError: "",
+    bibliography: null,
     bibliographyNote: "",
     bibliographyCaution: "",
-    bibliography: null,
-    conceptStatus: "idle",
-    conceptError: "",
-    conceptMap: null,
+    bibliographyError: "",
   };
 }
 
@@ -110,9 +135,8 @@ function createInitialRoots() {
     createNode(
       {
         ...item,
-        childScopeLabel: "branches",
+        childScopeLabel: "major branches",
         taxonomyRole: "field",
-        confidence: "high",
       },
       [item.name],
     ),
@@ -120,52 +144,54 @@ function createInitialRoots() {
 }
 
 function normalizeName(value) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function titleCaseLabel(value) {
-  return String(value || "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+function clearChildren(element) {
+  element.replaceChildren();
 }
 
-function countLoadedNodes(nodes) {
-  let total = 0;
+function createBadge(label, tone = "") {
+  const item = document.createElement("span");
+  item.className = `badge${tone ? ` ${tone}` : ""}`;
+  item.textContent = label;
+  return item;
+}
+
+function flattenNodes(nodes = state.roots) {
+  const output = [];
   for (const node of nodes) {
-    total += 1;
-    total += countLoadedNodes(node.children);
+    output.push(node);
+    output.push(...flattenNodes(node.children));
   }
-  return total;
+  return output;
 }
 
-function nodeMatchesSearch(node, query) {
-  if (!query) {
-    return true;
+function countLoadedNodes() {
+  return flattenNodes().length;
+}
+
+function findNodeById(id, nodes = state.roots) {
+  for (const node of nodes) {
+    if (node.id === id) {
+      return node;
+    }
+    const child = findNodeById(id, node.children);
+    if (child) {
+      return child;
+    }
   }
+  return null;
+}
 
-  const haystack = [
-    node.name,
-    node.summary,
-    node.whyItBelongs,
-    node.path.join(" "),
-    node.keywords.join(" "),
-    node.aliases.join(" "),
-    node.taxonomyRole,
-    node.cautionNote,
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  return haystack.includes(query);
+function selectedNode() {
+  return state.selectedNodeId ? findNodeById(state.selectedNodeId) : null;
 }
 
 function mergeChildren(node, incomingItems) {
   const existingByName = new Map(node.children.map((child) => [normalizeName(child.name), child]));
 
-  for (const item of incomingItems) {
+  for (const item of incomingItems || []) {
     const key = normalizeName(item.name);
     if (!key) {
       continue;
@@ -185,24 +211,23 @@ function mergeChildren(node, incomingItems) {
       continue;
     }
 
-    const child = createNode(
-      {
-        name: item.name,
-        summary: item.summary,
-        whyItBelongs: item.why_it_belongs,
-        keywords: item.keywords,
-        aliases: item.aliases,
-        likelyHasChildren: item.likely_has_children,
-        childScopeLabel: item.child_scope_label,
-        taxonomyRole: item.taxonomy_role,
-        confidence: item.confidence,
-        cautionNote: item.caution_note,
-      },
-      [...node.path, item.name],
+    node.children.push(
+      createNode(
+        {
+          name: item.name,
+          summary: item.summary,
+          whyItBelongs: item.why_it_belongs,
+          keywords: item.keywords,
+          aliases: item.aliases,
+          likelyHasChildren: item.likely_has_children,
+          childScopeLabel: item.child_scope_label,
+          taxonomyRole: item.taxonomy_role,
+          confidence: item.confidence,
+          cautionNote: item.caution_note,
+        },
+        [...node.path, item.name],
+      ),
     );
-
-    node.children.push(child);
-    existingByName.set(key, child);
   }
 
   node.children.sort((left, right) => left.name.localeCompare(right.name));
@@ -219,26 +244,28 @@ async function fetchJson(url, options = {}) {
 
 async function refreshHealth() {
   try {
-    const data = await fetchJson("/api/health");
-    state.health.ok = Boolean(data.ok && data.apiKeyConfigured);
-    state.health.model = data.model || null;
-    state.health.message = state.health.ok
-      ? `API is ready. Model: ${data.model}.`
-      : "API is reachable, but OPENAI_API_KEY is not configured yet.";
+    const payload = await fetchJson("/api/health");
+    state.healthOk = Boolean(payload.ok && payload.apiKeyConfigured);
+    state.healthMessage = state.healthOk
+      ? `API ready. Model: ${payload.model}.`
+      : "API reachable, but OPENAI_API_KEY is not configured yet.";
   } catch {
-    state.health.ok = false;
-    state.health.model = null;
-    state.health.message = "API routes are not reachable right now.";
+    state.healthOk = false;
+    state.healthMessage = "API routes are not reachable right now.";
   }
+  render();
+}
 
+function selectNode(node) {
+  state.selectedNodeId = node.id;
   render();
 }
 
 async function loadChildren(node, mode = "initial") {
   node.childrenStatus = "loading";
   node.childrenMessage = mode === "find_more"
-    ? "Looking for additional non-duplicate sibling branches..."
-    : "Generating direct child categories...";
+    ? "Looking for missing sibling fields..."
+    : "Generating direct related fields...";
   render();
 
   try {
@@ -259,12 +286,14 @@ async function loadChildren(node, mode = "initial") {
       ? ` Filtered near-duplicates: ${payload.dropped_duplicates.join(", ")}.`
       : "";
     node.childrenStatus = "success";
-    node.childrenMessage = `${payload.overview || `Loaded ${node.children.length} child items.`}${duplicateNote}`;
+    node.childrenMessage = `${payload.overview || `Loaded ${node.children.length} direct fields.`}${duplicateNote}`;
     node.remainingMessage = payload.remaining_note || "";
-    node.expanded = true;
+    if (!state.selectedNodeId) {
+      state.selectedNodeId = node.id;
+    }
   } catch (error) {
     node.childrenStatus = "error";
-    node.childrenMessage = error.message || "Unable to generate child taxonomy.";
+    node.childrenMessage = error.message || "Unable to generate direct fields.";
   }
 
   render();
@@ -273,7 +302,7 @@ async function loadChildren(node, mode = "initial") {
 async function loadBibliography(node) {
   node.bibliographyStatus = "loading";
   node.bibliographyError = "";
-  node.bibliographyNote = "Generating categorized research bibliography...";
+  node.bibliographyNote = "Generating bibliography...";
   render();
 
   try {
@@ -286,18 +315,14 @@ async function loadBibliography(node) {
         keywords: node.keywords,
       }),
     });
-
-    node.bibliography = payload.categories || null;
+    node.bibliography = payload.categories || {};
     node.bibliographyNote = payload.note || "";
     node.bibliographyCaution = payload.caution_note || "";
     node.bibliographyStatus = "success";
   } catch (error) {
     node.bibliographyStatus = "error";
     node.bibliographyError = error.message || "Unable to generate bibliography.";
-    node.bibliographyNote = node.bibliographyError;
-    node.bibliographyCaution = "";
   }
-
   render();
 }
 
@@ -316,108 +341,291 @@ async function loadConcepts(node) {
         keywords: node.keywords,
       }),
     });
-
     node.conceptMap = payload;
     node.conceptStatus = "success";
   } catch (error) {
     node.conceptStatus = "error";
-    node.conceptError = error.message || "Unable to generate concept tree.";
+    node.conceptError = error.message || "Unable to generate core concepts.";
   }
-
   render();
 }
 
-async function loadMajorBranches() {
+async function growRootDomains() {
   state.loadingRoots = true;
   render();
-
-  for (const root of state.roots) {
-    await loadChildren(root, "initial");
+  for (const node of state.roots) {
+    await loadChildren(node, "initial");
   }
-
+  if (!state.selectedNodeId && state.roots[0]) {
+    state.selectedNodeId = state.roots[0].id;
+  }
   state.loadingRoots = false;
   render();
 }
 
-function collapseAll(nodes = state.roots) {
-  for (const node of nodes) {
-    node.expanded = false;
-    collapseAll(node.children);
+function scoreNodeForSearch(node, query) {
+  const normalizedQuery = normalizeName(query);
+  if (!normalizedQuery) {
+    return 0;
+  }
+
+  const text = [
+    node.name,
+    node.summary,
+    node.path.join(" "),
+    node.keywords.join(" "),
+    node.aliases.join(" "),
+  ].join(" ").toLowerCase();
+
+  if (!text.includes(normalizedQuery)) {
+    return -1;
+  }
+
+  let score = 0;
+  if (normalizeName(node.name).includes(normalizedQuery)) {
+    score += 6;
+  }
+  if (normalizeName(node.path.join(" ")).includes(normalizedQuery)) {
+    score += 3;
+  }
+  score += Math.max(0, 4 - node.path.length);
+  score += node.children.length ? 1 : 0;
+  return score;
+}
+
+function getSearchResults() {
+  if (!state.search.trim()) {
+    return [];
+  }
+
+  return flattenNodes()
+    .map((node) => ({ node, score: scoreNodeForSearch(node, state.search) }))
+    .filter((item) => item.score >= 0)
+    .sort((left, right) => right.score - left.score || left.node.name.localeCompare(right.node.name))
+    .slice(0, 12)
+    .map((item) => item.node);
+}
+
+function renderDomainCards() {
+  clearChildren(refs.domainCards);
+
+  for (const node of state.roots) {
+    const fragment = refs.domainCardTemplate.content.cloneNode(true);
+    fragment.querySelector(".domain-label").textContent = node.children.length
+      ? `${node.children.length} loaded branches`
+      : "Root domain";
+    fragment.querySelector(".domain-name").textContent = node.name;
+    fragment.querySelector(".domain-summary").textContent = node.summary;
+
+    fragment.querySelector(".open-domain-button").addEventListener("click", () => {
+      selectNode(node);
+    });
+    fragment.querySelector(".grow-domain-button").addEventListener("click", () => {
+      loadChildren(node, "initial");
+    });
+
+    refs.domainCards.appendChild(fragment);
   }
 }
 
-function renderBadges(node, container) {
-  const badges = [
-    { label: `${node.path.length === 1 ? "root" : "depth"} ${node.path.length}`, className: "depth-badge" },
-    { label: node.taxonomyRole || "field", className: "" },
-    { label: node.confidence ? `${node.confidence} confidence` : "confidence unknown", className: "" },
-  ];
+function renderSearch() {
+  clearChildren(refs.searchResults);
+  const results = getSearchResults();
+  refs.visibleCount.textContent = String(results.length);
 
-  if (node.keywords.length) {
-    badges.push({ label: `${node.keywords.length} keywords`, className: "" });
-  }
-
-  for (const badge of badges) {
-    const element = document.createElement("span");
-    element.className = `badge ${badge.className}`.trim();
-    element.textContent = badge.label;
-    container.appendChild(element);
-  }
-}
-
-function createReferenceListItem(entry) {
-  const item = document.createElement("li");
-
-  const citation = document.createElement("p");
-  const title = document.createElement("strong");
-  title.textContent = `${entry.title} (${entry.year})`;
-  citation.appendChild(title);
-  citation.appendChild(document.createElement("br"));
-  citation.appendChild(document.createTextNode(entry.authors));
-  citation.appendChild(document.createElement("br"));
-  citation.appendChild(document.createTextNode(entry.source));
-
-  const why = document.createElement("p");
-  why.textContent = `${entry.why_it_matters} Confidence: ${entry.confidence}.`;
-
-  item.append(citation, why);
-  return item;
-}
-
-function renderBibliography(node, fragment) {
-  const panel = fragment.querySelector(".bibliography-panel");
-  const note = fragment.querySelector(".bibliography-note");
-  const groups = fragment.querySelector(".bibliography-groups");
-
-  if (node.bibliographyStatus === "idle" && !node.bibliography) {
-    panel.hidden = true;
+  if (!state.search.trim()) {
+    refs.searchMeta.textContent = "Search works across topics that have already been opened or generated.";
     return;
   }
 
-  panel.hidden = false;
-  note.textContent = node.bibliographyNote || "";
-  groups.replaceChildren();
+  refs.searchMeta.textContent = results.length
+    ? `${results.length} loaded topics match "${state.search}".`
+    : `No loaded topics match "${state.search}" yet. Grow a domain to surface more topics.`;
+
+  for (const node of results) {
+    const fragment = refs.searchResultTemplate.content.cloneNode(true);
+    fragment.querySelector(".search-result-path").textContent = node.path.join(" > ");
+    fragment.querySelector(".search-result-name").textContent = node.name;
+    fragment.querySelector(".search-result-summary").textContent = node.summary;
+    fragment.querySelector(".search-result").addEventListener("click", () => {
+      selectNode(node);
+    });
+    refs.searchResults.appendChild(fragment);
+  }
+}
+
+function renderTopicHeader(node) {
+  refs.topicPath.textContent = node.path.join(" > ");
+  refs.topicTitle.textContent = node.name;
+  refs.topicSummary.textContent = node.summary;
+  refs.topicWhy.textContent = node.whyItBelongs ? `Why this field belongs here: ${node.whyItBelongs}` : "";
+  refs.topicStatus.textContent = node.childrenMessage || "";
+  refs.topicRemaining.textContent = node.remainingMessage ? `Coverage note: ${node.remainingMessage}` : "";
+  refs.topicCaution.textContent = node.cautionNote ? `Caution: ${node.cautionNote}` : "";
+  refs.topicWhy.hidden = !node.whyItBelongs;
+  refs.topicStatus.hidden = !node.childrenMessage;
+  refs.topicRemaining.hidden = !node.remainingMessage;
+  refs.topicCaution.hidden = !node.cautionNote;
+
+  clearChildren(refs.topicBadges);
+  refs.topicBadges.append(
+    createBadge(node.taxonomyRole || "field", "cool"),
+    createBadge(`${node.confidence || "unknown"} confidence`),
+    createBadge(`depth ${node.path.length}`),
+  );
+  if (node.keywords.length) {
+    refs.topicBadges.appendChild(createBadge(`${node.keywords.length} keywords`, "soft"));
+  }
+
+  refs.generateChildrenButton.textContent = node.children.length
+    ? `Refresh ${node.childScopeLabel || "direct fields"}`
+    : `Generate ${node.childScopeLabel || "direct fields"}`;
+  refs.generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
+  refs.findMoreButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
+  refs.loadConceptsButton.disabled = node.conceptStatus === "loading";
+  refs.loadBibliographyButton.disabled = node.bibliographyStatus === "loading";
+}
+
+function renderRelatedFields(node) {
+  clearChildren(refs.relatedFields);
+  refs.relatedIntro.textContent = node.children.length
+    ? `Direct ${node.childScopeLabel || "fields"} currently loaded for this topic.`
+    : "No direct fields have been loaded yet. Generate them to explore the structure around this topic.";
+
+  if (!node.children.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-slot";
+    empty.textContent = "No related fields loaded yet.";
+    refs.relatedFields.appendChild(empty);
+    return;
+  }
+
+  for (const child of node.children) {
+    const fragment = refs.fieldCardTemplate.content.cloneNode(true);
+    fragment.querySelector(".field-path").textContent = child.path.join(" > ");
+    fragment.querySelector(".field-name").textContent = child.name;
+    fragment.querySelector(".field-summary").textContent = child.summary;
+
+    const badgeRow = fragment.querySelector(".field-badges");
+    badgeRow.append(
+      createBadge(child.taxonomyRole || "field", "soft"),
+      createBadge(`${child.confidence || "unknown"} confidence`, "soft"),
+    );
+
+    fragment.querySelector(".open-field-button").addEventListener("click", () => {
+      selectNode(child);
+    });
+    fragment.querySelector(".grow-field-button").addEventListener("click", () => {
+      loadChildren(child, "initial");
+    });
+
+    refs.relatedFields.appendChild(fragment);
+  }
+}
+
+function renderConcepts(node) {
+  clearChildren(refs.prerequisitesList);
+  clearChildren(refs.conceptStages);
+  clearChildren(refs.milestonesList);
+
+  if (node.conceptStatus === "idle" && !node.conceptMap) {
+    refs.conceptsStatus.textContent = "Load core concepts to see prerequisites, staged ideas, and milestone capabilities.";
+    refs.conceptsCaution.hidden = true;
+    return;
+  }
+
+  if (node.conceptStatus === "loading") {
+    refs.conceptsStatus.textContent = "Generating core concepts and staged learning map...";
+    refs.conceptsCaution.hidden = true;
+    return;
+  }
+
+  if (node.conceptStatus === "error") {
+    refs.conceptsStatus.textContent = node.conceptError || "Unable to generate core concepts.";
+    refs.conceptsCaution.hidden = true;
+    return;
+  }
+
+  refs.conceptsStatus.textContent = node.conceptMap?.note || "Core concepts loaded.";
+  refs.conceptsCaution.textContent = node.conceptMap?.caution_note || "";
+  refs.conceptsCaution.hidden = !node.conceptMap?.caution_note;
+
+  for (const item of node.conceptMap?.prerequisites || []) {
+    const listItem = document.createElement("li");
+    listItem.textContent = item;
+    refs.prerequisitesList.appendChild(listItem);
+  }
+
+  for (const [key, label] of Object.entries(CONCEPT_STAGE_LABELS)) {
+    const entries = node.conceptMap?.learning_stages?.[key] || [];
+    if (!entries.length) {
+      continue;
+    }
+
+    const section = document.createElement("section");
+    section.className = "stage-card";
+    const title = document.createElement("h3");
+    title.textContent = label;
+    section.appendChild(title);
+
+    const list = document.createElement("ul");
+    list.className = "plain-list";
+    for (const entry of entries) {
+      const item = document.createElement("li");
+      const strong = document.createElement("strong");
+      strong.textContent = entry.name;
+      const text = document.createElement("p");
+      text.textContent = entry.summary;
+      item.append(strong, text);
+      list.appendChild(item);
+    }
+    section.appendChild(list);
+    refs.conceptStages.appendChild(section);
+  }
+
+  for (const item of node.conceptMap?.milestone_capabilities || []) {
+    const listItem = document.createElement("li");
+    listItem.textContent = item;
+    refs.milestonesList.appendChild(listItem);
+  }
+}
+
+function createReferenceItem(entry) {
+  const item = document.createElement("li");
+  const title = document.createElement("strong");
+  title.textContent = `${entry.title} (${entry.year})`;
+  const meta = document.createElement("p");
+  meta.textContent = `${entry.authors} ${entry.source ? `| ${entry.source}` : ""}`;
+  const why = document.createElement("p");
+  why.textContent = `${entry.why_it_matters} Confidence: ${entry.confidence}.`;
+  item.append(title, meta, why);
+  return item;
+}
+
+function renderBibliography(node) {
+  clearChildren(refs.bibliographyGroups);
+
+  if (node.bibliographyStatus === "idle" && !node.bibliography) {
+    refs.bibliographyStatus.textContent = "Load bibliography to group works by role in understanding the field.";
+    refs.bibliographyCaution.hidden = true;
+    return;
+  }
 
   if (node.bibliographyStatus === "loading") {
-    const status = document.createElement("p");
-    status.textContent = "Generating categorized bibliography...";
-    groups.appendChild(status);
+    refs.bibliographyStatus.textContent = "Generating categorized bibliography...";
+    refs.bibliographyCaution.hidden = true;
     return;
   }
 
   if (node.bibliographyStatus === "error") {
-    const status = document.createElement("p");
-    status.textContent = node.bibliographyError || "Bibliography request failed.";
-    groups.appendChild(status);
+    refs.bibliographyStatus.textContent = node.bibliographyError || "Unable to generate bibliography.";
+    refs.bibliographyCaution.hidden = true;
     return;
   }
 
-  if (node.bibliographyCaution) {
-    const caution = document.createElement("p");
-    caution.className = "concepts-caution";
-    caution.textContent = node.bibliographyCaution;
-    groups.appendChild(caution);
-  }
+  refs.bibliographyStatus.textContent = node.bibliographyNote || "Bibliography loaded.";
+  refs.bibliographyCaution.textContent = node.bibliographyCaution || "";
+  refs.bibliographyCaution.hidden = !node.bibliographyCaution;
 
   for (const [key, label] of Object.entries(BIBLIOGRAPHY_CATEGORY_LABELS)) {
     const entries = node.bibliography?.[key] || [];
@@ -425,283 +633,107 @@ function renderBibliography(node, fragment) {
       continue;
     }
 
-    const group = document.createElement("section");
-    group.className = "bibliography-group";
-
-    const heading = document.createElement("h4");
-    heading.textContent = label;
-
+    const section = document.createElement("section");
+    section.className = "bibliography-card";
+    const title = document.createElement("h3");
+    title.textContent = label;
     const list = document.createElement("ol");
+    list.className = "plain-list";
     for (const entry of entries) {
-      list.appendChild(createReferenceListItem(entry));
+      list.appendChild(createReferenceItem(entry));
     }
-
-    group.append(heading, list);
-    groups.appendChild(group);
+    section.append(title, list);
+    refs.bibliographyGroups.appendChild(section);
   }
 
-  if (!groups.children.length) {
-    const empty = document.createElement("p");
-    empty.textContent = "No safe references were returned for this topic yet.";
-    groups.appendChild(empty);
+  if (!refs.bibliographyGroups.children.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-slot";
+    empty.textContent = "No bibliography entries were returned for this topic yet.";
+    refs.bibliographyGroups.appendChild(empty);
   }
 }
 
-function renderConcepts(node, fragment) {
-  const panel = fragment.querySelector(".concepts-panel");
-  const note = fragment.querySelector(".concepts-note");
-  const caution = fragment.querySelector(".concepts-caution");
-  const prerequisitesList = fragment.querySelector(".prerequisites-list");
-  const milestonesList = fragment.querySelector(".milestones-list");
-  const stageContainer = fragment.querySelector(".concept-stages");
-  const bibliographyGroups = fragment.querySelector(".concept-bibliography-groups");
-
-  if (node.conceptStatus === "idle" && !node.conceptMap) {
-    panel.hidden = true;
+function renderWorkspace() {
+  const node = selectedNode();
+  refs.emptyState.hidden = Boolean(node);
+  refs.topicWorkspace.hidden = !node;
+  if (!node) {
     return;
   }
 
-  panel.hidden = false;
-  prerequisitesList.replaceChildren();
-  milestonesList.replaceChildren();
-  stageContainer.replaceChildren();
-  bibliographyGroups.replaceChildren();
-
-  if (node.conceptStatus === "loading") {
-    note.textContent = "Generating beginner-to-advanced concept tree...";
-    caution.textContent = "";
-    caution.hidden = true;
-    return;
-  }
-
-  if (node.conceptStatus === "error") {
-    note.textContent = node.conceptError || "Learning map request failed.";
-    caution.textContent = "";
-    caution.hidden = true;
-    return;
-  }
-
-  note.textContent = node.conceptMap?.note || "";
-  caution.textContent = node.conceptMap?.caution_note || "";
-  caution.hidden = !node.conceptMap?.caution_note;
-
-  for (const item of node.conceptMap?.prerequisites || []) {
-    const listItem = document.createElement("li");
-    listItem.textContent = item;
-    prerequisitesList.appendChild(listItem);
-  }
-
-  for (const [stageKey, stageItems] of Object.entries(node.conceptMap?.learning_stages || {})) {
-    const stage = document.createElement("section");
-    stage.className = "concept-stage";
-
-    const heading = document.createElement("h4");
-    heading.textContent = titleCaseLabel(stageKey);
-
-    const list = document.createElement("ul");
-    for (const entry of stageItems) {
-      const item = document.createElement("li");
-      const title = document.createElement("strong");
-      title.textContent = entry.name;
-
-      const description = document.createElement("p");
-      description.textContent = entry.summary;
-
-      item.append(title, description);
-      list.appendChild(item);
-    }
-
-    stage.append(heading, list);
-    stageContainer.appendChild(stage);
-  }
-
-  for (const capability of node.conceptMap?.milestone_capabilities || []) {
-    const listItem = document.createElement("li");
-    listItem.textContent = capability;
-    milestonesList.appendChild(listItem);
-  }
-
-  for (const [key, label] of Object.entries(CONCEPT_BIBLIOGRAPHY_LABELS)) {
-    const entries = node.conceptMap?.bibliography_by_level?.[key] || [];
-    if (!entries.length) {
-      continue;
-    }
-
-    const group = document.createElement("section");
-    group.className = "concept-bibliography-group";
-
-    const heading = document.createElement("h4");
-    heading.textContent = label;
-
-    const list = document.createElement("ol");
-    for (const entry of entries) {
-      list.appendChild(createReferenceListItem(entry));
-    }
-
-    group.append(heading, list);
-    bibliographyGroups.appendChild(group);
-  }
-}
-
-function renderNode(node, query) {
-  const childResults = node.children
-    .map((child) => renderNode(child, query))
-    .filter(Boolean);
-
-  const selfMatches = nodeMatchesSearch(node, query);
-  const descendantMatches = childResults.length > 0;
-
-  if (query && !selfMatches && !descendantMatches) {
-    return null;
-  }
-
-  const fragment = nodeTemplate.content.cloneNode(true);
-  const toggleButton = fragment.querySelector(".toggle-button");
-  const generateChildrenButton = fragment.querySelector(".generate-children-button");
-  const findMoreButton = fragment.querySelector(".find-more-button");
-  const bibliographyButton = fragment.querySelector(".bibliography-button");
-  const conceptsButton = fragment.querySelector(".concepts-button");
-  const pathElement = fragment.querySelector(".node-path");
-  const nameElement = fragment.querySelector(".node-name");
-  const summaryElement = fragment.querySelector(".node-summary");
-  const whyElement = fragment.querySelector(".node-why");
-  const statusElement = fragment.querySelector(".node-status");
-  const remainingElement = fragment.querySelector(".node-remaining");
-  const cautionElement = fragment.querySelector(".node-caution");
-  const badgesElement = fragment.querySelector(".node-badges");
-  const childrenShell = fragment.querySelector(".children-shell");
-  const childrenLabel = fragment.querySelector(".children-label");
-  const childrenList = fragment.querySelector(".children-list");
-
-  pathElement.textContent = node.path.join(" > ");
-  nameElement.textContent = node.name;
-  summaryElement.textContent = node.summary;
-  whyElement.textContent = node.whyItBelongs ? `Why it belongs here: ${node.whyItBelongs}` : "";
-  statusElement.textContent = node.childrenMessage || "";
-  remainingElement.textContent = node.remainingMessage ? `Coverage note: ${node.remainingMessage}` : "";
-  cautionElement.textContent = node.cautionNote ? `Caution: ${node.cautionNote}` : "";
-  whyElement.hidden = !node.whyItBelongs;
-  statusElement.hidden = !node.childrenMessage;
-  remainingElement.hidden = !node.remainingMessage;
-  cautionElement.hidden = !node.cautionNote;
-
-  if (node.childrenStatus === "error") {
-    statusElement.classList.add("status-error");
-  } else if (node.childrenStatus === "success") {
-    statusElement.classList.add("status-success");
-  }
-
-  renderBadges(node, badgesElement);
-
-  const canToggle = node.children.length > 0;
-  toggleButton.disabled = !canToggle;
-  toggleButton.textContent = node.expanded || (query && descendantMatches) ? "-" : "+";
-  toggleButton.addEventListener("click", () => {
-    if (!canToggle) {
-      return;
-    }
-    node.expanded = !node.expanded;
-    render();
-  });
-
-  generateChildrenButton.textContent = node.children.length
-    ? `Refresh ${node.childScopeLabel || "children"}`
-    : `Generate ${node.childScopeLabel || "children"}`;
-  generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
-  generateChildrenButton.addEventListener("click", () => {
-    loadChildren(node, "initial");
-  });
-
-  findMoreButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
-  findMoreButton.addEventListener("click", () => {
-    loadChildren(node, "find_more");
-  });
-
-  bibliographyButton.disabled = node.bibliographyStatus === "loading";
-  bibliographyButton.addEventListener("click", () => {
-    loadBibliography(node);
-  });
-
-  conceptsButton.disabled = node.conceptStatus === "loading";
-  conceptsButton.addEventListener("click", () => {
-    loadConcepts(node);
-  });
-
-  renderBibliography(node, fragment);
-  renderConcepts(node, fragment);
-
-  const showChildren = childResults.length > 0 && (node.expanded || Boolean(query));
-  childrenShell.hidden = !showChildren;
-  childrenLabel.textContent = node.childScopeLabel || "children";
-
-  for (const child of childResults) {
-    childrenList.appendChild(child.element);
-  }
-
-  return {
-    element: fragment,
-    visibleCount: 1 + childResults.reduce((sum, child) => sum + child.visibleCount, 0),
-  };
+  renderTopicHeader(node);
+  renderRelatedFields(node);
+  renderConcepts(node);
+  renderBibliography(node);
 }
 
 function render() {
-  const query = state.search.trim().toLowerCase();
-  taxonomyTree.replaceChildren();
+  refs.apiStatus.textContent = state.healthMessage;
+  refs.apiStatus.classList.toggle("status-ok", state.healthOk);
+  refs.apiStatus.classList.toggle("status-error", !state.healthOk);
+  refs.loadedCount.textContent = String(countLoadedNodes());
+  refs.growRootsButton.disabled = state.loadingRoots;
 
-  const results = state.roots.map((node) => renderNode(node, query)).filter(Boolean);
-  const visible = results.reduce((sum, result) => sum + result.visibleCount, 0);
-
-  if (!results.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = query
-      ? "No loaded taxonomy nodes match this search yet. Clear the search or expand more branches."
-      : "No taxonomy loaded yet. Generate major branches or expand any root domain.";
-    taxonomyTree.appendChild(empty);
-  } else {
-    for (const result of results) {
-      taxonomyTree.appendChild(result.element);
-    }
-  }
-
-  apiStatus.textContent = state.health.message;
-  apiStatus.classList.toggle("status-success", state.health.ok);
-  apiStatus.classList.toggle("status-error", !state.health.ok);
-
-  loadRootsButton.disabled = state.loadingRoots;
-  loadedCount.textContent = String(countLoadedNodes(state.roots));
-  visibleCount.textContent = String(visible);
+  renderDomainCards();
+  renderSearch();
+  renderWorkspace();
 }
 
-breadthSelect.addEventListener("change", (event) => {
-  state.breadth = event.target.value;
-});
-
-searchInput.addEventListener("input", (event) => {
+refs.searchInput.addEventListener("input", (event) => {
   state.search = event.target.value;
   render();
 });
 
-focusInput.addEventListener("input", (event) => {
+refs.breadthSelect.addEventListener("change", (event) => {
+  state.breadth = event.target.value;
+});
+
+refs.focusInput.addEventListener("input", (event) => {
   state.focus = event.target.value.trim();
 });
 
-loadRootsButton.addEventListener("click", () => {
-  loadMajorBranches();
+refs.growRootsButton.addEventListener("click", () => {
+  growRootDomains();
 });
 
-collapseButton.addEventListener("click", () => {
-  collapseAll();
-  render();
-});
-
-resetButton.addEventListener("click", () => {
-  state.roots = createInitialRoots();
+refs.resetButton.addEventListener("click", () => {
   state.search = "";
   state.focus = "";
-  searchInput.value = "";
-  focusInput.value = "";
+  state.selectedNodeId = null;
+  state.loadingRoots = false;
+  state.roots = createInitialRoots();
+  refs.searchInput.value = "";
+  refs.focusInput.value = "";
   render();
+});
+
+refs.generateChildrenButton.addEventListener("click", () => {
+  const node = selectedNode();
+  if (node) {
+    loadChildren(node, "initial");
+  }
+});
+
+refs.findMoreButton.addEventListener("click", () => {
+  const node = selectedNode();
+  if (node) {
+    loadChildren(node, "find_more");
+  }
+});
+
+refs.loadConceptsButton.addEventListener("click", () => {
+  const node = selectedNode();
+  if (node) {
+    loadConcepts(node);
+  }
+});
+
+refs.loadBibliographyButton.addEventListener("click", () => {
+  const node = selectedNode();
+  if (node) {
+    loadBibliography(node);
+  }
 });
 
 render();

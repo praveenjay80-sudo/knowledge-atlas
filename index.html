@@ -12,147 +12,200 @@
 <body>
   <div class="page-shell">
     <header class="hero">
-      <p class="eyebrow">Vercel-Ready Knowledge Cartography</p>
-      <h1>Knowledge Atlas</h1>
-      <p class="hero-copy">
-        Dynamically generate an expandable taxonomy across formal sciences, natural sciences,
-        social sciences, and philosophy, then request concept maps and categorized bibliographies
-        for any node in the tree. The app is structured as static files plus serverless API routes,
-        so it fits Vercel directly.
-      </p>
-      <div class="hero-note">
-        <strong>Honesty note:</strong> no model can guarantee a perfectly exhaustive taxonomy in one pass.
-        This app is designed to keep expanding, refining, and finding missing siblings so you can push
-        coverage deeper over time without pretending the first pass is final.
+      <div class="hero-copy">
+        <p class="eyebrow">Knowledge Atlas</p>
+        <h1>A scholarly atlas for concepts, canonical readings, and field structure.</h1>
+        <p class="hero-text">
+          Start from formal sciences, natural sciences, social sciences, or philosophy. Then open a topic,
+          surface its core concepts, and assemble readings grouped as seminal, breakthrough, pedagogical,
+          and reference works.
+        </p>
+      </div>
+      <div class="hero-side">
+        <div class="status-block">
+          <span class="status-label">API status</span>
+          <strong id="apiStatus">Checking API status...</strong>
+        </div>
+        <div class="status-block">
+          <span class="status-label">Loaded topics</span>
+          <strong id="loadedCount">0</strong>
+        </div>
+        <div class="status-block">
+          <span class="status-label">Visible results</span>
+          <strong id="visibleCount">0</strong>
+        </div>
       </div>
     </header>
 
-    <main>
-      <section class="status-panel">
-        <div>
-          <p class="panel-title">API Status</p>
-          <p class="panel-copy">
-            This app talks to protected Vercel-style API routes for taxonomy generation,
-            categorized bibliography generation, and core-concept learning maps.
-          </p>
-        </div>
-        <p id="apiStatus" class="api-status">Checking API status...</p>
-      </section>
-
-      <section class="control-panel">
-        <div class="control-grid">
+    <main class="app-grid">
+      <aside class="sidebar">
+        <section class="panel search-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Search</p>
+              <h2>Find a loaded topic</h2>
+            </div>
+          </div>
           <label class="control">
-            <span>Coverage Mode</span>
+            <span>Search loaded topics</span>
+            <input id="searchInput" type="search" placeholder="Try logic, ethics, ecology, macroeconomics, topology..." />
+          </label>
+          <p id="searchMeta" class="support-copy">Search works across topics that have already been opened or generated.</p>
+          <div id="searchResults" class="stack-list"></div>
+        </section>
+
+        <section class="panel focus-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Generation</p>
+              <h2>Guide the atlas</h2>
+            </div>
+          </div>
+          <label class="control">
+            <span>Coverage mode</span>
             <select id="breadthSelect">
               <option value="compact">Compact</option>
               <option value="broad">Broad</option>
               <option value="maximal" selected>Maximal</option>
             </select>
           </label>
-          <label class="control search-control">
-            <span>Search Loaded Nodes</span>
-            <input id="searchInput" type="search" placeholder="Search loaded fields, subfields, or keywords" />
+          <label class="control">
+            <span>Focus hint</span>
+            <textarea id="focusInput" rows="4" placeholder="Optional: emphasize canonical academic subfields, prioritize philosophy of science, avoid highly applied branches, prefer standard university taxonomy language..."></textarea>
           </label>
-        </div>
-        <label class="control">
-          <span>Taxonomy Focus Hint</span>
-          <textarea id="focusInput" rows="3" placeholder="Optional: for example, emphasize canonical academic disciplines, include interdisciplinary branches, or prefer contemporary university taxonomy language."></textarea>
-        </label>
-        <div class="action-row">
-          <button id="loadRootsButton" class="primary-button" type="button">Generate Major Branches</button>
-          <button id="collapseButton" class="secondary-button" type="button">Collapse All</button>
-          <button id="resetButton" class="ghost-button" type="button">Reset Tree</button>
-        </div>
-      </section>
-
-      <section class="summary-panel">
-        <div class="summary-metric">
-          <span class="metric-label">Loaded Nodes</span>
-          <strong id="loadedCount">0</strong>
-        </div>
-        <div class="summary-metric">
-          <span class="metric-label">Visible Nodes</span>
-          <strong id="visibleCount">0</strong>
-        </div>
-        <div class="summary-metric">
-          <span class="metric-label">Root Domains</span>
-          <strong>Formal, Natural, Social, Philosophy</strong>
-        </div>
-      </section>
-
-      <section class="taxonomy-panel">
-        <div class="taxonomy-panel-head">
-          <div>
-          <p class="panel-title">Expandable Taxonomy</p>
-          <p class="panel-copy">
-              Each node can generate direct children, look for additional missing siblings,
-              produce categorized bibliography buckets like seminal, breakthrough, and pedagogy,
-              and build a core-concept learning map.
-            </p>
+          <div class="button-row">
+            <button id="growRootsButton" class="primary-button" type="button">Grow Root Domains</button>
+            <button id="resetButton" class="ghost-button" type="button">Reset Atlas</button>
           </div>
+        </section>
+
+        <section class="panel domain-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Domains</p>
+              <h2>Start points</h2>
+            </div>
+          </div>
+          <div id="domainCards" class="stack-list"></div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <section id="emptyState" class="panel empty-panel">
+          <p class="eyebrow">Start Here</p>
+          <h2>Choose a root domain or search a loaded topic.</h2>
+          <p>
+            This app is designed as a reading and concept atlas, not just a taxonomy tree. Open a domain,
+            generate adjacent fields, then focus on one topic at a time.
+          </p>
+        </section>
+
+        <div id="topicWorkspace" class="workspace-stack" hidden>
+          <section class="panel topic-panel">
+            <div class="topic-header">
+              <div>
+                <p id="topicPath" class="topic-path"></p>
+                <h2 id="topicTitle"></h2>
+                <p id="topicSummary" class="topic-summary"></p>
+              </div>
+              <div id="topicBadges" class="badge-row"></div>
+            </div>
+            <div class="button-row">
+              <button id="generateChildrenButton" class="secondary-button" type="button">Generate Direct Fields</button>
+              <button id="findMoreButton" class="ghost-button" type="button">Find More Siblings</button>
+              <button id="loadConceptsButton" class="ghost-button" type="button">Load Core Concepts</button>
+              <button id="loadBibliographyButton" class="primary-button" type="button">Load Bibliography</button>
+            </div>
+            <div class="topic-notes">
+              <p id="topicWhy" class="support-copy"></p>
+              <p id="topicStatus" class="support-copy"></p>
+              <p id="topicRemaining" class="support-copy"></p>
+              <p id="topicCaution" class="support-copy caution-copy"></p>
+            </div>
+          </section>
+
+          <div class="workspace-columns">
+            <section class="panel related-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Field Structure</p>
+                  <h2>Related and direct fields</h2>
+                </div>
+              </div>
+              <p id="relatedIntro" class="support-copy"></p>
+              <div id="relatedFields" class="card-grid"></div>
+            </section>
+
+            <section class="panel concepts-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Core Concepts</p>
+                  <h2>Learning map</h2>
+                </div>
+              </div>
+              <p id="conceptsStatus" class="support-copy">Load core concepts to see prerequisites, staged ideas, and milestone capabilities.</p>
+              <p id="conceptsCaution" class="support-copy caution-copy" hidden></p>
+              <div class="concept-block">
+                <h3>Prerequisites</h3>
+                <ul id="prerequisitesList" class="plain-list"></ul>
+              </div>
+              <div id="conceptStages" class="stage-grid"></div>
+              <div class="concept-block">
+                <h3>Milestone capabilities</h3>
+                <ul id="milestonesList" class="plain-list"></ul>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel bibliography-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Canonical Readings</p>
+                <h2>Bibliography</h2>
+              </div>
+            </div>
+            <p id="bibliographyStatus" class="support-copy">Load bibliography to group works by role in understanding the field.</p>
+            <p id="bibliographyCaution" class="support-copy caution-copy" hidden></p>
+            <div id="bibliographyGroups" class="bibliography-grid"></div>
+          </section>
         </div>
-        <div id="taxonomyTree" class="taxonomy-tree" aria-live="polite"></div>
       </section>
     </main>
   </div>
 
-  <template id="nodeTemplate">
-    <article class="taxonomy-node">
-      <div class="node-head">
-        <div class="node-heading">
-          <div class="node-title-row">
-            <button class="toggle-button" type="button" aria-label="Toggle children">+</button>
-            <div>
-              <p class="node-path"></p>
-              <h2 class="node-name"></h2>
-            </div>
-          </div>
-          <p class="node-summary"></p>
-        </div>
-        <div class="node-badges"></div>
+  <template id="domainCardTemplate">
+    <article class="domain-card">
+      <div>
+        <p class="domain-label"></p>
+        <h3 class="domain-name"></h3>
+        <p class="domain-summary"></p>
       </div>
-      <div class="node-actions">
-        <button class="generate-children-button primary-button" type="button">Generate Children</button>
-        <button class="find-more-button secondary-button" type="button">Find More</button>
-        <button class="bibliography-button ghost-button" type="button">Research Bibliography</button>
-        <button class="concepts-button ghost-button" type="button">Core Concepts</button>
+      <div class="button-row">
+        <button class="open-domain-button secondary-button" type="button">Open</button>
+        <button class="grow-domain-button ghost-button" type="button">Grow</button>
       </div>
-      <div class="node-notes">
-        <p class="node-why"></p>
-        <p class="node-status"></p>
-        <p class="node-remaining"></p>
-        <p class="node-caution"></p>
+    </article>
+  </template>
+
+  <template id="searchResultTemplate">
+    <button class="search-result" type="button">
+      <span class="search-result-path"></span>
+      <strong class="search-result-name"></strong>
+      <span class="search-result-summary"></span>
+    </button>
+  </template>
+
+  <template id="fieldCardTemplate">
+    <article class="field-card">
+      <div>
+        <p class="field-path"></p>
+        <h3 class="field-name"></h3>
+        <p class="field-summary"></p>
       </div>
-      <div class="bibliography-panel" hidden>
-        <div class="bibliography-head">
-          <h3>Research Bibliography</h3>
-          <p class="bibliography-note"></p>
-        </div>
-        <div class="bibliography-groups"></div>
-      </div>
-      <div class="concepts-panel" hidden>
-        <div class="concepts-head">
-          <h3>Core Concepts and Learning Map</h3>
-          <p class="concepts-note"></p>
-        </div>
-        <p class="concepts-caution"></p>
-        <div class="concepts-prerequisites">
-          <h4>Prerequisites</h4>
-          <ul class="prerequisites-list"></ul>
-        </div>
-        <div class="concept-stages"></div>
-        <div class="milestones-panel">
-          <h4>Milestone Capabilities</h4>
-          <ul class="milestones-list"></ul>
-        </div>
-        <div class="level-bibliography">
-          <h4>Concept Bibliography</h4>
-          <div class="concept-bibliography-groups"></div>
-        </div>
-      </div>
-      <div class="children-shell" hidden>
-        <div class="children-label"></div>
-        <div class="children-list"></div>
+      <div class="badge-row field-badges"></div>
+      <div class="button-row">
+        <button class="open-field-button secondary-button" type="button">Open</button>
+        <button class="grow-field-button ghost-button" type="button">Grow</button>
       </div>
     </article>
   </template>
