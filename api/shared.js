@@ -1663,9 +1663,31 @@ async function handleTaxonomyRequest(req, res) {
       return;
     }
 
-    const locItems = await fetchLocSubjectChildren(pathSegments);
+    const childLevel = pathSegments.length + 1;
+    const curatedItems = fallbackTaxonomyChildren(pathSegments);
+
+    if (childLevel < 4 && curatedItems.length) {
+      const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+        curatedItems,
+        existingChildren,
+        currentNodeLabel(pathSegments),
+      );
+
+      if (acceptedItems.length) {
+        sendJson(res, 200, {
+          path: pathSegments,
+          overview: `Loaded ${acceptedItems.length} curated direct children for this level.`,
+          remaining_note:
+            "L2/L3 avoid Library of Congress keyword suggestions because they are not a clean disciplinary hierarchy.",
+          dropped_duplicates: droppedNames,
+          items: acceptedItems,
+        });
+        return;
+      }
+    }
+
+    const locItems = childLevel === 4 ? await fetchLocSubjectChildren(pathSegments) : [];
     if (locItems.length) {
-      const curatedItems = fallbackTaxonomyChildren(pathSegments);
       const { acceptedItems, droppedNames } = filterNearDuplicateItems(
         [...locItems, ...curatedItems],
         existingChildren,
