@@ -298,9 +298,9 @@ const ROOT_CHILDREN = {
 
 
 const BREADTH_TARGETS = {
-  compact: "6 to 10",
-  broad: "10 to 16",
-  maximal: "14 to 22",
+  compact: "8 to 12",
+  broad: "14 to 22",
+  maximal: "22 to 32",
 };
 
 const ROLE_VALUES = ["domain", "field", "subfield", "specialty", "topic", "concept_family"];
@@ -703,6 +703,7 @@ function taxonomyPrompt({
   return [
     "You are building a high-coverage taxonomy of all areas of human knowledge for an interactive explorer.",
     "Return only DIRECT child categories of the target node.",
+    "Aim for exhaustive coverage of the direct children at the requested level, bounded by the response schema.",
     "Do not return grandchildren.",
     `The current node is Level ${currentLevel}; return ${childLevelLabel}.`,
     "The app stops at Level 4, so Level 4 items should be precise scholarly keyword areas that are useful in catalogs and academic indexes.",
@@ -713,7 +714,7 @@ function taxonomyPrompt({
     "Avoid duplicate or near-duplicate labels, abbreviations that duplicate full names, and singular/plural variants of the same concept.",
     "Keep all returned children at the same level of abstraction.",
     "Do not mix disciplines with methods, institutions, named theories, or example case studies unless the current node is already narrow enough that those are the correct direct children.",
-    "If mode is 'find_more', focus only on plausible missing siblings not already listed.",
+    "If mode is 'find_more', focus only on plausible missing siblings not already listed; prioritize omitted canonical branches.",
     "Only use confidence 'high' or 'medium'. Omit anything that would only deserve 'low'.",
     "If an item is interdisciplinary, keep a single canonical label and mention overlap in the summary or caution_note rather than duplicating it under multiple names.",
     "",
@@ -795,7 +796,7 @@ function taxonomySchema() {
       items: {
         type: "array",
         minItems: 1,
-        maxItems: 24,
+        maxItems: 32,
         items: {
           type: "object",
           additionalProperties: false,
@@ -1051,6 +1052,26 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Probability",
       "Applied Mathematics",
     ],
+    algebra: [
+      "Abstract Algebra",
+      "Linear Algebra",
+      "Group Theory",
+      "Ring Theory",
+      "Field Theory",
+      "Commutative Algebra",
+      "Homological Algebra",
+      "Representation Theory",
+    ],
+    "quantum physics": [
+      "Quantum Mechanics",
+      "Quantum Field Theory",
+      "Quantum Information",
+      "Quantum Optics",
+      "Many-Body Quantum Systems",
+      "Quantum Foundations",
+      "Quantum Gravity",
+      "Quantum Computing",
+    ],
     logic: [
       "Philosophical Logic",
       "Mathematical Logic",
@@ -1172,7 +1193,7 @@ function fallbackTaxonomyChildren(pathSegments) {
     summary: `${name} as a direct branch or organizing lens within ${topic}.`,
     why_it_belongs: `${name} helps structure the topic ${topic} into a coherent first layer for exploration.`,
     keywords: uniqueStrings([topic, ...name.split(" ").slice(0, 4)]).slice(0, 5),
-    likely_has_children: true,
+    likely_has_children: childLevel < 4,
     child_scope_label: "related fields",
     taxonomy_role: fallbackRole,
     confidence: "medium",
@@ -1349,9 +1370,9 @@ async function handleTaxonomyRequest(req, res) {
       }),
       schemaName: "science_taxonomy_children",
       schema: taxonomySchema(),
-      maxOutputTokens: 1100,
+      maxOutputTokens: 2400,
       reasoningEffort: "low",
-      timeoutMs: 30000,
+      timeoutMs: 45000,
     });
 
     const { acceptedItems, droppedNames } = filterNearDuplicateItems(

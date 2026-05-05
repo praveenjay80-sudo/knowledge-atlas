@@ -73,6 +73,8 @@ const refs = {
   selectedPath: document.querySelector("#selectedPath"),
   selectedKeywords: document.querySelector("#selectedKeywords"),
   expandButton: document.querySelector("#expandButton"),
+  moreButton: document.querySelector("#moreButton"),
+  expandBranchButton: document.querySelector("#expandBranchButton"),
   searchAllButton: document.querySelector("#searchAllButton"),
   selectedStatus: document.querySelector("#selectedStatus"),
   levels: {
@@ -215,10 +217,13 @@ function mergeChildren(node, items) {
   node.children.sort((left, right) => left.name.localeCompare(right.name));
 }
 
-async function expandNode(node) {
+async function expandNode(node, mode = "initial", options = {}) {
+  const { selectFirstChild = true } = options;
   if (!node || node.path.length >= 4) return;
   state.loadingIds.add(node.id);
-  node.status = `Generating ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} keywords...`;
+  node.status = mode === "find_more"
+    ? `Searching for missing ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} keywords...`
+    : `Generating ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} keywords...`;
   render();
 
   try {
@@ -230,6 +235,7 @@ async function expandNode(node) {
         existingChildren: node.children.flatMap((child) => [child.name, ...child.aliases]),
         breadth: refs.breadthSelect.value,
         customFocus: refs.focusInput.value.trim(),
+        mode,
         maxDepth: 4,
         apiKey: apiKey(),
       }),
@@ -237,7 +243,7 @@ async function expandNode(node) {
     mergeChildren(node, payload.items || []);
     node.status = payload.overview || `Loaded ${node.children.length} children.`;
     node.remainingNote = payload.remaining_note || "";
-    if (node.children[0]) {
+    if (selectFirstChild && node.children[0]) {
       setSelected(node.children[0]);
     }
   } catch (error) {
@@ -246,6 +252,28 @@ async function expandNode(node) {
     state.loadingIds.delete(node.id);
     render();
   }
+}
+
+async function fillBranchToLevelFour(root) {
+  if (!root || state.loadingIds.has(root.id)) return;
+  const queue = [root];
+
+  while (queue.length) {
+    const node = queue.shift();
+    if (!node || node.path.length >= 4) continue;
+
+    if (!node.children.length) {
+      await expandNode(node, "initial", { selectFirstChild: false });
+    }
+
+    if (node.remainingNote && !/not set|failed|unavailable/i.test(node.remainingNote)) {
+      await expandNode(node, "find_more", { selectFirstChild: false });
+    }
+
+    queue.push(...node.children.filter((child) => child.path.length < 4));
+  }
+
+  setSelected(root);
 }
 
 function contextualTerms(node) {
@@ -357,11 +385,15 @@ function renderSelected() {
   refs.selectedSummary.textContent = node.summary;
   refs.selectedPath.textContent = node.path.join(" > ");
   refs.expandButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.moreButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.expandBranchButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.expandButton.textContent = state.loadingIds.has(node.id)
     ? "Generating..."
     : node.path.length >= 4
       ? "Level 4 reached"
       : `Generate Level ${node.path.length + 1}`;
+  refs.moreButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Find More Siblings";
+  refs.expandBranchButton.textContent = node.path.length >= 4 ? "Branch Complete" : "Fill Branch to Level 4";
   refs.searchAllButton.disabled = false;
   refs.selectedStatus.textContent = [node.status, node.remainingNote, node.cautionNote].filter(Boolean).join(" ");
   createKeywordChips(node, refs.selectedKeywords);
@@ -413,6 +445,8 @@ refs.searchInput.addEventListener("input", (event) => {
 });
 refs.apiKeyInput.addEventListener("input", render);
 refs.expandButton.addEventListener("click", () => expandNode(selectedNode()));
+refs.moreButton.addEventListener("click", () => expandNode(selectedNode(), "find_more"));
+refs.expandBranchButton.addEventListener("click", () => fillBranchToLevelFour(selectedNode()));
 refs.searchAllButton.addEventListener("click", () => openProvider("scholar", selectedNode()));
 
 render();
