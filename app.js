@@ -427,7 +427,11 @@ function preciseSearchQuery(node, focusTerm = "") {
 function openProvider(providerKey, node, focusTerm = "") {
   const provider = SEARCH_PROVIDERS[providerKey];
   if (!provider || !node) return;
-  window.open(provider.url(preciseSearchQuery(node, focusTerm)), "_blank", "noopener,noreferrer");
+  const url = provider.url(preciseSearchQuery(node, focusTerm));
+  const opened = window.open(url, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    window.location.href = url;
+  }
 }
 
 function clear(element) {
@@ -480,7 +484,11 @@ function renderNodeCard(node) {
   for (const button of fragment.querySelectorAll(".search-button")) {
     const query = preciseSearchQuery(node);
     button.title = `${SEARCH_PROVIDERS[button.dataset.provider]?.label || "Library"} search: ${query}`;
-    button.addEventListener("click", () => openProvider(button.dataset.provider, node));
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openProvider(button.dataset.provider, node);
+    });
   }
 
   inlineExpand.hidden = level >= 4;
@@ -648,7 +656,10 @@ refs.expandBranchButton.addEventListener("click", () => fillBranchToLevelFour(se
 refs.explainButton.addEventListener("click", () => explainSelectedNode());
 refs.clearLevelButton.addEventListener("click", () => clearNextLevel(selectedNode()));
 refs.clearAllButton.addEventListener("click", () => clearAllLevels());
-refs.searchAllButton.addEventListener("click", () => openProvider("scholar", selectedNode()));
+refs.searchAllButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  openProvider("scholar", selectedNode());
+});
 
 render();
 refreshHealth();
