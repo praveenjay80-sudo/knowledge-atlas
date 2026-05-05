@@ -995,8 +995,54 @@ function titleFromPath(pathSegments) {
 function fallbackTaxonomyChildren(pathSegments) {
   const topic = titleFromPath(pathSegments);
   const lowerTopic = normalizeName(topic);
+  const childLevel = pathSegments.length + 1;
+  const fallbackRole = childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "specialty";
 
   const byTopic = {
+    "formal sciences": [
+      "Mathematics",
+      "Logic",
+      "Statistics",
+      "Computer Science",
+      "Systems Science",
+      "Decision Theory",
+    ],
+    "natural sciences": [
+      "Physics",
+      "Chemistry",
+      "Biology",
+      "Earth Science",
+      "Astronomy",
+      "Environmental Science",
+    ],
+    "social sciences": [
+      "Economics",
+      "Political Science",
+      "Sociology",
+      "Anthropology",
+      "Psychology",
+      "Linguistics",
+      "Human Geography",
+    ],
+    humanities: [
+      "History",
+      "Literature",
+      "Languages and Philology",
+      "Religious Studies",
+      "Art History",
+      "Classics",
+      "Cultural Studies",
+    ],
+    "applied sciences and professions": [
+      "Engineering",
+      "Medicine",
+      "Computer and Information Technology",
+      "Architecture and Design",
+      "Education",
+      "Law",
+      "Business and Management",
+      "Agriculture",
+    ],
     mathematics: [
       "Algebra",
       "Analysis",
@@ -1128,7 +1174,7 @@ function fallbackTaxonomyChildren(pathSegments) {
     keywords: uniqueStrings([topic, ...name.split(" ").slice(0, 4)]).slice(0, 5),
     likely_has_children: true,
     child_scope_label: "related fields",
-    taxonomy_role: "subfield",
+    taxonomy_role: fallbackRole,
     confidence: "medium",
     caution_note: "",
   }));
@@ -1250,6 +1296,8 @@ function fallbackConceptMap(pathSegments, summary, keywords) {
 }
 
 async function handleTaxonomyRequest(req, res) {
+  let pathSegments = [];
+  let existingChildren = [];
   try {
     if (req.method !== "POST") {
       sendJson(res, 405, { error: "Method not allowed." });
@@ -1257,10 +1305,10 @@ async function handleTaxonomyRequest(req, res) {
     }
 
     const body = await readJsonBody(req);
-    const pathSegments = Array.isArray(body.path)
+    pathSegments = Array.isArray(body.path)
       ? body.path.map((item) => String(item).trim()).filter(Boolean)
       : [];
-    const existingChildren = Array.isArray(body.existingChildren)
+    existingChildren = Array.isArray(body.existingChildren)
       ? body.existingChildren.map((item) => String(item).trim()).filter(Boolean)
       : [];
     const breadth = ["compact", "broad", "maximal"].includes(body.breadth) ? body.breadth : "maximal";
@@ -1320,8 +1368,19 @@ async function handleTaxonomyRequest(req, res) {
       items: acceptedItems,
     });
   } catch (error) {
-    sendJson(res, error.statusCode || 500, {
-      error: error.message || "Unable to generate taxonomy for this branch right now.",
+    const fallbackItems = fallbackTaxonomyChildren(pathSegments);
+    const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+      fallbackItems,
+      existingChildren,
+      currentNodeLabel(pathSegments),
+    );
+
+    sendJson(res, 200, {
+      path: pathSegments,
+      overview: `Loaded a starter Level ${(pathSegments.length || 0) + 1} taxonomy because live API generation failed.`,
+      remaining_note: error.message || "Live generation is unavailable right now.",
+      dropped_duplicates: droppedNames,
+      items: acceptedItems,
     });
   }
 }
