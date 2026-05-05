@@ -436,13 +436,20 @@ function clear(element) {
 
 function createKeywordChips(node, target) {
   clear(target);
+  const query = preciseSearchQuery(node);
+  if (!query) return;
+
+  const queryChip = document.createElement("span");
+  queryChip.className = "keyword-chip query-chip";
+  queryChip.textContent = `Library query: ${query}`;
+  queryChip.title = "This exact query is sent to WorldCat, Scholar, ETH, and Michigan.";
+  target.appendChild(queryChip);
+
   for (const term of contextualTerms(node)) {
-    const chip = document.createElement("button");
-    chip.className = "keyword-chip";
-    chip.type = "button";
+    const chip = document.createElement("span");
+    chip.className = "keyword-chip context-chip";
     chip.textContent = term;
-    chip.title = `Search with context: ${preciseSearchQuery(node, term)}`;
-    chip.addEventListener("click", () => openProvider("scholar", node, term));
+    chip.title = "Context term used in the library query.";
     target.appendChild(chip);
   }
 }
@@ -471,6 +478,8 @@ function renderNodeCard(node) {
 
   main.addEventListener("click", () => setSelected(node));
   for (const button of fragment.querySelectorAll(".search-button")) {
+    const query = preciseSearchQuery(node);
+    button.title = `${SEARCH_PROVIDERS[button.dataset.provider]?.label || "Library"} search: ${query}`;
     button.addEventListener("click", () => openProvider(button.dataset.provider, node));
   }
 
