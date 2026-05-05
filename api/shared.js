@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+
 const ROOT_TAXONOMY = [
   {
     name: "Formal sciences",
@@ -1052,6 +1055,134 @@ function titleFromPath(pathSegments) {
   return pathSegments[pathSegments.length - 1] || "This topic";
 }
 
+let staticScienceTaxonomy = null;
+
+function loadStaticScienceTaxonomy() {
+  if (staticScienceTaxonomy) {
+    return staticScienceTaxonomy;
+  }
+
+  try {
+    const filePath = path.join(__dirname, "..", "data", "science_taxonomy.json");
+    staticScienceTaxonomy = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    staticScienceTaxonomy = { roots: [] };
+  }
+
+  return staticScienceTaxonomy;
+}
+
+function cleanStaticTaxonomyLabel(value) {
+  return normalizeWhitespace(value)
+    .replace(/\s*\{[^}]*\}/g, "")
+    .replace(/\s*\[[^\]]*\]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function canonicalStaticLabel(value) {
+  const alias = {
+    biology: "biological science",
+    "earth science": "earth science",
+    astronomy: "astronomy space science",
+    "environmental science": "environmental science",
+    "computer science": "computer science",
+    math: "mathematic",
+    maths: "mathematic",
+  };
+  const canonical = canonicalizeLabel(cleanStaticTaxonomyLabel(value));
+  return alias[canonical] || canonical;
+}
+
+function staticLabelMatches(nodeLabel, segment) {
+  const nodeCanonical = canonicalStaticLabel(nodeLabel);
+  const segmentCanonical = canonicalStaticLabel(segment);
+  if (!nodeCanonical || !segmentCanonical) {
+    return false;
+  }
+
+  return nodeCanonical === segmentCanonical;
+}
+
+function findStaticNodeAmong(nodes, segment) {
+  if (!Array.isArray(nodes)) {
+    return null;
+  }
+
+  return (
+    nodes.find((node) => canonicalStaticLabel(node.name) === canonicalStaticLabel(segment)) ||
+    nodes.find((node) => staticLabelMatches(node.name, segment)) ||
+    null
+  );
+}
+
+function findStaticNodeDeep(nodes, segment) {
+  const direct = findStaticNodeAmong(nodes, segment);
+  if (direct) {
+    return direct;
+  }
+
+  for (const node of nodes || []) {
+    const found = findStaticNodeDeep(node.children || [], segment);
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
+}
+
+function isUsefulStaticChildLabel(label) {
+  if (!label || label.length < 2) {
+    return false;
+  }
+
+  return !/(miscellaneous|general|other topics|proceedings|bibliograph|textbooks|software|source code|errata|addenda)/i.test(label);
+}
+
+function staticTaxonomyChildren(pathSegments) {
+  const taxonomy = loadStaticScienceTaxonomy();
+  let node = findStaticNodeAmong(taxonomy.roots || [], pathSegments[0]);
+
+  for (const segment of pathSegments.slice(1)) {
+    if (!node) {
+      break;
+    }
+
+    node = findStaticNodeAmong(node.children || [], segment) || findStaticNodeDeep(node.children || [], segment);
+  }
+
+  if (!node || !Array.isArray(node.children) || !node.children.length) {
+    node = findStaticNodeDeep(taxonomy.roots || [], titleFromPath(pathSegments));
+  }
+
+  if (!node || !Array.isArray(node.children) || !node.children.length) {
+    return [];
+  }
+
+  const childLevel = pathSegments.length + 1;
+  const role = childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "concept_family";
+
+  return node.children
+    .map((child) => {
+      const name = cleanStaticTaxonomyLabel(child.name);
+      return {
+        name,
+        aliases: uniqueStrings([child.name].filter((label) => label && label !== name)).slice(0, 3),
+        summary: child.summary || `${name} within ${cleanStaticTaxonomyLabel(node.name)}.`,
+        why_it_belongs: `${name} is listed as a narrower child of ${cleanStaticTaxonomyLabel(node.name)} in the local source-backed taxonomy.`,
+        keywords: uniqueStrings([name, cleanStaticTaxonomyLabel(node.name), ...pathSegments]).slice(0, 6),
+        likely_has_children: childLevel < 4 && Array.isArray(child.children) && child.children.length > 0,
+        child_scope_label: childLevel === 4 ? "source-backed concepts and specialties" : "source-backed narrower fields",
+        taxonomy_role: role,
+        confidence: "high",
+        caution_note: "Source: local science_taxonomy.json generated from classification sources.",
+      };
+    })
+    .filter((item) => isUsefulStaticChildLabel(item.name))
+    .slice(0, 200);
+}
+
 const LOC_GENERIC_SUBDIVISIONS = [
   /awards/i,
   /bibliograph/i,
@@ -1232,10 +1363,13 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Peace and Conflict Studies", "Network Science",
     ],
     mathematics: [
-      "Algebra", "Analysis", "Geometry", "Topology", "Number Theory", "Probability", "Combinatorics",
-      "Logic and Foundations", "Set Theory", "Category Theory", "Differential Equations", "Dynamical Systems",
-      "Numerical Analysis", "Optimization", "Discrete Mathematics", "Mathematical Physics", "Applied Mathematics",
-      "Computational Mathematics", "Mathematical Biology", "Financial Mathematics",
+      "Abstract Algebra", "Linear Algebra", "Real Analysis", "Complex Analysis", "Functional Analysis",
+      "Harmonic Analysis", "Measure Theory", "Geometry", "Topology", "Algebraic Topology",
+      "Differential Geometry", "Number Theory", "Algebraic Geometry", "Probability Theory",
+      "Combinatorics", "Logic and Foundations", "Set Theory", "Category Theory", "Differential Equations",
+      "Dynamical Systems", "Numerical Analysis", "Optimization", "Discrete Mathematics",
+      "Mathematical Physics", "Applied Mathematics", "Computational Mathematics", "Mathematical Biology",
+      "Financial Mathematics", "Statistics",
     ],
     algebra: [
       "Abstract Algebra", "Linear Algebra", "Group Theory", "Ring Theory", "Field Theory", "Commutative Algebra",
@@ -1320,6 +1454,15 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Automorphism", "Subgroup", "Normal Subgroup", "Ideal", "Quotient Structure",
       "Kernel", "Image", "Generator", "Presentation", "Action", "Orbit", "Stabilizer",
       "Exact Sequence", "Category", "Functor", "Universal Property", "Galois Correspondence",
+    ],
+    "real analysis": [
+      "Real Number", "Sequence", "Series", "Limit", "Continuity", "Uniform Continuity",
+      "Derivative", "Riemann Integral", "Lebesgue Integral", "Measure", "Measurable Function",
+      "Convergence", "Uniform Convergence", "Pointwise Convergence", "Cauchy Sequence",
+      "Completeness", "Compactness", "Open Set", "Closed Set", "Metric Space",
+      "Normed Space", "Function Sequence", "Power Series", "Absolute Convergence",
+      "Monotone Convergence", "Dominated Convergence", "Differentiation Theorem",
+      "Inequality", "Supremum", "Infimum",
     ],
     "quantum field theory": [
       "Quantum Field", "Lagrangian Density", "Hamiltonian Formalism", "Path Integral",
@@ -1665,8 +1808,9 @@ async function handleTaxonomyRequest(req, res) {
 
     const childLevel = pathSegments.length + 1;
     const curatedItems = fallbackTaxonomyChildren(pathSegments);
+    const staticItems = staticTaxonomyChildren(pathSegments);
 
-    if (childLevel < 4 && curatedItems.length) {
+    if (childLevel === 4 && curatedItems.length) {
       const { acceptedItems, droppedNames } = filterNearDuplicateItems(
         curatedItems,
         existingChildren,
@@ -1676,9 +1820,29 @@ async function handleTaxonomyRequest(req, res) {
       if (acceptedItems.length) {
         sendJson(res, 200, {
           path: pathSegments,
+          overview: `Loaded ${acceptedItems.length} curated concepts for the selected L3 item.`,
+          remaining_note:
+            "L4 is a concept layer, so exact concept lists are preferred over classification sub-specialties.",
+          dropped_duplicates: droppedNames,
+          items: acceptedItems,
+        });
+        return;
+      }
+    }
+
+    if (childLevel < 4 && (curatedItems.length || staticItems.length)) {
+      const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+        [...curatedItems, ...staticItems],
+        existingChildren,
+        currentNodeLabel(pathSegments),
+      );
+
+      if (acceptedItems.length) {
+        sendJson(res, 200, {
+          path: pathSegments,
           overview: `Loaded ${acceptedItems.length} curated direct children for this level.`,
           remaining_note:
-            "L2/L3 avoid Library of Congress keyword suggestions because they are not a clean disciplinary hierarchy.",
+            "L2/L3 combine curated discipline structure with the local source-backed classification taxonomy.",
           dropped_duplicates: droppedNames,
           items: acceptedItems,
         });
