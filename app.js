@@ -398,20 +398,26 @@ function clearAllLevels() {
 
 function contextualTerms(node) {
   if (!node) return [];
-  const level2 = node.path[1] || node.name;
-  const focus = node.path.length >= 4 ? node.name : node.path[node.path.length - 1];
-  return uniqueStrings([focus, level2]).slice(0, 2);
+  const level2 = node.path[1] || "";
+  const focus = node.path.length >= 4 ? node.path[3] : node.path[2] || "";
+  return uniqueStrings([focus, level2].filter(Boolean)).slice(0, 2);
 }
 
 function preciseSearchQuery(node, focusTerm = "") {
-  const level2 = node.path[1] || node.name;
-  const selected = focusTerm || node.name;
-  const l3 = node.path[2] || "";
-  const terms = uniqueStrings([
-    selected,
-    level2,
-    selected === level2 ? l3 : "",
-  ]).filter(Boolean).slice(0, 2);
+  if (!node) return "";
+  const level = node.path.length;
+  const level2 = node.path[1] || "";
+  const level3 = node.path[2] || "";
+  const level4 = node.path[3] || "";
+  const requested = normalizeWhitespace(focusTerm);
+  const focus = level >= 4
+    ? level4
+    : level >= 3
+      ? level3
+      : requested && requested !== level2
+        ? requested
+        : "";
+  const terms = level2 ? uniqueStrings([focus, level2].filter(Boolean)).slice(0, 2) : [node.name];
 
   return terms
     .map((term) => (/\s/.test(term) ? `"${term}"` : term))
