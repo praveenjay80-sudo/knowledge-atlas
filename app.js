@@ -50,7 +50,7 @@ const LEVEL_LABELS = {
   1: "Level 1 Domain",
   2: "Level 2 Field",
   3: "Level 3 Subfield",
-  4: "Level 4 Specialty",
+  4: "Level 4 Concept",
 };
 
 const SEARCH_PROVIDERS = {
@@ -140,7 +140,7 @@ function roleForLevel(level) {
   if (level === 1) return "domain";
   if (level === 2) return "field";
   if (level === 3) return "subfield";
-  return "specialty";
+  return "concept_family";
 }
 
 function uniqueStrings(values) {
@@ -256,10 +256,14 @@ async function expandNode(node, mode = "initial", options = {}) {
         apiKey: apiKey(),
       }),
     });
+    const before = node.children.length;
     mergeChildren(node, payload.items || []);
-    node.status = payload.overview || `Loaded ${node.children.length} children.`;
+    const added = node.children.length - before;
+    node.status = added
+      ? payload.overview || `Loaded ${added} new children.`
+      : payload.overview || "No reliable new children were returned.";
     node.remainingNote = payload.remaining_note || "";
-    if (selectFirstChild && node.children[0]) {
+    if (selectFirstChild && added && node.children[0]) {
       setSelected(node.children[0]);
     }
   } catch (error) {

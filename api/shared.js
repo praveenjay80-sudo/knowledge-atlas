@@ -723,7 +723,7 @@ function taxonomyPrompt({
     ? "Level 2 fields"
     : childLevel === 3
       ? "Level 3 subfields"
-      : "Level 4 specialties, topic families, or precise research keywords";
+      : "Level 4 concepts directly related to the Level 3 item";
 
   return [
     "You are building a high-coverage taxonomy of all areas of human knowledge for an interactive explorer.",
@@ -731,14 +731,17 @@ function taxonomyPrompt({
     "Aim for exhaustive coverage of the direct children at the requested level, bounded by the response schema.",
     "Do not return grandchildren.",
     `The current node is Level ${currentLevel}; return ${childLevelLabel}.`,
-    "The app stops at Level 4, so Level 4 items should be precise scholarly keyword areas that are useful in catalogs and academic indexes.",
+    "The app stops at Level 4. Level 4 must return core concepts, objects, theories, models, phenomena, techniques, schools, problems, or named topic keywords directly used inside the Level 3 item.",
+    "For Level 4, return concept keywords rather than another layer of broad disciplines.",
+    "For Level 4, never return generic buckets such as history, methods, applications, foundations, contemporary issues, tutorials, surveys, resources, tools, or case studies unless that exact phrase is itself a recognized concept keyword in the Level 3 item.",
+    "For Level 4, it is better to return fewer precise concepts than many vague or irrelevant concepts.",
     "Do not treat the desired breadth as a conceptual cap. Return every well-established direct child you can fit in this batch.",
     "Use only established academic fields, catalog headings, recognized specialties, or durable research areas.",
     "Avoid invented labels, trendy buzzwords, administrative units, departments, degree names, or vague umbrella phrases unless they are standard field names.",
     "Prefer canonical academic branches, recognized subdisciplines, or recognized specialty areas.",
     "Be conservative. If uncertain, omit the item rather than inventing a dubious discipline.",
     "Do not return meta-categories about textbooks, proceedings, surveys, bibliography, software, history, or general reference material.",
-    "Do not return named theorems, individual models, single methods, or fashionable buzzwords when a stable field or subfield is expected.",
+    "Do not return fashionable buzzwords. Named theories, models, methods, and canonical problems are allowed only for Level 4 concept lists.",
     "Avoid duplicate or near-duplicate labels, abbreviations that duplicate full names, and singular/plural variants of the same concept.",
     "Keep all returned children at the same level of abstraction.",
     "Do not mix disciplines with methods, institutions, named theories, or example case studies unless the current node is already narrow enough that those are the correct direct children.",
@@ -763,7 +766,7 @@ function taxonomyPrompt({
     "- keywords: three to six precise search keywords; include discipline terms, not prose phrases",
     `- likely_has_children: ${childLevel < 4 ? "true when the item can be expanded further" : "false for Level 4 items"}`,
     "- child_scope_label: short phrase like 'subfields', 'branches', 'specialties', or 'concept families'",
-    "- taxonomy_role: one of domain, field, subfield, specialty, topic, concept_family",
+    "- taxonomy_role: one of domain, field, subfield, specialty, topic, concept_family; use concept_family for Level 4 concepts",
     "- confidence: high, medium, or low",
     "- caution_note: leave empty unless there is a real ambiguity or overlap worth flagging",
     "",
@@ -824,7 +827,7 @@ function taxonomySchema() {
       remaining_note: { type: "string" },
       items: {
         type: "array",
-        minItems: 1,
+        minItems: 0,
         maxItems: 64,
         items: {
           type: "object",
@@ -1026,7 +1029,7 @@ function fallbackTaxonomyChildren(pathSegments) {
   const topic = titleFromPath(pathSegments);
   const lowerTopic = normalizeName(topic);
   const childLevel = pathSegments.length + 1;
-  const fallbackRole = childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "specialty";
+  const fallbackRole = childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "concept_family";
 
   const byTopic = {
     "formal sciences": [
@@ -1087,6 +1090,19 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Homological Algebra", "Representation Theory", "Universal Algebra", "Lie Algebras", "Algebraic Geometry",
       "Algebraic Number Theory", "Noncommutative Algebra", "Boolean Algebra",
     ],
+    "fluid dynamics": [
+      "Navier-Stokes Equations", "Reynolds Number", "Laminar Flow", "Turbulence", "Boundary Layer",
+      "Vorticity", "Viscosity", "Incompressible Flow", "Compressible Flow", "Bernoulli Principle",
+      "Continuity Equation", "Conservation of Momentum", "Euler Equations", "Stokes Flow",
+      "Potential Flow", "Lift and Drag", "Dimensional Analysis", "Mach Number", "Shock Waves",
+      "Vortex Shedding", "Hydrodynamic Stability", "Computational Fluid Dynamics",
+    ],
+    "ancient history": [
+      "Chronology", "Periodization", "Primary Sources", "Epigraphy", "Numismatics", "Papyrology",
+      "Material Culture", "City-State", "Empire", "Dynasty", "Kingship", "Citizenship",
+      "Colonization", "Trade Networks", "Slavery", "Warfare", "Imperial Administration",
+      "Religious Cult", "Urbanization", "Archaeological Context", "Historiography",
+    ],
     analysis: [
       "Real Analysis", "Complex Analysis", "Functional Analysis", "Harmonic Analysis", "Measure Theory",
       "Operator Theory", "Calculus of Variations", "Partial Differential Equations", "Fourier Analysis",
@@ -1111,6 +1127,18 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Quantum Mechanics", "Quantum Field Theory", "Quantum Information", "Quantum Optics",
       "Many-Body Quantum Systems", "Quantum Foundations", "Quantum Gravity", "Quantum Computing",
       "Quantum Measurement", "Quantum Entanglement", "Open Quantum Systems", "Quantum Materials",
+    ],
+    "abstract algebra": [
+      "Group", "Ring", "Field", "Module", "Vector Space", "Homomorphism", "Isomorphism",
+      "Automorphism", "Subgroup", "Normal Subgroup", "Ideal", "Quotient Structure",
+      "Kernel", "Image", "Generator", "Presentation", "Action", "Orbit", "Stabilizer",
+      "Exact Sequence", "Category", "Functor", "Universal Property", "Galois Correspondence",
+    ],
+    "quantum field theory": [
+      "Quantum Field", "Lagrangian Density", "Hamiltonian Formalism", "Path Integral",
+      "Canonical Quantization", "Feynman Diagram", "Propagator", "Scattering Amplitude",
+      "Renormalization", "Gauge Symmetry", "Spontaneous Symmetry Breaking", "Vacuum State",
+      "Creation Operator", "Annihilation Operator", "Correlation Function", "Effective Field Theory",
     ],
     chemistry: [
       "Organic Chemistry", "Inorganic Chemistry", "Physical Chemistry", "Analytical Chemistry", "Biochemistry",
@@ -1232,14 +1260,13 @@ function fallbackTaxonomyChildren(pathSegments) {
     ],
   };
 
-  const names = byTopic[lowerTopic] || [
+  const names = byTopic[lowerTopic] || (childLevel >= 4 ? [] : [
     `${topic} Theory`,
     `${topic} Methods`,
-    `History of ${topic}`,
     `${topic} Applications`,
     `${topic} Foundations`,
     `Contemporary ${topic}`,
-  ];
+  ]);
 
   return names.map((name) => ({
     name,
@@ -1452,8 +1479,12 @@ async function handleTaxonomyRequest(req, res) {
 
     sendJson(res, 200, {
       path: pathSegments,
-      overview: `Loaded a starter Level ${(pathSegments.length || 0) + 1} taxonomy because live API generation failed.`,
-      remaining_note: error.message || "Live generation is unavailable right now.",
+      overview: acceptedItems.length
+        ? `Loaded a starter Level ${(pathSegments.length || 0) + 1} taxonomy because live API generation failed.`
+        : `No reliable built-in Level ${(pathSegments.length || 0) + 1} children are available for this branch.`,
+      remaining_note: acceptedItems.length
+        ? error.message || "Live generation is unavailable right now."
+        : "Add an API key or configure OPENAI_API_KEY to generate source-seeking children; generic fallback items were suppressed to avoid irrelevant Level 4 data.",
       dropped_duplicates: droppedNames,
       items: acceptedItems,
     });
