@@ -1057,8 +1057,6 @@ function fallbackTaxonomyChildren(pathSegments) {
   const lowerTopic = normalizeName(topic);
   const childLevel = pathSegments.length + 1;
   const fallbackRole = childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "concept_family";
-  const parentTopic = normalizeName(pathSegments[pathSegments.length - 2] || "");
-  const rootTopic = normalizeName(pathSegments[0] || "");
 
   const byTopic = {
     "formal sciences": [
@@ -1324,131 +1322,7 @@ function fallbackTaxonomyChildren(pathSegments) {
     ],
   };
 
-  function inferredLevelFourConcepts() {
-    const buckets = [];
-    const add = (items) => buckets.push(...items);
-
-    if (/history|ancient|medieval|modern|contemporary|archaeology/.test(lowerTopic) || parentTopic === "history") {
-      add([
-        "Chronology", "Periodization", "Primary Sources", "Secondary Sources", "Historiography", "Archive",
-        "Material Culture", "Oral Tradition", "Documentary Evidence", "Causation", "Continuity and Change",
-        "Context", "Agency", "Empire", "State Formation", "Class", "Gender", "Race and Ethnicity",
-        "Religion", "War", "Migration", "Trade", "Urbanization", "Colonialism", "Revolution",
-        "Nationalism", "Memory", "Interpretation", "Source Criticism", "Historical Argument",
-      ]);
-    }
-
-    if (/physics|mechanics|electromagnetism|thermodynamics|relativity|optics|plasma|astrophysics|cosmology|geophysics/.test(lowerTopic) || parentTopic === "physics") {
-      add([
-        "Force", "Energy", "Momentum", "Mass", "Field", "Wave", "Particle", "Symmetry", "Conservation Law",
-        "Equation of Motion", "Initial Condition", "Boundary Condition", "Potential", "Equilibrium",
-        "Stability", "Oscillation", "Resonance", "Phase Space", "Lagrangian", "Hamiltonian",
-        "Reference Frame", "Coordinate System", "Measurement", "Uncertainty", "Dimensional Analysis",
-        "Scaling", "Interaction", "Perturbation", "Approximation", "Model",
-      ]);
-    }
-
-    if (/chemistry|organic|inorganic|analytical|biochemistry|polymer|medicinal/.test(lowerTopic) || parentTopic === "chemistry") {
-      add([
-        "Atom", "Molecule", "Ion", "Bond", "Valence", "Orbital", "Functional Group", "Reaction Mechanism",
-        "Equilibrium", "Catalyst", "Acid-Base Reaction", "Oxidation-Reduction", "Stereochemistry",
-        "Isomer", "Kinetics", "Thermodynamics", "Solvent", "Spectroscopy", "Chromatography",
-        "Stoichiometry", "pH", "Buffer", "Enzyme", "Polymer", "Crystal Structure", "Molecular Geometry",
-      ]);
-    }
-
-    if (/biology|genetics|ecology|physiology|microbiology|botany|zoology|immunology|neurobiology/.test(lowerTopic) || parentTopic === "biology") {
-      add([
-        "Cell", "Gene", "Genome", "Protein", "Metabolism", "Homeostasis", "Evolution", "Natural Selection",
-        "Adaptation", "Population", "Ecosystem", "Niche", "Species", "Phylogeny", "Mutation",
-        "Inheritance", "Expression", "Regulation", "Signal Transduction", "Development", "Reproduction",
-        "Immune Response", "Pathogen", "Symbiosis", "Biodiversity", "Selection Pressure",
-      ]);
-    }
-
-    if (/mathematics|algebra|analysis|geometry|topology|number theory|probability|combinatorics|optimization/.test(lowerTopic) || parentTopic === "mathematics") {
-      add([
-        "Definition", "Axiom", "Theorem", "Proof", "Lemma", "Corollary", "Example", "Counterexample",
-        "Structure", "Set", "Function", "Relation", "Operation", "Equivalence", "Invariant",
-        "Transformation", "Mapping", "Limit", "Continuity", "Convergence", "Metric", "Space",
-        "Dimension", "Symmetry", "Isomorphism", "Construction", "Classification", "Existence",
-        "Uniqueness", "Algorithm",
-      ]);
-    }
-
-    if (/computer|algorithm|software|database|network|cybersecurity|machine learning|artificial intelligence|data science/.test(lowerTopic) || parentTopic === "computer science") {
-      add([
-        "Algorithm", "Data Structure", "Complexity", "Abstraction", "State", "Process", "Thread",
-        "Memory", "Type", "Compiler", "Runtime", "Protocol", "API", "Database", "Query",
-        "Index", "Transaction", "Security Model", "Authentication", "Encryption", "Model",
-        "Training Data", "Feature", "Loss Function", "Optimization", "Evaluation Metric", "Generalization",
-      ]);
-    }
-
-    if (/economics|microeconomics|macroeconomics|econometrics|finance|labor|market/.test(lowerTopic) || parentTopic === "economics") {
-      add([
-        "Scarcity", "Opportunity Cost", "Supply", "Demand", "Equilibrium", "Market", "Incentive",
-        "Utility", "Preference", "Elasticity", "Marginal Analysis", "Externality", "Public Good",
-        "Game", "Firm", "Consumer", "Price", "Wage", "Inflation", "Unemployment", "GDP",
-        "Interest Rate", "Fiscal Policy", "Monetary Policy", "Regression", "Causal Identification",
-      ]);
-    }
-
-    if (/psychology|cognitive|developmental|social psychology|clinical|neuropsychology/.test(lowerTopic) || parentTopic === "psychology") {
-      add([
-        "Cognition", "Perception", "Attention", "Memory", "Learning", "Motivation", "Emotion",
-        "Personality", "Behavior", "Development", "Schema", "Bias", "Attitude", "Social Influence",
-        "Conditioning", "Reinforcement", "Executive Function", "Mental Disorder", "Assessment",
-        "Therapy", "Experiment", "Validity", "Reliability", "Effect Size",
-      ]);
-    }
-
-    if (/sociology|anthropology|political|communication|criminology|demography|urban/.test(lowerTopic) || rootTopic === "social sciences") {
-      add([
-        "Institution", "Norm", "Role", "Status", "Power", "Culture", "Identity", "Class",
-        "Race", "Gender", "Inequality", "Social Structure", "Agency", "Socialization", "Network",
-        "Group", "Community", "State", "Policy", "Discourse", "Collective Action", "Survey",
-        "Interview", "Ethnography", "Case Study", "Variable", "Causality",
-      ]);
-    }
-
-    if (/literature|poetry|drama|fiction|rhetoric|philology|language|religion|art|music|film|media/.test(lowerTopic) || rootTopic === "humanities and arts") {
-      add([
-        "Text", "Genre", "Form", "Style", "Narrative", "Voice", "Theme", "Symbol", "Metaphor",
-        "Interpretation", "Context", "Canon", "Reception", "Authorship", "Audience", "Performance",
-        "Representation", "Meaning", "Tradition", "Ritual", "Iconography", "Aesthetic Judgment",
-        "Medium", "Composition", "Technique", "Criticism",
-      ]);
-    }
-
-    if (/medicine|public health|epidemiology|nursing|pharmacy|nutrition|clinical/.test(lowerTopic) || rootTopic === "health sciences") {
-      add([
-        "Diagnosis", "Symptom", "Sign", "Etiology", "Pathophysiology", "Risk Factor", "Prevention",
-        "Screening", "Treatment", "Prognosis", "Clinical Trial", "Epidemiology", "Incidence",
-        "Prevalence", "Comorbidity", "Patient Safety", "Dose", "Adverse Effect", "Guideline",
-        "Evidence-Based Practice", "Health Equity", "Outcome", "Biomarker",
-      ]);
-    }
-
-    if (/engineering|design|robotics|materials|energy|telecommunications|architecture/.test(lowerTopic) || rootTopic === "engineering and technology") {
-      add([
-        "Design Requirement", "Constraint", "Prototype", "Optimization", "System", "Subsystem",
-        "Reliability", "Efficiency", "Failure Mode", "Load", "Stress", "Strain", "Signal",
-        "Control Loop", "Feedback", "Sensor", "Actuator", "Interface", "Material Property",
-        "Manufacturing Process", "Safety Factor", "Simulation", "Testing", "Maintenance",
-      ]);
-    }
-
-    return uniqueStrings(buckets).slice(0, 60);
-  }
-
-  const names = byTopic[lowerTopic] || (childLevel >= 4 ? inferredLevelFourConcepts() : [
-    `${topic} Theory`,
-    `${topic} Methods`,
-    `${topic} Applications`,
-    `${topic} Foundations`,
-    `Contemporary ${topic}`,
-  ]);
+  const names = byTopic[lowerTopic] || [];
 
   return names.map((name) => ({
     name,
