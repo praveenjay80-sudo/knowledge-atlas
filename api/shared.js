@@ -1052,6 +1052,131 @@ function titleFromPath(pathSegments) {
   return pathSegments[pathSegments.length - 1] || "This topic";
 }
 
+const LOC_GENERIC_SUBDIVISIONS = [
+  /awards/i,
+  /bibliograph/i,
+  /book reviews/i,
+  /computer programs/i,
+  /congresses/i,
+  /dictionaries/i,
+  /directories/i,
+  /economic aspects/i,
+  /encyclopedias/i,
+  /examinations/i,
+  /^experiments$/i,
+  /handbooks/i,
+  /history$/i,
+  /juvenile literature/i,
+  /^maps$/i,
+  /mathematical models/i,
+  /^methodology$/i,
+  /religious aspects/i,
+  /simulation methods/i,
+  /statistical methods/i,
+  /periodicals/i,
+  /problems, exercises/i,
+  /software/i,
+  /study and teaching/i,
+  /textbooks/i,
+];
+
+function cleanLocLabel(label, topic) {
+  const cleaned = normalizeWhitespace(label)
+    .replace(/\s+\(USE .+\)$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const topicPrefix = `${topic}--`;
+
+  if (cleaned.toLowerCase().startsWith(topicPrefix.toLowerCase())) {
+    return cleaned.slice(topicPrefix.length).trim();
+  }
+
+  return cleaned;
+}
+
+function isUsefulLocChild(label, rawLabel, topic, hit) {
+  const cleaned = normalizeWhitespace(label);
+  if (!cleaned || normalizeName(cleaned) === normalizeName(topic)) {
+    return false;
+  }
+
+  if (LOC_GENERIC_SUBDIVISIONS.some((pattern) => pattern.test(cleaned))) {
+    return false;
+  }
+
+  if (/^[A-Z][a-z]+$/.test(cleaned) && !["Topology", "Geometry", "Algebra", "Ecology"].includes(cleaned)) {
+    return false;
+  }
+
+  if (/\(Federation\)|United States|Brazil|China|India|Russia/i.test(cleaned)) {
+    return false;
+  }
+
+  if (new RegExp(`\\band\\s+${topic.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i").test(cleaned)) {
+    return false;
+  }
+
+  const raw = normalizeWhitespace(rawLabel);
+  const isExplicitSubdivision = raw.toLowerCase().startsWith(`${topic}--`.toLowerCase());
+  const hasExactBroader = (hit.more?.broaders || []).some(
+    (broader) => normalizeName(broader) === normalizeName(topic),
+  );
+
+  return isExplicitSubdivision || hasExactBroader;
+}
+
+async function fetchLocSubjectChildren(pathSegments) {
+  const topic = titleFromPath(pathSegments);
+  const childLevel = pathSegments.length + 1;
+  const url = new URL("https://id.loc.gov/authorities/subjects/suggest2");
+  url.searchParams.set("q", topic);
+  url.searchParams.set("count", "100");
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "knowledge-atlas/1.0",
+    },
+    signal: AbortSignal.timeout(9000),
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const payload = await response.json();
+  const hits = Array.isArray(payload?.hits) ? payload.hits : [];
+  const children = [];
+
+  for (const hit of hits) {
+    const rawLabel = normalizeWhitespace(hit.aLabel || hit.suggestLabel || hit.label || "");
+    const label = cleanLocLabel(rawLabel, topic);
+    if (!isUsefulLocChild(label, rawLabel, topic, hit)) {
+      continue;
+    }
+
+    const broaderLabels = uniqueStrings([
+      ...(hit.more?.broaders || []),
+      ...(hit.more?.relateds || []),
+    ]);
+
+    children.push({
+      name: label,
+      aliases: uniqueStrings([rawLabel, hit.uri].filter(Boolean)).slice(0, 3),
+      summary: `Library of Congress Subject Heading connected to ${topic}.`,
+      why_it_belongs: `${label} is returned by the Library of Congress Subject Headings authority service for ${topic}.`,
+      keywords: uniqueStrings([label, topic, ...pathSegments.slice(0, -1), ...broaderLabels]).slice(0, 6),
+      likely_has_children: childLevel < 4,
+      child_scope_label: childLevel === 4 ? "controlled subject headings" : "narrower controlled headings",
+      taxonomy_role: childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "concept_family",
+      confidence: "high",
+      caution_note: hit.uri ? `Source: ${hit.uri}` : "Source: Library of Congress Linked Data Service",
+    });
+  }
+
+  return filterNearDuplicateItems(children, [], topic).acceptedItems.slice(0, 96);
+}
+
 function fallbackTaxonomyChildren(pathSegments) {
   const topic = titleFromPath(pathSegments);
   const lowerTopic = normalizeName(topic);
@@ -1536,6 +1661,28 @@ async function handleTaxonomyRequest(req, res) {
         })),
       });
       return;
+    }
+
+    const locItems = await fetchLocSubjectChildren(pathSegments);
+    if (locItems.length) {
+      const curatedItems = fallbackTaxonomyChildren(pathSegments);
+      const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+        [...locItems, ...curatedItems],
+        existingChildren,
+        currentNodeLabel(pathSegments),
+      );
+
+      if (acceptedItems.length) {
+        sendJson(res, 200, {
+          path: pathSegments,
+          overview: `Loaded ${acceptedItems.length} source-grounded headings from Library of Congress plus curated exact concepts where available.`,
+          remaining_note:
+            "Library of Congress Subject Headings are used first. Curated exact concept terms fill gaps where LCSH is too catalog-oriented.",
+          dropped_duplicates: droppedNames,
+          items: acceptedItems,
+        });
+        return;
+      }
     }
 
     const payload = await callOpenAI({
