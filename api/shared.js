@@ -324,8 +324,8 @@ const ROOT_CHILDREN = {
 
 const BREADTH_TARGETS = {
   compact: "8 to 12",
-  broad: "20 to 36",
-  maximal: "40 to 64",
+  broad: "24 to 48",
+  maximal: "60 to 96",
 };
 
 const ROLE_VALUES = ["domain", "field", "subfield", "specialty", "topic", "concept_family"];
@@ -828,7 +828,7 @@ function taxonomySchema() {
       items: {
         type: "array",
         minItems: 0,
-        maxItems: 64,
+        maxItems: 96,
         items: {
           type: "object",
           additionalProperties: false,
@@ -1057,6 +1057,8 @@ function fallbackTaxonomyChildren(pathSegments) {
   const lowerTopic = normalizeName(topic);
   const childLevel = pathSegments.length + 1;
   const fallbackRole = childLevel === 2 ? "field" : childLevel === 3 ? "subfield" : "concept_family";
+  const parentTopic = normalizeName(pathSegments[pathSegments.length - 2] || "");
+  const rootTopic = normalizeName(pathSegments[0] || "");
 
   const byTopic = {
     "formal sciences": [
@@ -1129,6 +1131,41 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Material Culture", "City-State", "Empire", "Dynasty", "Kingship", "Citizenship",
       "Colonization", "Trade Networks", "Slavery", "Warfare", "Imperial Administration",
       "Religious Cult", "Urbanization", "Archaeological Context", "Historiography",
+    ],
+    ecology: [
+      "Ecosystem", "Population", "Community", "Species", "Habitat", "Niche", "Food Web", "Trophic Level",
+      "Primary Productivity", "Carrying Capacity", "Biodiversity", "Keystone Species", "Invasive Species",
+      "Succession", "Disturbance", "Competition", "Predation", "Mutualism", "Parasitism", "Symbiosis",
+      "Nutrient Cycling", "Carbon Cycle", "Nitrogen Cycle", "Energy Flow", "Biomass", "Biogeography",
+      "Metapopulation", "Landscape Ecology", "Conservation", "Resilience", "Ecosystem Service",
+    ],
+    epidemiology: [
+      "Incidence", "Prevalence", "Risk Factor", "Odds Ratio", "Relative Risk", "Attributable Risk",
+      "Confounding", "Bias", "Cohort Study", "Case-Control Study", "Cross-Sectional Study",
+      "Randomized Controlled Trial", "Outbreak", "Transmission", "Reservoir", "Vector", "Basic Reproduction Number",
+      "Herd Immunity", "Screening", "Sensitivity", "Specificity", "Surveillance", "Case Definition",
+      "Exposure", "Dose-Response", "Morbidity", "Mortality", "Public Health Intervention",
+    ],
+    "civil engineering": [
+      "Load", "Stress", "Strain", "Shear", "Bending Moment", "Factor of Safety", "Beam", "Column",
+      "Truss", "Foundation", "Soil Mechanics", "Bearing Capacity", "Concrete", "Steel", "Reinforcement",
+      "Structural Analysis", "Hydraulics", "Drainage", "Transportation Network", "Traffic Flow",
+      "Pavement", "Surveying", "Construction Management", "Seismic Design", "Sustainability",
+      "Building Code", "Retaining Wall", "Bridge Design",
+    ],
+    "literary theory": [
+      "Text", "Author", "Reader", "Narrator", "Voice", "Genre", "Form", "Structure", "Theme",
+      "Symbol", "Metaphor", "Intertextuality", "Canon", "Discourse", "Ideology", "Reception",
+      "Hermeneutics", "Structuralism", "Poststructuralism", "Deconstruction", "Marxist Criticism",
+      "Feminist Criticism", "Postcolonial Criticism", "Psychoanalytic Criticism", "New Historicism",
+      "Reader-Response Theory", "Close Reading", "Narratology",
+    ],
+    "social theory": [
+      "Structure", "Agency", "Power", "Institution", "Norm", "Role", "Status", "Class", "Capital",
+      "Habitus", "Ideology", "Discourse", "Social Action", "Rationalization", "Bureaucracy",
+      "Alienation", "Anomie", "Social Solidarity", "Conflict", "Domination", "Legitimacy",
+      "Modernity", "Globalization", "Social Reproduction", "Intersectionality", "Network",
+      "Collective Identity", "Social Change",
     ],
     analysis: [
       "Real Analysis", "Complex Analysis", "Functional Analysis", "Harmonic Analysis", "Measure Theory",
@@ -1287,7 +1324,125 @@ function fallbackTaxonomyChildren(pathSegments) {
     ],
   };
 
-  const names = byTopic[lowerTopic] || (childLevel >= 4 ? [] : [
+  function inferredLevelFourConcepts() {
+    const buckets = [];
+    const add = (items) => buckets.push(...items);
+
+    if (/history|ancient|medieval|modern|contemporary|archaeology/.test(lowerTopic) || parentTopic === "history") {
+      add([
+        "Chronology", "Periodization", "Primary Sources", "Secondary Sources", "Historiography", "Archive",
+        "Material Culture", "Oral Tradition", "Documentary Evidence", "Causation", "Continuity and Change",
+        "Context", "Agency", "Empire", "State Formation", "Class", "Gender", "Race and Ethnicity",
+        "Religion", "War", "Migration", "Trade", "Urbanization", "Colonialism", "Revolution",
+        "Nationalism", "Memory", "Interpretation", "Source Criticism", "Historical Argument",
+      ]);
+    }
+
+    if (/physics|mechanics|electromagnetism|thermodynamics|relativity|optics|plasma|astrophysics|cosmology|geophysics/.test(lowerTopic) || parentTopic === "physics") {
+      add([
+        "Force", "Energy", "Momentum", "Mass", "Field", "Wave", "Particle", "Symmetry", "Conservation Law",
+        "Equation of Motion", "Initial Condition", "Boundary Condition", "Potential", "Equilibrium",
+        "Stability", "Oscillation", "Resonance", "Phase Space", "Lagrangian", "Hamiltonian",
+        "Reference Frame", "Coordinate System", "Measurement", "Uncertainty", "Dimensional Analysis",
+        "Scaling", "Interaction", "Perturbation", "Approximation", "Model",
+      ]);
+    }
+
+    if (/chemistry|organic|inorganic|analytical|biochemistry|polymer|medicinal/.test(lowerTopic) || parentTopic === "chemistry") {
+      add([
+        "Atom", "Molecule", "Ion", "Bond", "Valence", "Orbital", "Functional Group", "Reaction Mechanism",
+        "Equilibrium", "Catalyst", "Acid-Base Reaction", "Oxidation-Reduction", "Stereochemistry",
+        "Isomer", "Kinetics", "Thermodynamics", "Solvent", "Spectroscopy", "Chromatography",
+        "Stoichiometry", "pH", "Buffer", "Enzyme", "Polymer", "Crystal Structure", "Molecular Geometry",
+      ]);
+    }
+
+    if (/biology|genetics|ecology|physiology|microbiology|botany|zoology|immunology|neurobiology/.test(lowerTopic) || parentTopic === "biology") {
+      add([
+        "Cell", "Gene", "Genome", "Protein", "Metabolism", "Homeostasis", "Evolution", "Natural Selection",
+        "Adaptation", "Population", "Ecosystem", "Niche", "Species", "Phylogeny", "Mutation",
+        "Inheritance", "Expression", "Regulation", "Signal Transduction", "Development", "Reproduction",
+        "Immune Response", "Pathogen", "Symbiosis", "Biodiversity", "Selection Pressure",
+      ]);
+    }
+
+    if (/mathematics|algebra|analysis|geometry|topology|number theory|probability|combinatorics|optimization/.test(lowerTopic) || parentTopic === "mathematics") {
+      add([
+        "Definition", "Axiom", "Theorem", "Proof", "Lemma", "Corollary", "Example", "Counterexample",
+        "Structure", "Set", "Function", "Relation", "Operation", "Equivalence", "Invariant",
+        "Transformation", "Mapping", "Limit", "Continuity", "Convergence", "Metric", "Space",
+        "Dimension", "Symmetry", "Isomorphism", "Construction", "Classification", "Existence",
+        "Uniqueness", "Algorithm",
+      ]);
+    }
+
+    if (/computer|algorithm|software|database|network|cybersecurity|machine learning|artificial intelligence|data science/.test(lowerTopic) || parentTopic === "computer science") {
+      add([
+        "Algorithm", "Data Structure", "Complexity", "Abstraction", "State", "Process", "Thread",
+        "Memory", "Type", "Compiler", "Runtime", "Protocol", "API", "Database", "Query",
+        "Index", "Transaction", "Security Model", "Authentication", "Encryption", "Model",
+        "Training Data", "Feature", "Loss Function", "Optimization", "Evaluation Metric", "Generalization",
+      ]);
+    }
+
+    if (/economics|microeconomics|macroeconomics|econometrics|finance|labor|market/.test(lowerTopic) || parentTopic === "economics") {
+      add([
+        "Scarcity", "Opportunity Cost", "Supply", "Demand", "Equilibrium", "Market", "Incentive",
+        "Utility", "Preference", "Elasticity", "Marginal Analysis", "Externality", "Public Good",
+        "Game", "Firm", "Consumer", "Price", "Wage", "Inflation", "Unemployment", "GDP",
+        "Interest Rate", "Fiscal Policy", "Monetary Policy", "Regression", "Causal Identification",
+      ]);
+    }
+
+    if (/psychology|cognitive|developmental|social psychology|clinical|neuropsychology/.test(lowerTopic) || parentTopic === "psychology") {
+      add([
+        "Cognition", "Perception", "Attention", "Memory", "Learning", "Motivation", "Emotion",
+        "Personality", "Behavior", "Development", "Schema", "Bias", "Attitude", "Social Influence",
+        "Conditioning", "Reinforcement", "Executive Function", "Mental Disorder", "Assessment",
+        "Therapy", "Experiment", "Validity", "Reliability", "Effect Size",
+      ]);
+    }
+
+    if (/sociology|anthropology|political|communication|criminology|demography|urban/.test(lowerTopic) || rootTopic === "social sciences") {
+      add([
+        "Institution", "Norm", "Role", "Status", "Power", "Culture", "Identity", "Class",
+        "Race", "Gender", "Inequality", "Social Structure", "Agency", "Socialization", "Network",
+        "Group", "Community", "State", "Policy", "Discourse", "Collective Action", "Survey",
+        "Interview", "Ethnography", "Case Study", "Variable", "Causality",
+      ]);
+    }
+
+    if (/literature|poetry|drama|fiction|rhetoric|philology|language|religion|art|music|film|media/.test(lowerTopic) || rootTopic === "humanities and arts") {
+      add([
+        "Text", "Genre", "Form", "Style", "Narrative", "Voice", "Theme", "Symbol", "Metaphor",
+        "Interpretation", "Context", "Canon", "Reception", "Authorship", "Audience", "Performance",
+        "Representation", "Meaning", "Tradition", "Ritual", "Iconography", "Aesthetic Judgment",
+        "Medium", "Composition", "Technique", "Criticism",
+      ]);
+    }
+
+    if (/medicine|public health|epidemiology|nursing|pharmacy|nutrition|clinical/.test(lowerTopic) || rootTopic === "health sciences") {
+      add([
+        "Diagnosis", "Symptom", "Sign", "Etiology", "Pathophysiology", "Risk Factor", "Prevention",
+        "Screening", "Treatment", "Prognosis", "Clinical Trial", "Epidemiology", "Incidence",
+        "Prevalence", "Comorbidity", "Patient Safety", "Dose", "Adverse Effect", "Guideline",
+        "Evidence-Based Practice", "Health Equity", "Outcome", "Biomarker",
+      ]);
+    }
+
+    if (/engineering|design|robotics|materials|energy|telecommunications|architecture/.test(lowerTopic) || rootTopic === "engineering and technology") {
+      add([
+        "Design Requirement", "Constraint", "Prototype", "Optimization", "System", "Subsystem",
+        "Reliability", "Efficiency", "Failure Mode", "Load", "Stress", "Strain", "Signal",
+        "Control Loop", "Feedback", "Sensor", "Actuator", "Interface", "Material Property",
+        "Manufacturing Process", "Safety Factor", "Simulation", "Testing", "Maintenance",
+      ]);
+    }
+
+    return uniqueStrings(buckets).slice(0, 60);
+  }
+
+  const names = byTopic[lowerTopic] || (childLevel >= 4 ? inferredLevelFourConcepts() : [
     `${topic} Theory`,
     `${topic} Methods`,
     `${topic} Applications`,
@@ -1520,9 +1675,9 @@ async function handleTaxonomyRequest(req, res) {
       }),
       schemaName: "science_taxonomy_children",
       schema: taxonomySchema(),
-      maxOutputTokens: 5200,
+      maxOutputTokens: 7600,
       reasoningEffort: "low",
-      timeoutMs: 55000,
+      timeoutMs: 58000,
     });
 
     const { acceptedItems, droppedNames } = filterNearDuplicateItems(
