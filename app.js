@@ -91,8 +91,13 @@ const refs = {
   moreButton: document.querySelector("#moreButton"),
   exhaustButton: document.querySelector("#exhaustButton"),
   expandBranchButton: document.querySelector("#expandBranchButton"),
+  explainButton: document.querySelector("#explainButton"),
+  clearLevelButton: document.querySelector("#clearLevelButton"),
+  clearAllButton: document.querySelector("#clearAllButton"),
   searchAllButton: document.querySelector("#searchAllButton"),
   selectedStatus: document.querySelector("#selectedStatus"),
+  explanationPanel: document.querySelector("#explanationPanel"),
+  explanationContent: document.querySelector("#explanationContent"),
   levels: {
     1: document.querySelector("#level1List"),
     2: document.querySelector("#level2List"),
@@ -133,6 +138,8 @@ function createNode(item, path) {
     children: [],
     status: "",
     remainingNote: "",
+    explanation: null,
+    explanationStatus: "idle",
   };
 }
 
@@ -324,6 +331,71 @@ async function expandUntilExhausted(node) {
   setSelected(node);
 }
 
+function fallbackExplanation(node) {
+  const path = node.path.join(" > ");
+  const parent = node.path.length > 1 ? node.path[node.path.length - 2] : "human knowledge";
+  const examples = contextualTerms(node).slice(0, 3);
+
+  return {
+    simple_definition: `${node.name} is a topic in ${parent}. In school-level terms, it is a way of organizing ideas so you can ask clearer questions and find better sources.`,
+    why_it_matters: `It matters because ${node.name} gives you vocabulary for searching, comparing examples, and understanding how this part of knowledge connects to the wider path ${path}.`,
+    example: examples.length
+      ? `For example, if you search for ${examples.map((item) => `"${item}"`).join(" + ")}, you are more likely to find material that is about this exact topic rather than a vague nearby subject.`
+      : `For example, a student could start by asking what the main objects, problems, and uses of ${node.name} are.`,
+    analogy: `Think of it like a labeled drawer in a large library cabinet: the label helps you know what belongs there and what probably belongs somewhere else.`,
+    study_questions: [
+      `What does ${node.name} study?`,
+      `What are two examples of ${node.name}?`,
+      `How does ${node.name} connect to ${parent}?`,
+    ],
+  };
+}
+
+async function explainSelectedNode() {
+  const node = selectedNode();
+  if (!node) return;
+
+  node.explanationStatus = "loading";
+  render();
+
+  try {
+    const payload = await fetchJson("/api/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: node.path,
+        summary: node.summary,
+        keywords: contextualTerms(node),
+        apiKey: apiKey(),
+      }),
+    });
+    node.explanation = payload.explanation || fallbackExplanation(node);
+    node.explanationStatus = "success";
+  } catch {
+    node.explanation = fallbackExplanation(node);
+    node.explanationStatus = "success";
+  }
+
+  render();
+}
+
+function clearNextLevel(node) {
+  if (!node) return;
+  node.children = [];
+  node.status = "Cleared the next level under this item.";
+  node.remainingNote = "";
+  setSelected(node);
+}
+
+function clearAllLevels() {
+  state.roots = [];
+  state.selectedId = "";
+  state.activePathIds = [];
+  state.search = "";
+  refs.searchInput.value = "";
+  render();
+}
+
 function contextualTerms(node) {
   if (!node) return [];
   return uniqueStrings([node.name, ...node.path.slice(0, -1)]).slice(0, 4);
@@ -423,9 +495,13 @@ function renderSelected() {
     refs.selectedSummary.textContent = "Generate a structured four-level taxonomy of human knowledge, then search any keyword with scholarly context.";
     refs.selectedPath.textContent = "";
     clear(refs.selectedKeywords);
-    refs.expandButton.disabled = true;
+  refs.expandButton.disabled = true;
+    refs.explainButton.disabled = true;
+    refs.clearLevelButton.disabled = true;
     refs.searchAllButton.disabled = true;
     refs.selectedStatus.textContent = "";
+    refs.explanationPanel.hidden = true;
+    clear(refs.explanationContent);
     return;
   }
 
@@ -437,6 +513,8 @@ function renderSelected() {
   refs.moreButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.exhaustButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.expandBranchButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.explainButton.disabled = node.explanationStatus === "loading";
+  refs.clearLevelButton.disabled = node.children.length === 0;
   refs.expandButton.textContent = state.loadingIds.has(node.id)
     ? "Generating..."
     : node.path.length >= 4
@@ -445,9 +523,55 @@ function renderSelected() {
   refs.moreButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Find More Siblings";
   refs.exhaustButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Expand Until Exhausted";
   refs.expandBranchButton.textContent = node.path.length >= 4 ? "Branch Complete" : "Fill Branch to Level 4";
+  refs.explainButton.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
   refs.searchAllButton.disabled = false;
   refs.selectedStatus.textContent = [node.status, node.remainingNote, node.cautionNote].filter(Boolean).join(" ");
   createKeywordChips(node, refs.selectedKeywords);
+  renderExplanation(node);
+}
+
+function renderExplanation(node) {
+  clear(refs.explanationContent);
+  refs.explanationPanel.hidden = !node.explanation && node.explanationStatus !== "loading";
+
+  if (node.explanationStatus === "loading") {
+    refs.explanationContent.textContent = "Building a school-level explanation...";
+    return;
+  }
+
+  if (!node.explanation) return;
+
+  const sections = [
+    ["What it means", node.explanation.simple_definition],
+    ["Why it matters", node.explanation.why_it_matters],
+    ["Example", node.explanation.example],
+    ["Analogy", node.explanation.analogy],
+  ];
+
+  for (const [title, text] of sections) {
+    if (!text) continue;
+    const block = document.createElement("section");
+    const heading = document.createElement("h4");
+    const paragraph = document.createElement("p");
+    heading.textContent = title;
+    paragraph.textContent = text;
+    block.append(heading, paragraph);
+    refs.explanationContent.appendChild(block);
+  }
+
+  if (Array.isArray(node.explanation.study_questions) && node.explanation.study_questions.length) {
+    const block = document.createElement("section");
+    const heading = document.createElement("h4");
+    const list = document.createElement("ul");
+    heading.textContent = "Check your understanding";
+    for (const question of node.explanation.study_questions) {
+      const item = document.createElement("li");
+      item.textContent = question;
+      list.appendChild(item);
+    }
+    block.append(heading, list);
+    refs.explanationContent.appendChild(block);
+  }
 }
 
 function renderSearch() {
@@ -499,6 +623,9 @@ refs.expandButton.addEventListener("click", () => expandNode(selectedNode()));
 refs.moreButton.addEventListener("click", () => expandNode(selectedNode(), "find_more"));
 refs.exhaustButton.addEventListener("click", () => expandUntilExhausted(selectedNode()));
 refs.expandBranchButton.addEventListener("click", () => fillBranchToLevelFour(selectedNode()));
+refs.explainButton.addEventListener("click", () => explainSelectedNode());
+refs.clearLevelButton.addEventListener("click", () => clearNextLevel(selectedNode()));
+refs.clearAllButton.addEventListener("click", () => clearAllLevels());
 refs.searchAllButton.addEventListener("click", () => openProvider("scholar", selectedNode()));
 
 render();

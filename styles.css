@@ -230,6 +230,43 @@ button:disabled {
   font-weight: 700;
 }
 
+.explanation-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
+.explanation-panel h3,
+.explanation-panel h4,
+.explanation-panel p,
+.explanation-panel ul {
+  margin: 0;
+}
+
+.explanation-panel h3 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-size: 1.08rem;
+}
+
+.explanation-panel h4 {
+  margin-bottom: 4px;
+  font-size: 0.86rem;
+  color: var(--accent-strong);
+}
+
+.explanation-panel p,
+.explanation-panel li {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.explanation-panel ul {
+  padding-left: 18px;
+}
+
 .level-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(220px, 1fr));

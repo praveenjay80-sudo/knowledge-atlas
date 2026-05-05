@@ -7,6 +7,6 @@
     "build:taxonomy": "node scripts/build_static_science_taxonomy.mjs",
     "dev": "node server.js",
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js && node --check api/shared.js && node --check api/health.mjs && node --check api/taxonomy.mjs && node --check api/bibliography.mjs && node --check api/concepts.mjs"
+    "check": "node --check server.js && node --check app.js && node --check api/shared.js && node --check api/health.mjs && node --check api/taxonomy.mjs && node --check api/bibliography.mjs && node --check api/concepts.mjs && node --check api/explain.mjs"
   }
 }

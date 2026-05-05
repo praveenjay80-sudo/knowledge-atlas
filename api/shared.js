@@ -1010,6 +1010,33 @@ function conceptsSchema() {
   };
 }
 
+function explanationSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      explanation: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          simple_definition: { type: "string" },
+          why_it_matters: { type: "string" },
+          example: { type: "string" },
+          analogy: { type: "string" },
+          study_questions: {
+            type: "array",
+            minItems: 3,
+            maxItems: 5,
+            items: { type: "string" },
+          },
+        },
+        required: ["simple_definition", "why_it_matters", "example", "analogy", "study_questions"],
+      },
+    },
+    required: ["explanation"],
+  };
+}
+
 function sentence(value, fallback) {
   const cleaned = normalizeWhitespace(value);
   return cleaned || fallback;
@@ -1397,6 +1424,48 @@ function fallbackConceptMap(pathSegments, summary, keywords) {
   };
 }
 
+function fallbackExplanation(pathSegments, summary, keywords) {
+  const topic = titleFromPath(pathSegments);
+  const parent = pathSegments.length > 1 ? pathSegments[pathSegments.length - 2] : "human knowledge";
+  const pathLabel = pathSegments.join(" > ");
+  const keywordText = uniqueStrings(keywords).slice(0, 3).join(", ") || topic;
+
+  return {
+    explanation: {
+      simple_definition: `${topic} is a topic inside ${parent}. In school-level terms, it is a named idea that helps people group related facts, questions, and examples.`,
+      why_it_matters: `${topic} matters because it gives you a precise word to search for and a clearer way to understand the larger area: ${pathLabel}.`,
+      example: summary
+        ? `Example: ${summary}`
+        : `Example: when you search for ${keywordText}, you are trying to find sources about this specific idea rather than a broad surrounding subject.`,
+      analogy: `Think of ${topic} like a labeled folder in a school binder. The label tells you what belongs in that folder and helps you avoid mixing it with nearby topics.`,
+      study_questions: [
+        `What does ${topic} mean in one sentence?`,
+        `What is one concrete example of ${topic}?`,
+        `How does ${topic} connect to ${parent}?`,
+      ],
+    },
+  };
+}
+
+function explanationPrompt({ pathSegments, summary, keywords }) {
+  const target = pathSegments.join(" > ");
+  const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
+
+  return [
+    "Explain the selected taxonomy item for a school student.",
+    "Use clear language, but include enough detail to be genuinely useful.",
+    "Do not talk down to the reader.",
+    "Give concrete examples tied to the actual field, not vague generic examples.",
+    "Avoid fabricated facts. If the item is broad, explain it broadly and carefully.",
+    "",
+    `Selected path: ${target}`,
+    `Summary: ${summary || "No summary supplied."}`,
+    `Keywords: ${keywordLine}`,
+    "",
+    "Return a simple definition, why it matters, one concrete example, one analogy, and three to five study questions.",
+  ].join("\n");
+}
+
 async function handleTaxonomyRequest(req, res) {
   let pathSegments = [];
   let existingChildren = [];
@@ -1567,6 +1636,47 @@ async function handleConceptTreeRequest(req, res) {
   }
 }
 
+async function handleExplainRequest(req, res) {
+  let pathSegments = [];
+  let summary = "";
+  let keywords = [];
+
+  try {
+    if (req.method !== "POST") {
+      sendJson(res, 405, { error: "Method not allowed." });
+      return;
+    }
+
+    const body = await readJsonBody(req);
+    pathSegments = Array.isArray(body.path)
+      ? body.path.map((item) => String(item).trim()).filter(Boolean)
+      : [];
+
+    if (!pathSegments.length) {
+      sendJson(res, 400, { error: "Explanation requests require a non-empty taxonomy path." });
+      return;
+    }
+
+    summary = typeof body.summary === "string" ? body.summary.trim() : "";
+    keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
+    const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+
+    const payload = await callOpenAI({
+      apiKey,
+      prompt: explanationPrompt({ pathSegments, summary, keywords }),
+      schemaName: "school_level_taxonomy_explanation",
+      schema: explanationSchema(),
+      maxOutputTokens: 1000,
+      reasoningEffort: "low",
+      timeoutMs: 25000,
+    });
+
+    sendJson(res, 200, payload);
+  } catch {
+    sendJson(res, 200, fallbackExplanation(pathSegments, summary, keywords));
+  }
+}
+
 function handleHealthRequest(req, res) {
   if (req.method !== "GET") {
     sendJson(res, 405, { error: "Method not allowed." });
@@ -1583,6 +1693,7 @@ function handleHealthRequest(req, res) {
 module.exports = {
   handleBibliographyRequest,
   handleConceptTreeRequest,
+  handleExplainRequest,
   handleHealthRequest,
   handleTaxonomyRequest,
 };

@@ -77,9 +77,16 @@
             <button id="moreButton" class="secondary-button" type="button" disabled>Find More Siblings</button>
             <button id="exhaustButton" class="secondary-button" type="button" disabled>Expand Until Exhausted</button>
             <button id="expandBranchButton" class="secondary-button" type="button" disabled>Fill Branch to Level 4</button>
+            <button id="explainButton" class="secondary-button" type="button" disabled>Explain</button>
+            <button id="clearLevelButton" class="ghost-button" type="button" disabled>Clear Next Level</button>
+            <button id="clearAllButton" class="ghost-button" type="button">Clear All Levels</button>
             <button id="searchAllButton" class="secondary-button" type="button" disabled>Search Selected Context</button>
           </div>
           <p id="selectedStatus" class="hint"></p>
+          <div id="explanationPanel" class="explanation-panel" hidden>
+            <h3>School-Level Explanation</h3>
+            <div id="explanationContent"></div>
+          </div>
         </section>
 
         <section class="level-grid" aria-label="Knowledge hierarchy">
