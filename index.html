@@ -3,198 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Knowledge Atlas</title>
+  <title>Human Knowledge Taxonomy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="page-shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Knowledge Atlas</p>
-        <h1>Fields, subfields, and canonical bibliographies.</h1>
-        <p class="hero-text">
-          Move through formal sciences, natural sciences, social sciences, and philosophy as if you were opening
-          a serious reference work. Pick any field or subfield, expand its known descendants, then generate a
-          reading list grouped into seminal works, breakthroughs, teaching texts, and surveys.
-        </p>
-        <div class="hero-highlights">
-          <span>Field-first workspace</span>
-          <span>Deep subfield tree</span>
-          <span>Canonical bibliography</span>
-          <span>One-click bibliography</span>
-        </div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Dynamic Taxonomy Explorer</p>
+        <h1>Human Knowledge Map</h1>
       </div>
-
-      <div class="hero-side">
-        <div class="hero-note">
-          <p class="status-label">Working style</p>
-          <strong>Built as a scholarly atlas, not a dashboard.</strong>
-          <p>Use the left column to steer scope. Use the main workspace to stay with one topic at a time.</p>
-        </div>
-
-        <div class="hero-stats">
-          <div class="status-block">
-            <span class="status-label">Atlas status</span>
-            <strong id="apiStatus">Checking API status...</strong>
-          </div>
-          <div class="status-block">
-            <span class="status-label">Loaded topics</span>
-            <strong id="loadedCount">0</strong>
-          </div>
-          <div class="status-block">
-            <span class="status-label">Search matches</span>
-            <strong id="visibleCount">0</strong>
-          </div>
-        </div>
+      <div class="status-strip">
+        <span id="apiStatus">Checking API...</span>
+        <span id="nodeCount">0 keywords</span>
       </div>
     </header>
 
-    <main class="app-grid">
-      <aside class="sidebar">
-        <section class="panel search-panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Topic Search</p>
-              <h2>Find an opened topic</h2>
-            </div>
+    <main class="layout">
+      <aside class="controls">
+        <section class="panel">
+          <div class="panel-title">
+            <p class="eyebrow">Generation</p>
+            <h2>API key and scope</h2>
           </div>
-          <label class="control">
-            <span>Search loaded topics</span>
-            <input id="searchInput" type="search" placeholder="logic, ethics, ecology, topology, macroeconomics..." />
+          <label class="field">
+            <span>OpenAI API key</span>
+            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-... or use server environment key" />
           </label>
-          <p id="searchMeta" class="support-copy">Search only works across topics that are already in your atlas.</p>
-          <div id="searchResults" class="stack-list"></div>
-        </section>
-
-        <section class="panel focus-panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Atlas Controls</p>
-              <h2>Load and reset</h2>
-            </div>
-          </div>
-          <p class="support-copy">
-            Use the atlas overview to open the main science domains, then expand any field as deeply as the stored
-            taxonomy allows.
-          </p>
+          <label class="field">
+            <span>Coverage per expansion</span>
+            <select id="breadthSelect">
+              <option value="maximal" selected>Maximal</option>
+              <option value="broad">Broad</option>
+              <option value="compact">Compact</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Optional focus</span>
+            <input id="focusInput" type="search" placeholder="e.g. include humanities, engineering, medicine" />
+          </label>
           <div class="button-row">
-            <button id="growRootsButton" class="primary-button" type="button">Load Atlas Overview</button>
+            <button id="loadRootsButton" class="primary-button" type="button">Load Level 1</button>
             <button id="resetButton" class="ghost-button" type="button">Reset</button>
           </div>
+          <p class="hint">The API generates direct children on demand. Level 3 searches automatically include Level 2 and Level 1 context.</p>
         </section>
 
-        <section class="panel domain-panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Starting Domains</p>
-              <h2>Choose your entrance</h2>
-            </div>
+        <section class="panel">
+          <div class="panel-title">
+            <p class="eyebrow">Search Tree</p>
+            <h2>Find loaded keywords</h2>
           </div>
-          <div id="domainCards" class="stack-list"></div>
+          <label class="field">
+            <span>Keyword search</span>
+            <input id="searchInput" type="search" placeholder="quantum physics, abstract algebra..." />
+          </label>
+          <div id="searchResults" class="result-list"></div>
         </section>
       </aside>
 
       <section class="workspace">
-        <section id="emptyState" class="panel empty-panel">
-          <p class="eyebrow">Open The Atlas</p>
-          <h2>Start with a domain, expand a field, then generate its bibliography.</h2>
-          <p>
-            This version is built around one purpose: field and subfield coverage with reading lists. Expand the tree,
-            click any branch, and generate bibliography wherever you stop.
-          </p>
+        <section class="panel selected-panel">
+          <p id="selectedLevel" class="eyebrow">No Selection</p>
+          <h2 id="selectedName">Load the top-level domains to begin</h2>
+          <p id="selectedSummary" class="selected-summary">Generate a structured four-level taxonomy of human knowledge, then use contextual search buttons to look up precise terms in scholarly catalogs and indexes.</p>
+          <div id="selectedPath" class="path-line"></div>
+          <div id="selectedKeywords" class="keyword-row"></div>
+          <div class="button-row">
+            <button id="expandButton" class="primary-button" type="button" disabled>Generate Next Level</button>
+            <button id="searchAllButton" class="secondary-button" type="button" disabled>Search Selected Context</button>
+          </div>
+          <p id="selectedStatus" class="hint"></p>
         </section>
 
-        <div id="topicWorkspace" class="workspace-stack" hidden>
-          <section class="panel topic-panel">
-            <div class="topic-header">
-              <div>
-                <p id="topicPath" class="topic-path"></p>
-                <h2 id="topicTitle"></h2>
-                <p id="topicSummary" class="topic-summary"></p>
-              </div>
-              <div id="topicBadges" class="badge-row"></div>
+        <section class="level-grid" aria-label="Knowledge hierarchy">
+          <section class="level-column" data-level="1">
+            <div class="level-head">
+              <p class="eyebrow">Level 1</p>
+              <h2>Domains</h2>
             </div>
-
-            <div class="button-row">
-              <button id="generateChildrenButton" class="secondary-button" type="button">Build Field Map</button>
-              <button id="loadBibliographyButton" class="primary-button" type="button">Load Bibliography</button>
-            </div>
-
-            <div class="topic-notes">
-              <p id="topicWhy" class="support-copy"></p>
-              <p id="topicStatus" class="support-copy"></p>
-              <p id="topicRemaining" class="support-copy"></p>
-              <p id="topicCaution" class="support-copy caution-copy"></p>
-            </div>
+            <div id="level1List" class="node-list"></div>
           </section>
-
-          <section class="panel related-panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Field Structure</p>
-                <h2>Fields and subfields</h2>
-              </div>
+          <section class="level-column" data-level="2">
+            <div class="level-head">
+              <p class="eyebrow">Level 2</p>
+              <h2>Fields</h2>
             </div>
-            <p id="relatedIntro" class="support-copy"></p>
-            <div id="relatedFields" class="card-grid"></div>
+            <div id="level2List" class="node-list"></div>
           </section>
-
-          <section class="panel bibliography-panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Canonical Readings</p>
-                <h2>Bibliography</h2>
-              </div>
+          <section class="level-column" data-level="3">
+            <div class="level-head">
+              <p class="eyebrow">Level 3</p>
+              <h2>Subfields</h2>
             </div>
-            <p id="bibliographyStatus" class="support-copy">Load bibliography to organize a serious reading path for this field.</p>
-            <p id="bibliographyCaution" class="support-copy caution-copy" hidden></p>
-            <div id="bibliographyGroups" class="bibliography-grid"></div>
+            <div id="level3List" class="node-list"></div>
           </section>
-        </div>
+          <section class="level-column" data-level="4">
+            <div class="level-head">
+              <p class="eyebrow">Level 4</p>
+              <h2>Specialties</h2>
+            </div>
+            <div id="level4List" class="node-list"></div>
+          </section>
+        </section>
       </section>
     </main>
   </div>
 
-  <template id="domainCardTemplate">
-    <article class="domain-card">
-      <div>
-        <p class="domain-label"></p>
-        <h3 class="domain-name"></h3>
-        <p class="domain-summary"></p>
+  <template id="nodeTemplate">
+    <article class="node-card">
+      <button class="node-main" type="button">
+        <span class="node-level"></span>
+        <strong class="node-name"></strong>
+        <span class="node-summary"></span>
+      </button>
+      <div class="keyword-row node-keywords"></div>
+      <div class="search-row">
+        <button class="search-button" data-provider="worldcat" type="button">WorldCat</button>
+        <button class="search-button" data-provider="scholar" type="button">Scholar</button>
+        <button class="search-button" data-provider="eth" type="button">ETH</button>
+        <button class="search-button" data-provider="michigan" type="button">Michigan</button>
       </div>
-      <div class="button-row">
-        <button class="open-domain-button secondary-button" type="button">Open</button>
-        <button class="bibliography-domain-button primary-button" type="button">Bibliography</button>
-        <button class="grow-domain-button ghost-button" type="button">Map</button>
-      </div>
+      <button class="expand-inline" type="button">Generate children</button>
     </article>
   </template>
 
-  <template id="searchResultTemplate">
-    <button class="search-result" type="button">
-      <span class="search-result-path"></span>
-      <strong class="search-result-name"></strong>
-      <span class="search-result-summary"></span>
+  <template id="resultTemplate">
+    <button class="result-item" type="button">
+      <span class="result-path"></span>
+      <strong class="result-name"></strong>
     </button>
-  </template>
-
-  <template id="fieldCardTemplate">
-    <article class="field-card">
-      <div>
-        <p class="field-path"></p>
-        <h3 class="field-name"></h3>
-        <p class="field-summary"></p>
-      </div>
-      <div class="badge-row field-badges"></div>
-      <div class="button-row">
-        <button class="open-field-button secondary-button" type="button">Open</button>
-        <button class="bibliography-field-button primary-button" type="button">Bibliography</button>
-        <button class="grow-field-button ghost-button" type="button">Expand</button>
-      </div>
-    </article>
   </template>
 
   <script src="app.js"></script>

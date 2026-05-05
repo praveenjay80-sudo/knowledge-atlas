@@ -303,7 +303,7 @@ const BREADTH_TARGETS = {
   maximal: "14 to 22",
 };
 
-const ROLE_VALUES = ["field", "subfield", "specialty", "topic", "concept_family"];
+const ROLE_VALUES = ["domain", "field", "subfield", "specialty", "topic", "concept_family"];
 const CONFIDENCE_VALUES = ["high", "medium", "low"];
 
 function sendJson(res, statusCode, payload) {
@@ -373,6 +373,7 @@ function extractResponseText(data) {
 }
 
 async function callOpenAI({
+  apiKey,
   prompt,
   schemaName,
   schema,
@@ -380,7 +381,9 @@ async function callOpenAI({
   reasoningEffort = "low",
   timeoutMs = 40000,
 }) {
-  if (!process.env.OPENAI_API_KEY) {
+  const resolvedApiKey = apiKey || process.env.OPENAI_API_KEY;
+
+  if (!resolvedApiKey) {
     throw new Error("OPENAI_API_KEY is not set on the server.");
   }
 
@@ -401,7 +404,7 @@ async function callOpenAI({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${resolvedApiKey}`,
         },
         signal: AbortSignal.timeout(attempt.timeoutMs),
         body: JSON.stringify({
@@ -689,11 +692,20 @@ function taxonomyPrompt({
 }) {
   const currentNode = pathSegments.at(-1);
   const pathLabel = pathSegments.join(" > ");
+  const currentLevel = pathSegments.length;
+  const childLevel = currentLevel + 1;
+  const childLevelLabel = childLevel === 2
+    ? "Level 2 fields"
+    : childLevel === 3
+      ? "Level 3 subfields"
+      : "Level 4 specialties, topic families, or precise research keywords";
 
   return [
-    "You are building a high-coverage taxonomy of the sciences for an interactive explorer.",
+    "You are building a high-coverage taxonomy of all areas of human knowledge for an interactive explorer.",
     "Return only DIRECT child categories of the target node.",
     "Do not return grandchildren.",
+    `The current node is Level ${currentLevel}; return ${childLevelLabel}.`,
+    "The app stops at Level 4, so Level 4 items should be precise scholarly keyword areas that are useful in catalogs and academic indexes.",
     "Prefer canonical academic branches, recognized subdisciplines, or recognized specialty areas.",
     "Be conservative. If uncertain, omit the item rather than inventing a dubious discipline.",
     "Do not return meta-categories about textbooks, proceedings, surveys, bibliography, software, history, or general reference material.",
@@ -719,13 +731,14 @@ function taxonomyPrompt({
     "- aliases: zero to three alternative names or abbreviations if useful",
     "- summary: one sentence describing the child",
     "- why_it_belongs: why it is a direct child of the target node",
-    "- keywords: three to six search keywords",
-    "- likely_has_children: whether the item can be expanded further",
+    "- keywords: three to six precise search keywords; include discipline terms, not prose phrases",
+    `- likely_has_children: ${childLevel < 4 ? "true when the item can be expanded further" : "false for Level 4 items"}`,
     "- child_scope_label: short phrase like 'subfields', 'branches', 'specialties', or 'concept families'",
-    "- taxonomy_role: one of field, subfield, specialty, topic, concept_family",
+    "- taxonomy_role: one of domain, field, subfield, specialty, topic, concept_family",
     "- confidence: high, medium, or low",
     "- caution_note: leave empty unless there is a real ambiguity or overlap worth flagging",
     "",
+    "For Level 3 and Level 4, keywords must work well when combined with the parent Level 1 and Level 2 terms.",
     "If there are more valid children beyond the list, explain that briefly in remaining_note.",
   ].join("\n");
 }
@@ -1253,6 +1266,7 @@ async function handleTaxonomyRequest(req, res) {
     const breadth = ["compact", "broad", "maximal"].includes(body.breadth) ? body.breadth : "maximal";
     const customFocus = typeof body.customFocus === "string" ? body.customFocus.trim() : "";
     const mode = body.mode === "find_more" ? "find_more" : "initial";
+    const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
 
     if (pathSegments.length === 0) {
       sendJson(res, 200, {
@@ -1277,6 +1291,7 @@ async function handleTaxonomyRequest(req, res) {
     }
 
     const payload = await callOpenAI({
+      apiKey,
       prompt: taxonomyPrompt({
         pathSegments,
         existingChildren,

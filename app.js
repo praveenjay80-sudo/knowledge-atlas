@@ -1,360 +1,224 @@
 const ROOT_DEFINITIONS = [
   {
     name: "Formal sciences",
-    summary:
-      "Disciplines centered on abstract structures, symbolic systems, computation, inference, and mathematical modeling.",
+    summary: "Abstract, symbolic, mathematical, computational, and logical systems of knowledge.",
+    keywords: ["formal sciences", "logic", "mathematics", "computation", "formal systems"],
   },
   {
     name: "Natural sciences",
-    summary:
-      "Disciplines focused on the physical universe, life, matter, energy, Earth systems, and observable natural phenomena.",
+    summary: "Empirical study of matter, energy, life, Earth, space, and natural processes.",
+    keywords: ["natural sciences", "physics", "chemistry", "biology", "earth science"],
   },
   {
     name: "Social sciences",
-    summary:
-      "Disciplines focused on human behavior, institutions, culture, markets, governance, and social systems.",
+    summary: "Systematic study of human behavior, institutions, economies, societies, and culture.",
+    keywords: ["social sciences", "society", "institutions", "human behavior", "culture"],
+  },
+  {
+    name: "Humanities",
+    summary: "Interpretive study of language, history, literature, art, religion, and human meaning.",
+    keywords: ["humanities", "history", "literature", "language", "culture"],
+  },
+  {
+    name: "Applied sciences and professions",
+    summary: "Knowledge organized around design, intervention, practice, technology, health, and professional work.",
+    keywords: ["applied sciences", "engineering", "medicine", "technology", "professional practice"],
   },
   {
     name: "Philosophy",
-    summary:
-      "Disciplines focused on metaphysics, epistemology, logic, ethics, aesthetics, and the critical analysis of knowledge and reality.",
+    summary: "Critical inquiry into reality, knowledge, value, reason, mind, language, and science.",
+    keywords: ["philosophy", "metaphysics", "epistemology", "ethics", "logic"],
   },
 ];
 
-const BIBLIOGRAPHY_CATEGORY_LABELS = {
-  seminal_works: "Seminal Works",
-  breakthrough_works: "Breakthrough Works",
-  pedagogy_texts: "Pedagogy and Teaching Texts",
-  reference_works: "Reference and Survey Works",
-  recent_syntheses: "Recent Syntheses",
+const LEVEL_LABELS = {
+  1: "Level 1 Domain",
+  2: "Level 2 Field",
+  3: "Level 3 Subfield",
+  4: "Level 4 Specialty",
+};
+
+const SEARCH_PROVIDERS = {
+  worldcat: {
+    label: "WorldCat",
+    url: (query) => `https://search.worldcat.org/search?q=${encodeURIComponent(query)}`,
+  },
+  scholar: {
+    label: "Google Scholar",
+    url: (query) => `https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`,
+  },
+  eth: {
+    label: "ETH Library",
+    url: (query) => `https://eth.swisscovery.slsp.ch/discovery/search?query=any,contains,${encodeURIComponent(query)}&tab=discovery_network&search_scope=DiscoveryNetwork&vid=41SLSP_ETH:ETH&lang=en&offset=0`,
+  },
+  michigan: {
+    label: "Uni Michigan Library",
+    url: (query) => `https://search.lib.umich.edu/catalog?query=${encodeURIComponent(query)}`,
+  },
 };
 
 const refs = {
   apiStatus: document.querySelector("#apiStatus"),
-  loadedCount: document.querySelector("#loadedCount"),
-  visibleCount: document.querySelector("#visibleCount"),
-  searchInput: document.querySelector("#searchInput"),
-  searchMeta: document.querySelector("#searchMeta"),
-  searchResults: document.querySelector("#searchResults"),
-  growRootsButton: document.querySelector("#growRootsButton"),
+  nodeCount: document.querySelector("#nodeCount"),
+  apiKeyInput: document.querySelector("#apiKeyInput"),
+  breadthSelect: document.querySelector("#breadthSelect"),
+  focusInput: document.querySelector("#focusInput"),
+  loadRootsButton: document.querySelector("#loadRootsButton"),
   resetButton: document.querySelector("#resetButton"),
-  domainCards: document.querySelector("#domainCards"),
-  emptyState: document.querySelector("#emptyState"),
-  topicWorkspace: document.querySelector("#topicWorkspace"),
-  topicPath: document.querySelector("#topicPath"),
-  topicTitle: document.querySelector("#topicTitle"),
-  topicSummary: document.querySelector("#topicSummary"),
-  topicBadges: document.querySelector("#topicBadges"),
-  topicWhy: document.querySelector("#topicWhy"),
-  topicStatus: document.querySelector("#topicStatus"),
-  topicRemaining: document.querySelector("#topicRemaining"),
-  topicCaution: document.querySelector("#topicCaution"),
-  generateChildrenButton: document.querySelector("#generateChildrenButton"),
-  loadBibliographyButton: document.querySelector("#loadBibliographyButton"),
-  relatedIntro: document.querySelector("#relatedIntro"),
-  relatedFields: document.querySelector("#relatedFields"),
-  bibliographyStatus: document.querySelector("#bibliographyStatus"),
-  bibliographyCaution: document.querySelector("#bibliographyCaution"),
-  bibliographyGroups: document.querySelector("#bibliographyGroups"),
-  domainCardTemplate: document.querySelector("#domainCardTemplate"),
-  searchResultTemplate: document.querySelector("#searchResultTemplate"),
-  fieldCardTemplate: document.querySelector("#fieldCardTemplate"),
+  searchInput: document.querySelector("#searchInput"),
+  searchResults: document.querySelector("#searchResults"),
+  selectedLevel: document.querySelector("#selectedLevel"),
+  selectedName: document.querySelector("#selectedName"),
+  selectedSummary: document.querySelector("#selectedSummary"),
+  selectedPath: document.querySelector("#selectedPath"),
+  selectedKeywords: document.querySelector("#selectedKeywords"),
+  expandButton: document.querySelector("#expandButton"),
+  searchAllButton: document.querySelector("#searchAllButton"),
+  selectedStatus: document.querySelector("#selectedStatus"),
+  levels: {
+    1: document.querySelector("#level1List"),
+    2: document.querySelector("#level2List"),
+    3: document.querySelector("#level3List"),
+    4: document.querySelector("#level4List"),
+  },
+  nodeTemplate: document.querySelector("#nodeTemplate"),
+  resultTemplate: document.querySelector("#resultTemplate"),
 };
 
 const state = {
-  breadth: "broad",
-  focus: "",
+  health: "Checking API...",
+  serverKeyReady: false,
+  roots: [],
+  selectedId: "",
+  activePathIds: [],
   search: "",
-  loadingRoots: false,
-  selectedNodeId: null,
-  healthMessage: "Checking API status...",
-  healthOk: false,
-  roots: createInitialRoots(),
+  loadingIds: new Set(),
 };
 
-function createNode(
-  {
-    name,
-    summary,
-    whyItBelongs = "",
-    keywords = [],
-    aliases = [],
-    likelyHasChildren = true,
-    childScopeLabel = "related fields",
-    taxonomyRole = "field",
-    confidence = "high",
-    cautionNote = "",
-  },
-  path,
-) {
+function makeId(path) {
+  return path.join(" > ");
+}
+
+function createNode(item, path) {
   return {
-    id: path.join(" > "),
+    id: makeId(path),
     path,
-    name,
-    summary,
-    whyItBelongs,
-    keywords,
-    aliases,
-    likelyHasChildren,
-    childScopeLabel,
-    taxonomyRole,
-    confidence,
-    cautionNote,
+    name: item.name,
+    summary: item.summary || "",
+    whyItBelongs: item.why_it_belongs || "",
+    keywords: uniqueStrings(item.keywords || path),
+    aliases: uniqueStrings(item.aliases || []),
+    likelyHasChildren: item.likely_has_children ?? path.length < 4,
+    taxonomyRole: item.taxonomy_role || roleForLevel(path.length),
+    confidence: item.confidence || "high",
+    cautionNote: item.caution_note || "",
     children: [],
-    childrenStatus: "idle",
-    childrenMessage: "",
-    remainingMessage: "",
-    bibliographyStatus: "idle",
-    bibliography: null,
-    bibliographyNote: "",
-    bibliographyCaution: "",
-    bibliographyError: "",
+    status: "",
+    remainingNote: "",
   };
 }
 
-function createInitialRoots() {
-  return ROOT_DEFINITIONS.map((item) =>
-    createNode(
-      {
-        ...item,
-        childScopeLabel: "major branches",
-        taxonomyRole: "field",
-      },
-      [item.name],
-    ),
-  );
+function roleForLevel(level) {
+  if (level === 1) return "domain";
+  if (level === 2) return "field";
+  if (level === 3) return "subfield";
+  return "specialty";
 }
 
-function normalizeName(value) {
-  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function clearChildren(element) {
-  element.replaceChildren();
-}
-
-function friendlyCoverageNote(message) {
-  const cleaned = String(message || "").trim();
-  if (!cleaned) {
-    return "";
-  }
-
-  if (/live taxonomy request failed|deterministic fallback|built-in major branches|curated locally/i.test(cleaned)) {
-    return "Starter map loaded for this topic. You can keep exploring from here.";
-  }
-
-  return cleaned;
-}
-
-function friendlyStatusNote(message, node) {
-  const cleaned = String(message || "").trim();
-  if (!cleaned) {
-    return "";
-  }
-
-  if (/fallback direct fields/i.test(cleaned)) {
-    return `Mapped a first ring of fields around ${node.name}.`;
-  }
-
-  if (/curated major branches/i.test(cleaned)) {
-    return `Major branches for ${node.name} are ready.`;
-  }
-
-  return cleaned;
-}
-
-function friendlySupportNote(message) {
-  const cleaned = String(message || "").trim();
-  if (!cleaned) {
-    return "";
-  }
-
-  if (/fallback bibliography scaffold|fallback concept map|deterministic scaffold|live model-backed|live generation is unavailable/i.test(cleaned)) {
-    return "A stable atlas guide is loaded for this topic.";
-  }
-
-  return cleaned;
-}
-
-function friendlyCautionNote(message) {
-  const cleaned = String(message || "").trim();
-  if (!cleaned) {
-    return "";
-  }
-
-  if (/live model-backed|deterministic scaffold|placeholders for search strategy/i.test(cleaned)) {
-    return "";
-  }
-
-  return cleaned;
-}
-
-function createBadge(label, tone = "") {
-  const item = document.createElement("span");
-  item.className = `badge${tone ? ` ${tone}` : ""}`;
-  item.textContent = label;
-  return item;
-}
-
-function flattenNodes(nodes = state.roots) {
-  const output = [];
-  for (const node of nodes) {
-    output.push(node);
-    output.push(...flattenNodes(node.children));
-  }
-  return output;
-}
-
-function countLoadedNodes() {
-  return flattenNodes().length;
-}
-
-function findNodeById(id, nodes = state.roots) {
-  for (const node of nodes) {
-    if (node.id === id) {
-      return node;
+function uniqueStrings(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values || []) {
+    const clean = String(value || "").replace(/\s+/g, " ").trim();
+    const key = clean.toLowerCase();
+    if (clean && !seen.has(key)) {
+      seen.add(key);
+      result.push(clean);
     }
-    const child = findNodeById(id, node.children);
-    if (child) {
-      return child;
-    }
+  }
+  return result;
+}
+
+function flatten(nodes = state.roots) {
+  return nodes.flatMap((node) => [node, ...flatten(node.children)]);
+}
+
+function findNode(id, nodes = state.roots) {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const child = findNode(id, node.children);
+    if (child) return child;
   }
   return null;
 }
 
 function selectedNode() {
-  return state.selectedNodeId ? findNodeById(state.selectedNodeId) : null;
+  return state.selectedId ? findNode(state.selectedId) : null;
 }
 
-function mergeChildren(node, incomingItems) {
-  const existingByName = new Map(node.children.map((child) => [normalizeName(child.name), child]));
+function setSelected(node) {
+  state.selectedId = node.id;
+  state.activePathIds = node.path.map((_, index) => makeId(node.path.slice(0, index + 1)));
+  render();
+}
 
-  for (const item of incomingItems || []) {
-    const key = normalizeName(item.name);
-    if (!key) {
-      continue;
-    }
-
-    if (existingByName.has(key)) {
-      const existing = existingByName.get(key);
-      existing.summary = item.summary || existing.summary;
-      existing.whyItBelongs = item.why_it_belongs || existing.whyItBelongs;
-      existing.keywords = item.keywords || existing.keywords;
-      existing.aliases = item.aliases || existing.aliases;
-      existing.likelyHasChildren = item.likely_has_children ?? existing.likelyHasChildren;
-      existing.childScopeLabel = item.child_scope_label || existing.childScopeLabel;
-      existing.taxonomyRole = item.taxonomy_role || existing.taxonomyRole;
-      existing.confidence = item.confidence || existing.confidence;
-      existing.cautionNote = item.caution_note || existing.cautionNote;
-      if (Array.isArray(item.children) && item.children.length) {
-        mergeChildren(existing, item.children);
-      }
-      continue;
-    }
-
-    const created = createNode(
-      {
-        name: item.name,
-        summary: item.summary,
-        whyItBelongs: item.why_it_belongs,
-        keywords: item.keywords,
-        aliases: item.aliases,
-        likelyHasChildren: item.likely_has_children,
-        childScopeLabel: item.child_scope_label,
-        taxonomyRole: item.taxonomy_role,
-        confidence: item.confidence,
-        cautionNote: item.caution_note,
-      },
-      [...node.path, item.name],
-    );
-
-    if (Array.isArray(item.children) && item.children.length) {
-      mergeChildren(created, item.children);
-    }
-
-    node.children.push(created);
-  }
-
-  node.children.sort((left, right) => left.name.localeCompare(right.name));
+function apiKey() {
+  return refs.apiKeyInput.value.trim();
 }
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
-  const rawText = await response.text();
-  const contentType = response.headers.get("content-type") || "";
-  let data = {};
-
-  if (contentType.includes("application/json")) {
-    data = rawText ? JSON.parse(rawText) : {};
-  } else if (rawText) {
-    try {
-      data = JSON.parse(rawText);
-    } catch {
-      const preview = rawText.replace(/\s+/g, " ").trim().slice(0, 180);
-      throw new Error(
-        preview
-          ? `Server returned non-JSON output: ${preview}`
-          : "Server returned an empty non-JSON response.",
-      );
-    }
-  }
-
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : {};
   if (!response.ok) {
-    throw new Error(data.error || data.detail || "Request failed.");
+    throw new Error(payload.error || "Request failed.");
   }
-  return data;
+  return payload;
 }
 
 async function refreshHealth() {
   try {
     const payload = await fetchJson("/api/health");
-    state.healthOk = Boolean(payload.ok && payload.apiKeyConfigured);
-    state.healthMessage = state.healthOk
-      ? `API ready. Model: ${payload.model}.`
-      : "API reachable, but OPENAI_API_KEY is not configured yet.";
+    state.serverKeyReady = Boolean(payload.apiKeyConfigured);
+    state.health = state.serverKeyReady
+      ? `Server API ready (${payload.model})`
+      : "Enter an API key to generate dynamically";
   } catch {
-    state.healthOk = false;
-    state.healthMessage = "API routes are not reachable right now.";
+    state.health = "API route unavailable";
   }
-
-  if (state.healthOk && !state.selectedNodeId && state.roots[0]) {
-    openNode(state.roots[0]);
-    return;
-  }
-
   render();
 }
 
-function selectNode(node) {
-  state.selectedNodeId = node.id;
+function loadRoots() {
+  state.roots = ROOT_DEFINITIONS.map((item) => createNode(item, [item.name]));
+  if (state.roots[0]) {
+    setSelected(state.roots[0]);
+  }
   render();
 }
 
-function openNode(node) {
-  selectNode(node);
-  if (!state.healthOk) {
-    node.childrenMessage = "Set OPENAI_API_KEY in the deployment environment to generate fields and subfields.";
-    node.remainingMessage = "";
-    render();
-    return;
+function mergeChildren(node, items) {
+  const existing = new Map(node.children.map((child) => [child.name.toLowerCase(), child]));
+  for (const item of items || []) {
+    const name = String(item.name || "").trim();
+    if (!name || existing.has(name.toLowerCase())) continue;
+    const child = createNode(
+      {
+        ...item,
+        likely_has_children: node.path.length + 1 < 4 && (item.likely_has_children ?? true),
+      },
+      [...node.path, name],
+    );
+    node.children.push(child);
+    existing.set(name.toLowerCase(), child);
   }
-
-  if (!node || !node.likelyHasChildren) {
-    return;
-  }
-
-  if (node.children.length || node.childrenStatus === "loading") {
-    return;
-  }
-
-  loadChildren(node, "initial");
+  node.children.sort((left, right) => left.name.localeCompare(right.name));
 }
 
-async function loadChildren(node, mode = "initial") {
-  node.childrenStatus = "loading";
-  node.childrenMessage = mode === "find_more"
-    ? "Looking for adjacent fields..."
-    : "Building the first field map...";
+async function expandNode(node) {
+  if (!node || node.path.length >= 4) return;
+  state.loadingIds.add(node.id);
+  node.status = `Generating ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} keywords...`;
   render();
 
   try {
@@ -363,378 +227,193 @@ async function loadChildren(node, mode = "initial") {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         path: node.path,
-        existingChildren: node.children.flatMap((child) => [child.name, ...(child.aliases || [])]),
-        breadth: state.breadth,
-        customFocus: state.focus,
-        mode,
+        existingChildren: node.children.flatMap((child) => [child.name, ...child.aliases]),
+        breadth: refs.breadthSelect.value,
+        customFocus: refs.focusInput.value.trim(),
+        maxDepth: 4,
+        apiKey: apiKey(),
       }),
     });
-
     mergeChildren(node, payload.items || []);
-    const duplicateNote = Array.isArray(payload.dropped_duplicates) && payload.dropped_duplicates.length
-      ? ` Filtered near-duplicates: ${payload.dropped_duplicates.join(", ")}.`
-      : "";
-    node.childrenStatus = "success";
-    node.childrenMessage = `${payload.overview || `Loaded ${node.children.length} direct fields.`}${duplicateNote}`;
-    node.remainingMessage = payload.remaining_note || "";
-    if (!state.selectedNodeId) {
-      state.selectedNodeId = node.id;
+    node.status = payload.overview || `Loaded ${node.children.length} children.`;
+    node.remainingNote = payload.remaining_note || "";
+    if (node.children[0]) {
+      setSelected(node.children[0]);
     }
   } catch (error) {
-    node.childrenStatus = "error";
-    node.childrenMessage = error.message || "Unable to generate direct fields.";
-  }
-
-  render();
-}
-
-async function loadBibliography(node) {
-  node.bibliographyStatus = "loading";
-  node.bibliographyError = "";
-  node.bibliographyNote = "Generating bibliography...";
-  render();
-
-  try {
-    const payload = await fetchJson("/api/bibliography", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: node.path,
-        summary: node.summary,
-        keywords: node.keywords,
-      }),
-    });
-    node.bibliography = payload.categories || {};
-    node.bibliographyNote = payload.note || "";
-    node.bibliographyCaution = payload.caution_note || "";
-    node.bibliographyStatus = "success";
-  } catch (error) {
-    node.bibliographyStatus = "error";
-    node.bibliographyError = error.message || "Unable to generate bibliography.";
-  }
-  render();
-}
-
-async function growRootDomains() {
-  if (!state.healthOk) {
-    if (!state.selectedNodeId && state.roots[0]) {
-      state.selectedNodeId = state.roots[0].id;
-      state.roots[0].childrenMessage =
-        "Set OPENAI_API_KEY in the deployment environment to generate fields and subfields.";
-    }
+    node.status = error.message || "Generation failed.";
+  } finally {
+    state.loadingIds.delete(node.id);
     render();
+  }
+}
+
+function contextualTerms(node) {
+  if (!node) return [];
+  const level = node.path.length;
+  const ownTerms = uniqueStrings([node.name, ...node.keywords, ...node.aliases]).slice(0, 5);
+  const parentContext = level >= 3 ? node.path.slice(0, -1) : node.path.slice(0, Math.max(1, level - 1));
+  return uniqueStrings([...ownTerms, ...parentContext]).slice(0, 8);
+}
+
+function searchQuery(node) {
+  return contextualTerms(node)
+    .map((term) => (/\s/.test(term) ? `"${term}"` : term))
+    .join(" ");
+}
+
+function openProvider(providerKey, node) {
+  const provider = SEARCH_PROVIDERS[providerKey];
+  if (!provider || !node) return;
+  window.open(provider.url(searchQuery(node)), "_blank", "noopener,noreferrer");
+}
+
+function clear(element) {
+  element.replaceChildren();
+}
+
+function createKeywordChips(node, target) {
+  clear(target);
+  for (const term of contextualTerms(node)) {
+    const chip = document.createElement("button");
+    chip.className = "keyword-chip";
+    chip.type = "button";
+    chip.textContent = term;
+    chip.title = `Search with context: ${searchQuery(node)}`;
+    chip.addEventListener("click", () => openProvider("scholar", node));
+    target.appendChild(chip);
+  }
+}
+
+function visibleChildrenForLevel(level) {
+  if (level === 1) return state.roots;
+  const parentId = state.activePathIds[level - 2];
+  const parent = parentId ? findNode(parentId) : null;
+  return parent ? parent.children : [];
+}
+
+function renderNodeCard(node) {
+  const fragment = refs.nodeTemplate.content.cloneNode(true);
+  const card = fragment.querySelector(".node-card");
+  const main = fragment.querySelector(".node-main");
+  const inlineExpand = fragment.querySelector(".expand-inline");
+  const level = node.path.length;
+
+  card.classList.toggle("selected", node.id === state.selectedId);
+  card.classList.toggle("in-path", state.activePathIds.includes(node.id));
+  fragment.querySelector(".node-level").textContent = LEVEL_LABELS[level];
+  fragment.querySelector(".node-name").textContent = node.name;
+  fragment.querySelector(".node-summary").textContent = node.summary;
+
+  createKeywordChips(node, fragment.querySelector(".node-keywords"));
+
+  main.addEventListener("click", () => setSelected(node));
+  for (const button of fragment.querySelectorAll(".search-button")) {
+    button.addEventListener("click", () => openProvider(button.dataset.provider, node));
+  }
+
+  inlineExpand.hidden = level >= 4;
+  inlineExpand.disabled = state.loadingIds.has(node.id);
+  inlineExpand.textContent = state.loadingIds.has(node.id) ? "Generating..." : `Generate Level ${level + 1}`;
+  inlineExpand.addEventListener("click", () => expandNode(node));
+
+  return fragment;
+}
+
+function renderLevels() {
+  for (const [levelText, list] of Object.entries(refs.levels)) {
+    const level = Number(levelText);
+    clear(list);
+    const nodes = visibleChildrenForLevel(level);
+    if (!nodes.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-note";
+      empty.textContent = level === 1 ? "Load Level 1 to begin." : "Select and generate the parent level.";
+      list.appendChild(empty);
+      continue;
+    }
+    for (const node of nodes) {
+      list.appendChild(renderNodeCard(node));
+    }
+  }
+}
+
+function renderSelected() {
+  const node = selectedNode();
+  if (!node) {
+    refs.selectedLevel.textContent = "No Selection";
+    refs.selectedName.textContent = "Load the top-level domains to begin";
+    refs.selectedSummary.textContent = "Generate a structured four-level taxonomy of human knowledge, then search any keyword with scholarly context.";
+    refs.selectedPath.textContent = "";
+    clear(refs.selectedKeywords);
+    refs.expandButton.disabled = true;
+    refs.searchAllButton.disabled = true;
+    refs.selectedStatus.textContent = "";
     return;
   }
 
-  state.loadingRoots = true;
-  if (!state.selectedNodeId && state.roots[0]) {
-    state.selectedNodeId = state.roots[0].id;
-  }
-  render();
-  for (const node of state.roots) {
-    await loadChildren(node, "initial");
-  }
-  if (!state.selectedNodeId && state.roots[0]) {
-    state.selectedNodeId = state.roots[0].id;
-  }
-  state.loadingRoots = false;
-  render();
-}
-
-function scoreNodeForSearch(node, query) {
-  const normalizedQuery = normalizeName(query);
-  if (!normalizedQuery) {
-    return 0;
-  }
-
-  const text = [
-    node.name,
-    node.summary,
-    node.path.join(" "),
-    node.keywords.join(" "),
-    node.aliases.join(" "),
-  ].join(" ").toLowerCase();
-
-  if (!text.includes(normalizedQuery)) {
-    return -1;
-  }
-
-  let score = 0;
-  if (normalizeName(node.name).includes(normalizedQuery)) {
-    score += 6;
-  }
-  if (normalizeName(node.path.join(" ")).includes(normalizedQuery)) {
-    score += 3;
-  }
-  score += Math.max(0, 4 - node.path.length);
-  score += node.children.length ? 1 : 0;
-  return score;
-}
-
-function getSearchResults() {
-  if (!state.search.trim()) {
-    return [];
-  }
-
-  return flattenNodes()
-    .map((node) => ({ node, score: scoreNodeForSearch(node, state.search) }))
-    .filter((item) => item.score >= 0)
-    .sort((left, right) => right.score - left.score || left.node.name.localeCompare(right.node.name))
-    .slice(0, 12)
-    .map((item) => item.node);
-}
-
-function renderDomainCards() {
-  clearChildren(refs.domainCards);
-
-  for (const node of state.roots) {
-    const fragment = refs.domainCardTemplate.content.cloneNode(true);
-    fragment.querySelector(".domain-label").textContent = node.children.length
-      ? `${node.children.length} mapped branches`
-      : "Root domain";
-    fragment.querySelector(".domain-name").textContent = node.name;
-    fragment.querySelector(".domain-summary").textContent = node.summary;
-
-    fragment.querySelector(".open-domain-button").addEventListener("click", () => {
-      openNode(node);
-    });
-    fragment.querySelector(".bibliography-domain-button").addEventListener("click", async () => {
-      selectNode(node);
-      await loadBibliography(node);
-    });
-    fragment.querySelector(".grow-domain-button").addEventListener("click", () => {
-      loadChildren(node, "initial");
-    });
-
-    refs.domainCards.appendChild(fragment);
-  }
+  refs.selectedLevel.textContent = LEVEL_LABELS[node.path.length];
+  refs.selectedName.textContent = node.name;
+  refs.selectedSummary.textContent = node.summary;
+  refs.selectedPath.textContent = node.path.join(" > ");
+  refs.expandButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.expandButton.textContent = state.loadingIds.has(node.id)
+    ? "Generating..."
+    : node.path.length >= 4
+      ? "Level 4 reached"
+      : `Generate Level ${node.path.length + 1}`;
+  refs.searchAllButton.disabled = false;
+  refs.selectedStatus.textContent = [node.status, node.remainingNote, node.cautionNote].filter(Boolean).join(" ");
+  createKeywordChips(node, refs.selectedKeywords);
 }
 
 function renderSearch() {
-  clearChildren(refs.searchResults);
-  const results = getSearchResults();
-  refs.visibleCount.textContent = String(results.length);
+  clear(refs.searchResults);
+  const query = state.search.toLowerCase().trim();
+  if (!query) return;
 
-  if (!state.search.trim()) {
-    refs.searchMeta.textContent = "Search across topics that are already open in your atlas.";
-    return;
-  }
+  const matches = flatten()
+    .filter((node) =>
+      [node.name, node.summary, node.path.join(" "), node.keywords.join(" "), node.aliases.join(" ")]
+        .join(" ")
+        .toLowerCase()
+        .includes(query),
+    )
+    .slice(0, 20);
 
-  refs.searchMeta.textContent = results.length
-    ? `${results.length} loaded topics match "${state.search}".`
-    : `No opened topics match "${state.search}" yet. Load a domain overview to surface more topics.`;
-
-  for (const node of results) {
-    const fragment = refs.searchResultTemplate.content.cloneNode(true);
-    fragment.querySelector(".search-result-path").textContent = node.path.join(" > ");
-    fragment.querySelector(".search-result-name").textContent = node.name;
-    fragment.querySelector(".search-result-summary").textContent = node.summary;
-    fragment.querySelector(".search-result").addEventListener("click", () => {
-      openNode(node);
-    });
+  for (const node of matches) {
+    const fragment = refs.resultTemplate.content.cloneNode(true);
+    fragment.querySelector(".result-path").textContent = node.path.join(" > ");
+    fragment.querySelector(".result-name").textContent = node.name;
+    fragment.querySelector(".result-item").addEventListener("click", () => setSelected(node));
     refs.searchResults.appendChild(fragment);
   }
 }
 
-function renderTopicHeader(node) {
-  const topicStatus = friendlyStatusNote(node.childrenMessage, node);
-  const topicRemaining = friendlyCoverageNote(node.remainingMessage);
-  const topicCaution = friendlyCautionNote(node.cautionNote);
-
-  refs.topicPath.textContent = node.path.join(" > ");
-  refs.topicTitle.textContent = node.name;
-  refs.topicSummary.textContent = node.summary;
-  refs.topicWhy.textContent = node.whyItBelongs ? `Why this field belongs here: ${node.whyItBelongs}` : "";
-  refs.topicStatus.textContent = topicStatus;
-  refs.topicRemaining.textContent = topicRemaining;
-  refs.topicCaution.textContent = topicCaution ? `Note: ${topicCaution}` : "";
-  refs.topicWhy.hidden = !node.whyItBelongs;
-  refs.topicStatus.hidden = !topicStatus;
-  refs.topicRemaining.hidden = !topicRemaining;
-  refs.topicCaution.hidden = !topicCaution;
-
-  clearChildren(refs.topicBadges);
-  refs.topicBadges.appendChild(createBadge(node.taxonomyRole || "field", "cool"));
-  refs.topicBadges.appendChild(
-    createBadge(node.path.length === 1 ? "root domain" : `layer ${node.path.length}`, "soft"),
-  );
-  if (node.children.length) {
-    refs.topicBadges.appendChild(createBadge(`${node.children.length} linked fields`, "soft"));
-  }
-  if (node.keywords.length) {
-    refs.topicBadges.appendChild(createBadge(`${node.keywords.length} keywords`, "soft"));
-  }
-
-  refs.generateChildrenButton.textContent = node.children.length
-    ? "Refresh field map"
-    : "Build field map";
-  refs.generateChildrenButton.disabled = node.childrenStatus === "loading" || !node.likelyHasChildren;
-  refs.loadBibliographyButton.disabled = node.bibliographyStatus === "loading";
-}
-
-function renderRelatedFields(node) {
-  clearChildren(refs.relatedFields);
-  refs.relatedIntro.textContent = node.children.length
-    ? `Open, expand, or generate bibliography from any branch under ${node.name}.`
-    : "Build the first layer of fields or subfields around this topic.";
-
-  if (!node.children.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-slot";
-    empty.textContent = "No related fields loaded yet.";
-    refs.relatedFields.appendChild(empty);
-    return;
-  }
-
-  for (const child of node.children) {
-    const fragment = refs.fieldCardTemplate.content.cloneNode(true);
-    fragment.querySelector(".field-path").textContent = child.path.join(" > ");
-    fragment.querySelector(".field-name").textContent = child.name;
-    fragment.querySelector(".field-summary").textContent = child.summary;
-
-    const badgeRow = fragment.querySelector(".field-badges");
-    badgeRow.appendChild(createBadge(child.taxonomyRole || "field", "soft"));
-    if (child.keywords?.length) {
-      badgeRow.appendChild(createBadge(child.keywords[0], "soft"));
-    }
-
-    fragment.querySelector(".open-field-button").addEventListener("click", () => {
-      openNode(child);
-    });
-    fragment.querySelector(".bibliography-field-button").addEventListener("click", async () => {
-      selectNode(child);
-      await loadBibliography(child);
-    });
-    fragment.querySelector(".grow-field-button").addEventListener("click", () => {
-      loadChildren(child, "initial");
-    });
-
-    refs.relatedFields.appendChild(fragment);
-  }
-}
-
-function createReferenceItem(entry) {
-  const item = document.createElement("li");
-  const title = document.createElement("strong");
-  title.textContent = `${entry.title} (${entry.year})`;
-  const meta = document.createElement("p");
-  meta.textContent = `${entry.authors} ${entry.source ? `| ${entry.source}` : ""}`;
-  const why = document.createElement("p");
-  why.textContent = entry.why_it_matters;
-  item.append(title, meta, why);
-  return item;
-}
-
-function renderBibliography(node) {
-  clearChildren(refs.bibliographyGroups);
-
-  if (node.bibliographyStatus === "idle" && !node.bibliography) {
-    refs.bibliographyStatus.textContent = "Load bibliography to group works by role in understanding the field.";
-    refs.bibliographyCaution.hidden = true;
-    return;
-  }
-
-  if (node.bibliographyStatus === "loading") {
-    refs.bibliographyStatus.textContent = "Generating categorized bibliography...";
-    refs.bibliographyCaution.hidden = true;
-    return;
-  }
-
-  if (node.bibliographyStatus === "error") {
-    refs.bibliographyStatus.textContent = node.bibliographyError || "Unable to generate bibliography.";
-    refs.bibliographyCaution.hidden = true;
-    return;
-  }
-
-  refs.bibliographyStatus.textContent = friendlySupportNote(node.bibliographyNote || "Bibliography loaded.");
-  refs.bibliographyCaution.textContent = friendlyCautionNote(node.bibliographyCaution || "");
-  refs.bibliographyCaution.hidden = !refs.bibliographyCaution.textContent;
-
-  for (const [key, label] of Object.entries(BIBLIOGRAPHY_CATEGORY_LABELS)) {
-    const entries = node.bibliography?.[key] || [];
-    if (!entries.length) {
-      continue;
-    }
-
-    const section = document.createElement("section");
-    section.className = "bibliography-card";
-    const title = document.createElement("h3");
-    title.textContent = label;
-    const list = document.createElement("ol");
-    list.className = "plain-list";
-    for (const entry of entries) {
-      list.appendChild(createReferenceItem(entry));
-    }
-    section.append(title, list);
-    refs.bibliographyGroups.appendChild(section);
-  }
-
-  if (!refs.bibliographyGroups.children.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-slot";
-    empty.textContent = "No bibliography entries were returned for this topic yet.";
-    refs.bibliographyGroups.appendChild(empty);
-  }
-}
-
-function renderWorkspace() {
-  const node = selectedNode();
-  refs.emptyState.hidden = Boolean(node);
-  refs.topicWorkspace.hidden = !node;
-  if (!node) {
-    return;
-  }
-
-  renderTopicHeader(node);
-  renderRelatedFields(node);
-  renderBibliography(node);
-}
-
 function render() {
-  refs.apiStatus.textContent = state.healthMessage;
-  refs.apiStatus.classList.toggle("status-ok", state.healthOk);
-  refs.apiStatus.classList.toggle("status-error", !state.healthOk);
-  refs.loadedCount.textContent = String(countLoadedNodes());
-  refs.growRootsButton.disabled = state.loadingRoots;
-
-  renderDomainCards();
+  refs.apiStatus.textContent = apiKey() ? "Browser API key ready" : state.health;
+  refs.nodeCount.textContent = `${flatten().length} keywords`;
+  renderSelected();
+  renderLevels();
   renderSearch();
-  renderWorkspace();
 }
 
-refs.searchInput.addEventListener("input", (event) => {
-  state.search = event.target.value;
-  render();
-});
-
-refs.growRootsButton.addEventListener("click", () => {
-  growRootDomains();
-});
-
+refs.loadRootsButton.addEventListener("click", loadRoots);
 refs.resetButton.addEventListener("click", () => {
+  state.roots = [];
+  state.selectedId = "";
+  state.activePathIds = [];
   state.search = "";
-  state.focus = "";
-  state.selectedNodeId = null;
-  state.loadingRoots = false;
-  state.roots = createInitialRoots();
   refs.searchInput.value = "";
   render();
-  growRootDomains();
 });
-
-refs.generateChildrenButton.addEventListener("click", () => {
-  const node = selectedNode();
-  if (node) {
-    loadChildren(node, "initial");
-  }
+refs.searchInput.addEventListener("input", (event) => {
+  state.search = event.target.value;
+  renderSearch();
 });
-
-refs.loadBibliographyButton.addEventListener("click", () => {
-  const node = selectedNode();
-  if (node) {
-    loadBibliography(node);
-  }
-});
+refs.apiKeyInput.addEventListener("input", render);
+refs.expandButton.addEventListener("click", () => expandNode(selectedNode()));
+refs.searchAllButton.addEventListener("click", () => openProvider("scholar", selectedNode()));
 
 render();
 refreshHealth();
