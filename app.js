@@ -15,9 +15,19 @@ const ROOT_DEFINITIONS = [
     keywords: ["social sciences", "society", "institutions", "human behavior", "culture"],
   },
   {
-    name: "Humanities",
-    summary: "Interpretive study of language, history, literature, art, religion, and human meaning.",
-    keywords: ["humanities", "history", "literature", "language", "culture"],
+    name: "Humanities and arts",
+    summary: "Interpretive and creative study of history, language, literature, religion, art, music, and meaning.",
+    keywords: ["humanities", "arts", "history", "literature", "religion"],
+  },
+  {
+    name: "Health sciences",
+    summary: "Knowledge of health, disease, care, prevention, public health, and clinical practice.",
+    keywords: ["health sciences", "medicine", "nursing", "public health", "clinical care"],
+  },
+  {
+    name: "Engineering and technology",
+    summary: "Design, construction, optimization, and governance of technical systems and artifacts.",
+    keywords: ["engineering", "technology", "design", "systems", "infrastructure"],
   },
   {
     name: "Applied sciences and professions",
@@ -28,6 +38,11 @@ const ROOT_DEFINITIONS = [
     name: "Philosophy",
     summary: "Critical inquiry into reality, knowledge, value, reason, mind, language, and science.",
     keywords: ["philosophy", "metaphysics", "epistemology", "ethics", "logic"],
+  },
+  {
+    name: "Interdisciplinary and integrative studies",
+    summary: "Cross-domain knowledge areas that combine methods, evidence, and problems from multiple traditions.",
+    keywords: ["interdisciplinary studies", "systems", "cognitive science", "environment", "data"],
   },
 ];
 
@@ -74,6 +89,7 @@ const refs = {
   selectedKeywords: document.querySelector("#selectedKeywords"),
   expandButton: document.querySelector("#expandButton"),
   moreButton: document.querySelector("#moreButton"),
+  exhaustButton: document.querySelector("#exhaustButton"),
   expandBranchButton: document.querySelector("#expandBranchButton"),
   searchAllButton: document.querySelector("#searchAllButton"),
   selectedStatus: document.querySelector("#selectedStatus"),
@@ -276,24 +292,53 @@ async function fillBranchToLevelFour(root) {
   setSelected(root);
 }
 
-function contextualTerms(node) {
-  if (!node) return [];
-  const level = node.path.length;
-  const ownTerms = uniqueStrings([node.name, ...node.keywords, ...node.aliases]).slice(0, 5);
-  const parentContext = level >= 3 ? node.path.slice(0, -1) : node.path.slice(0, Math.max(1, level - 1));
-  return uniqueStrings([...ownTerms, ...parentContext]).slice(0, 8);
+function mayHaveMoreChildren(node, gained) {
+  if (gained <= 0) return false;
+  const note = `${node.status} ${node.remainingNote}`.toLowerCase();
+  return /more|beyond|additional|missing|omitted|not exhaustive|not complete|continue|remaining/.test(note);
 }
 
-function searchQuery(node) {
-  return contextualTerms(node)
+async function expandUntilExhausted(node) {
+  if (!node || node.path.length >= 4 || state.loadingIds.has(node.id)) return;
+
+  let stagnantRounds = 0;
+  let shouldContinue = true;
+
+  while (shouldContinue && stagnantRounds < 2) {
+    const before = node.children.length;
+    await expandNode(node, before ? "find_more" : "initial", { selectFirstChild: false });
+    const gained = node.children.length - before;
+    stagnantRounds = gained > 0 ? 0 : stagnantRounds + 1;
+    shouldContinue = mayHaveMoreChildren(node, gained);
+
+    if (!apiKey() && !state.serverKeyReady) {
+      break;
+    }
+  }
+
+  node.status = `Loaded ${node.children.length} direct children${stagnantRounds ? "; no new unique siblings were returned." : "."}`;
+  setSelected(node);
+}
+
+function contextualTerms(node) {
+  if (!node) return [];
+  return uniqueStrings([node.name, ...node.path.slice(0, -1)]).slice(0, 4);
+}
+
+function preciseSearchQuery(node, focusTerm = "") {
+  const terms = focusTerm
+    ? uniqueStrings([focusTerm, ...node.path.slice(0, -1)])
+    : contextualTerms(node);
+
+  return terms
     .map((term) => (/\s/.test(term) ? `"${term}"` : term))
     .join(" ");
 }
 
-function openProvider(providerKey, node) {
+function openProvider(providerKey, node, focusTerm = "") {
   const provider = SEARCH_PROVIDERS[providerKey];
   if (!provider || !node) return;
-  window.open(provider.url(searchQuery(node)), "_blank", "noopener,noreferrer");
+  window.open(provider.url(preciseSearchQuery(node, focusTerm)), "_blank", "noopener,noreferrer");
 }
 
 function clear(element) {
@@ -307,8 +352,8 @@ function createKeywordChips(node, target) {
     chip.className = "keyword-chip";
     chip.type = "button";
     chip.textContent = term;
-    chip.title = `Search with context: ${searchQuery(node)}`;
-    chip.addEventListener("click", () => openProvider("scholar", node));
+    chip.title = `Search with context: ${preciseSearchQuery(node, term)}`;
+    chip.addEventListener("click", () => openProvider("scholar", node, term));
     target.appendChild(chip);
   }
 }
@@ -386,6 +431,7 @@ function renderSelected() {
   refs.selectedPath.textContent = node.path.join(" > ");
   refs.expandButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.moreButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.exhaustButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.expandBranchButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.expandButton.textContent = state.loadingIds.has(node.id)
     ? "Generating..."
@@ -393,6 +439,7 @@ function renderSelected() {
       ? "Level 4 reached"
       : `Generate Level ${node.path.length + 1}`;
   refs.moreButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Find More Siblings";
+  refs.exhaustButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Expand Until Exhausted";
   refs.expandBranchButton.textContent = node.path.length >= 4 ? "Branch Complete" : "Fill Branch to Level 4";
   refs.searchAllButton.disabled = false;
   refs.selectedStatus.textContent = [node.status, node.remainingNote, node.cautionNote].filter(Boolean).join(" ");
@@ -446,6 +493,7 @@ refs.searchInput.addEventListener("input", (event) => {
 refs.apiKeyInput.addEventListener("input", render);
 refs.expandButton.addEventListener("click", () => expandNode(selectedNode()));
 refs.moreButton.addEventListener("click", () => expandNode(selectedNode(), "find_more"));
+refs.exhaustButton.addEventListener("click", () => expandUntilExhausted(selectedNode()));
 refs.expandBranchButton.addEventListener("click", () => fillBranchToLevelFour(selectedNode()));
 refs.searchAllButton.addEventListener("click", () => openProvider("scholar", selectedNode()));
 
