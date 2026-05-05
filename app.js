@@ -398,13 +398,20 @@ function clearAllLevels() {
 
 function contextualTerms(node) {
   if (!node) return [];
-  return uniqueStrings([node.name, ...node.path.slice(0, -1)]).slice(0, 4);
+  const level2 = node.path[1] || node.name;
+  const focus = node.path.length >= 4 ? node.name : node.path[node.path.length - 1];
+  return uniqueStrings([focus, level2]).slice(0, 2);
 }
 
 function preciseSearchQuery(node, focusTerm = "") {
-  const terms = focusTerm
-    ? uniqueStrings([focusTerm, ...node.path.slice(0, -1)])
-    : contextualTerms(node);
+  const level2 = node.path[1] || node.name;
+  const selected = focusTerm || node.name;
+  const l3 = node.path[2] || "";
+  const terms = uniqueStrings([
+    selected,
+    level2,
+    selected === level2 ? l3 : "",
+  ]).filter(Boolean).slice(0, 2);
 
   return terms
     .map((term) => (/\s/.test(term) ? `"${term}"` : term))
