@@ -653,6 +653,7 @@ function isSuspiciousTaxonomyItem(item, currentNode) {
   const whyItBelongs = normalizeWhitespace(item?.why_it_belongs);
   const confidence = normalizeName(item?.confidence || "");
   const role = normalizeName(item?.taxonomy_role || "");
+  const sourceBacked = /source:\s*local science_taxonomy\.json/i.test(item?.caution_note || "");
 
   if (!name || !summary || !whyItBelongs) {
     return true;
@@ -670,7 +671,7 @@ function isSuspiciousTaxonomyItem(item, currentNode) {
     return true;
   }
 
-  if ((role === "topic" || role === "concept_family") && name.split(/\s+/).length > 3) {
+  if (!sourceBacked && (role === "topic" || role === "concept_family") && name.split(/\s+/).length > 3) {
     return true;
   }
 
@@ -1449,6 +1450,18 @@ function fallbackTaxonomyChildren(pathSegments) {
       "Many-Body Quantum Systems", "Quantum Foundations", "Quantum Gravity", "Quantum Computing",
       "Quantum Measurement", "Quantum Entanglement", "Open Quantum Systems", "Quantum Materials",
     ],
+    "quantum mechanics": [
+      "Wave Function", "State Vector", "Hilbert Space", "Superposition", "Observable",
+      "Operator", "Eigenvalue", "Eigenstate", "Commutator", "Uncertainty Principle",
+      "Schrodinger Equation", "Hamiltonian", "Momentum Operator", "Position Operator",
+      "Born Rule", "Probability Amplitude", "Measurement", "Projection Postulate",
+      "Density Matrix", "Pure State", "Mixed State", "Entanglement", "Spin",
+      "Angular Momentum", "Pauli Matrix", "Harmonic Oscillator", "Potential Well",
+      "Tunneling", "Scattering", "Perturbation Theory", "Variational Method",
+      "WKB Approximation", "Identical Particles", "Boson", "Fermion", "Exchange Symmetry",
+      "Path Integral", "Decoherence", "Correspondence Principle", "Heisenberg Picture",
+      "Schrodinger Picture", "Interaction Picture",
+    ],
     "abstract algebra": [
       "Group", "Ring", "Field", "Module", "Vector Space", "Homomorphism", "Isomorphism",
       "Automorphism", "Subgroup", "Normal Subgroup", "Ideal", "Quotient Structure",
@@ -1823,6 +1836,26 @@ async function handleTaxonomyRequest(req, res) {
           overview: `Loaded ${acceptedItems.length} curated concepts for the selected L3 item.`,
           remaining_note:
             "L4 is a concept layer, so exact concept lists are preferred over classification sub-specialties.",
+          dropped_duplicates: droppedNames,
+          items: acceptedItems,
+        });
+        return;
+      }
+    }
+
+    if (childLevel === 4 && staticItems.length) {
+      const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+        staticItems,
+        existingChildren,
+        currentNodeLabel(pathSegments),
+      );
+
+      if (acceptedItems.length) {
+        sendJson(res, 200, {
+          path: pathSegments,
+          overview: `Loaded ${acceptedItems.length} source-backed Level 4 concepts and specialties for the selected L3 item.`,
+          remaining_note:
+            "No exact curated concept list was available, so L4 is filled from the local source-backed classification taxonomy before using live authority headings or AI expansion.",
           dropped_duplicates: droppedNames,
           items: acceptedItems,
         });
