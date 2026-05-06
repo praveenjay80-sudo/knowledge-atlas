@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { handleAuditRequest } = require("./api/audit-handler");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -10,6 +11,7 @@ const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
 };
 
 function sendJson(res, statusCode, payload) {
@@ -32,6 +34,11 @@ function serveFile(res, filePath) {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname === "/api/audit") {
+    handleAuditRequest(req, res);
+    return;
+  }
 
   if (req.method !== "GET") {
     sendJson(res, 405, { error: "Method not allowed." });

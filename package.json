@@ -6,6 +6,6 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js"
+    "check": "node --check server.js && node --check app.js && node --check api/audit-handler.js && node --check api/audit.mjs"
   }
 }

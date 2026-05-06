@@ -120,7 +120,7 @@ h3 {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) auto auto;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, 320px) auto auto;
   gap: 10px;
   align-items: end;
   margin-top: 14px;
@@ -296,16 +296,64 @@ textarea:focus {
   line-height: 1.45;
 }
 
-.foundational {
+.foundational,
+.audit-panel,
+.bibliography {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.foundational {
   background: #fffdf7;
 }
 
 #foundationalText {
   color: var(--muted);
   line-height: 1.55;
+}
+
+.audit-panel {
+  display: grid;
+  gap: 10px;
+  background: #f8fbfc;
+}
+
+.audit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.audit-results,
+.bibliography-list {
+  display: grid;
+  gap: 8px;
+}
+
+.audit-card,
+.bibliography-card {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.audit-card strong,
+.bibliography-card strong {
+  line-height: 1.25;
+}
+
+.audit-card p,
+.bibliography-card p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.bibliography {
+  background: #fffdfa;
 }
 
 .empty-state {

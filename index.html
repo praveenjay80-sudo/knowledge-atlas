@@ -21,6 +21,10 @@
         <span>Search</span>
         <input id="searchInput" type="search" placeholder="group theory, ecology, jurisprudence..." />
       </label>
+      <label class="search-field">
+        <span>OpenAI API key</span>
+        <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-... or server env key" />
+      </label>
       <button id="showImportButton" type="button">Import Source Text</button>
       <button id="clearImportButton" type="button">Clear Imported Text</button>
     </section>
@@ -60,6 +64,18 @@
           <section id="foundationalSection" class="foundational" hidden>
             <h3>Foundational Work</h3>
             <p id="foundationalText"></p>
+          </section>
+          <section class="audit-panel">
+            <div class="audit-actions">
+              <button id="auditTaxonomyButton" type="button">Audit Taxonomy Gaps</button>
+              <button id="auditBibliographyButton" type="button">Audit Bibliography Gaps</button>
+            </div>
+            <p id="auditStatus" class="status-line"></p>
+            <div id="auditResults" class="audit-results"></div>
+          </section>
+          <section id="bibliographySection" class="bibliography" hidden>
+            <h3>Bibliography Additions</h3>
+            <div id="bibliographyList"></div>
           </section>
           <section>
             <h3 id="childrenTitle">Children</h3>
