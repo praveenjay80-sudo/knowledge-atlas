@@ -6,6 +6,7 @@ const {
   handleConceptTreeRequest,
   handleExplainRequest,
   handleHealthRequest,
+  handleAuditRequest,
   handleTaxonomyRequest,
 } = require("./api/shared");
 
@@ -47,6 +48,11 @@ const server = http.createServer((req, res) => {
 
   if (url.pathname === "/api/taxonomy") {
     handleTaxonomyRequest(req, res);
+    return;
+  }
+
+  if (url.pathname === "/api/audit") {
+    handleAuditRequest(req, res);
     return;
   }
 

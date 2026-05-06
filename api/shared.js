@@ -842,6 +842,72 @@ function bibliographyPrompt({ pathSegments, summary, keywords }) {
   ].join("\n");
 }
 
+function taxonomyAuditPrompt({
+  pathSegments,
+  summary,
+  keywords,
+  existingChildren,
+  breadth,
+  customFocus,
+  maxDepth,
+}) {
+  const target = pathSegments.join(" > ");
+  const childLevel = pathSegments.length + 1;
+  const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
+  const existingLine = Array.isArray(existingChildren) && existingChildren.length
+    ? existingChildren.join("; ")
+    : "none provided";
+
+  return [
+    "Audit a browsable taxonomy of human knowledge and return missing DIRECT child items for the selected node.",
+    "This is an audit pass, not a full replacement. Do not restate existing children.",
+    "Search your scholarly knowledge of established disciplines, subdisciplines, specialties, concepts, methods, theories, and canonical topic headings.",
+    "Return only items that are plausibly missing siblings at the next level.",
+    "Do not return grandchildren, broad parent categories, administrative departments, degree names, temporary buzzwords, or vague meta-buckets.",
+    `The app's maximum depth is Level ${maxDepth}. The selected node is Level ${pathSegments.length}; return Level ${childLevel} items only.`,
+    childLevel >= 5
+      ? "For Level 5, return precise concept names, canonical theories, core methods, recognized objects, named models, durable terms, or standard problems inside the Level 4 specialty."
+      : "For Level 2-4, return recognized fields, subfields, specialties, or durable research areas at the same abstraction level.",
+    "Prefer omissions that would be embarrassing in a serious atlas: canonical branches, major schools, central methods, standard topic families, or widely indexed subject headings.",
+    "Avoid near-duplicates, spelling variants, singular/plural variants, and abbreviations that duplicate existing children.",
+    "Use confidence high or medium only; omit anything low-confidence.",
+    "",
+    `Target path: ${target}`,
+    `Selected summary: ${summary || "No summary supplied."}`,
+    `Keywords: ${keywordLine}`,
+    `Existing direct children to avoid: ${existingLine}`,
+    `Desired breadth: ${breadth || "maximal"}`,
+    customFocus ? `Additional user focus: ${customFocus}` : "Additional user focus: none",
+    "",
+    "Return a concise overview of what you audited, a remaining_note explaining whether another audit pass may find more, and structured missing items.",
+  ].join("\n");
+}
+
+function bibliographyAuditPrompt({ pathSegments, summary, keywords, bibliography }) {
+  const target = pathSegments.join(" > ");
+  const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
+  const existing = JSON.stringify(bibliography?.categories || {}, null, 2).slice(0, 18000);
+
+  return [
+    "Audit a categorized bibliography for a browsable human-knowledge taxonomy item.",
+    "Return only missing works that should be added; do not repeat existing entries.",
+    "Search your scholarly knowledge for omissions across pedagogy texts, seminal works, breakthrough works, reference works, and recent syntheses.",
+    "Be conservative: if exact authors, title, or year are uncertain, omit the work rather than fabricate details.",
+    "Prefer field-defining primary sources, classic books, major review articles, standard textbooks, handbooks, companions, standards, and high-value recent syntheses.",
+    "For niche topics, it is acceptable for some categories to remain empty.",
+    "For every added work, include why it matters specifically for the selected taxonomy item.",
+    "",
+    `Target item: ${target}`,
+    `Summary: ${summary || "No summary supplied."}`,
+    `Keywords: ${keywordLine}`,
+    "",
+    "Existing bibliography categories, do not duplicate these:",
+    existing || "{}",
+    "",
+    "Return only missing additions in the standard categorized bibliography schema.",
+  ].join("\n");
+}
+
 function conceptTreePrompt({ pathSegments, summary, keywords }) {
   const target = pathSegments.join(" > ");
   const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
@@ -2077,6 +2143,97 @@ async function handleBibliographyRequest(req, res) {
   }
 }
 
+async function handleAuditRequest(req, res) {
+  try {
+    if (req.method !== "POST") {
+      sendJson(res, 405, { error: "Method not allowed." });
+      return;
+    }
+
+    const body = await readJsonBody(req);
+    const mode = body.mode === "bibliography" ? "bibliography" : "taxonomy";
+    const pathSegments = Array.isArray(body.path)
+      ? body.path.map((item) => String(item).trim()).filter(Boolean)
+      : [];
+    const summary = typeof body.summary === "string" ? body.summary.trim() : "";
+    const keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
+    const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+
+    if (!pathSegments.length) {
+      sendJson(res, 400, { error: "Audit requests require a non-empty taxonomy path." });
+      return;
+    }
+
+    if (!apiKey && !process.env.OPENAI_API_KEY) {
+      sendJson(res, 400, { error: "Add an OpenAI API key or configure OPENAI_API_KEY to run dynamic audits." });
+      return;
+    }
+
+    if (mode === "bibliography") {
+      const payload = await callOpenAI({
+        apiKey,
+        prompt: bibliographyAuditPrompt({
+          pathSegments,
+          summary,
+          keywords,
+          bibliography: body.bibliography || {},
+        }),
+        schemaName: "bibliography_audit_missing_items",
+        schema: bibliographySchema(),
+        maxOutputTokens: 7000,
+        reasoningEffort: "low",
+        timeoutMs: 58000,
+      });
+      sendJson(res, 200, payload);
+      return;
+    }
+
+    const existingChildren = Array.isArray(body.existingChildren)
+      ? body.existingChildren.map((item) => String(item).trim()).filter(Boolean)
+      : [];
+    const breadth = ["compact", "broad", "maximal"].includes(body.breadth) ? body.breadth : "maximal";
+    const customFocus = typeof body.customFocus === "string" ? body.customFocus.trim() : "";
+    const maxDepth = Number.isFinite(Number(body.maxDepth)) ? Number(body.maxDepth) : 5;
+    const payload = await callOpenAI({
+      apiKey,
+      prompt: taxonomyAuditPrompt({
+        pathSegments,
+        summary,
+        keywords,
+        existingChildren,
+        breadth,
+        customFocus,
+        maxDepth,
+      }),
+      schemaName: "taxonomy_audit_missing_children",
+      schema: taxonomySchema(),
+      maxOutputTokens: 7600,
+      reasoningEffort: "low",
+      timeoutMs: 58000,
+    });
+    const { acceptedItems, droppedNames } = filterNearDuplicateItems(
+      payload.items,
+      existingChildren,
+      currentNodeLabel(pathSegments),
+    );
+
+    sendJson(res, 200, {
+      path: pathSegments,
+      overview: payload.overview,
+      remaining_note: [
+        payload.remaining_note,
+        droppedNames.length ? `Suppressed ${droppedNames.length} duplicate or near-duplicate audit suggestion(s).` : "",
+      ].filter(Boolean).join(" "),
+      dropped_duplicates: droppedNames,
+      items: acceptedItems,
+    });
+  } catch (error) {
+    sendJson(res, error?.statusCode || 502, {
+      error: error?.message || "Audit failed.",
+    });
+  }
+}
+
 async function handleConceptTreeRequest(req, res) {
   let pathSegments = [];
   let summary = "";
@@ -2170,6 +2327,7 @@ function handleHealthRequest(req, res) {
 }
 
 module.exports = {
+  handleAuditRequest,
   handleBibliographyRequest,
   handleConceptTreeRequest,
   handleExplainRequest,

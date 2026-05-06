@@ -93,8 +93,10 @@ const refs = {
   moreButton: document.querySelector("#moreButton"),
   exhaustButton: document.querySelector("#exhaustButton"),
   expandBranchButton: document.querySelector("#expandBranchButton"),
+  auditLevelButton: document.querySelector("#auditLevelButton"),
   explainButton: document.querySelector("#explainButton"),
   readingButton: document.querySelector("#readingButton"),
+  auditBibliographyButton: document.querySelector("#auditBibliographyButton"),
   clearLevelButton: document.querySelector("#clearLevelButton"),
   clearAllButton: document.querySelector("#clearAllButton"),
   searchAllButton: document.querySelector("#searchAllButton"),
@@ -187,6 +189,7 @@ function createNode(item, path) {
     explanationStatus: "idle",
     bibliography: null,
     bibliographyStatus: "idle",
+    auditStatus: "idle",
   };
 
   node.children = (item.children || [])
@@ -620,6 +623,137 @@ async function readingListForNode(node) {
   }
 }
 
+function hasLiveApiKey() {
+  return Boolean(apiKey() || state.serverKeyReady);
+}
+
+async function auditMissingLevelItems(node) {
+  if (!node || node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id)) return;
+  if (!hasLiveApiKey()) {
+    node.status = "Paste an OpenAI API key or configure OPENAI_API_KEY before running a dynamic taxonomy audit.";
+    setSelected(node);
+    return;
+  }
+
+  state.loadingIds.add(node.id);
+  node.auditStatus = "loading";
+  node.status = `Auditing ${LEVEL_TITLES[node.path.length + 1].toLowerCase()} under ${node.name} for missing items...`;
+  render();
+
+  try {
+    const before = node.children.length;
+    const payload = await fetchJson("/api/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "taxonomy",
+        path: node.path,
+        summary: node.summary,
+        keywords: contextualTerms(node),
+        existingChildren: node.children.flatMap((child) => [child.name, ...child.aliases]),
+        breadth: refs.breadthSelect.value,
+        customFocus: refs.focusInput.value.trim(),
+        maxDepth: MAX_VISIBLE_LEVEL,
+        apiKey: apiKey(),
+      }),
+    });
+    const incoming = node.path.length === 4 ? filterLevelFiveItems(node, payload.items || []) : { accepted: payload.items || [], dropped: [] };
+    mergeChildren(node, incoming.accepted);
+    const added = node.children.length - before;
+    node.status = added
+      ? `${payload.overview || "Audit found missing taxonomy items."} Added ${added} new item${added === 1 ? "" : "s"}.`
+      : payload.overview || "Audit found no missing taxonomy items that were safe to add.";
+    node.remainingNote = payload.remaining_note || "";
+  } catch (error) {
+    node.status = `Taxonomy audit failed: ${error.message || "unknown error"}.`;
+  } finally {
+    node.auditStatus = "success";
+    state.loadingIds.delete(node.id);
+    setSelected(node);
+  }
+}
+
+function bibliographyKey(item) {
+  return [item.title, item.authors, item.year]
+    .map((value) => normalizeWhitespace(value).toLowerCase())
+    .join("|");
+}
+
+function mergeBibliographyCategories(node, incomingCategories = {}) {
+  if (!node.bibliography) node.bibliography = localReadingList(node);
+  if (!node.bibliography.categories) node.bibliography.categories = {};
+
+  let added = 0;
+  for (const key of Object.keys(READING_CATEGORY_LABELS)) {
+    const existing = Array.isArray(node.bibliography.categories[key])
+      ? node.bibliography.categories[key]
+      : [];
+    const seen = new Set(existing.map(bibliographyKey));
+    const incoming = Array.isArray(incomingCategories[key]) ? incomingCategories[key] : [];
+    for (const item of incoming) {
+      const cleanTitle = normalizeWhitespace(item.title);
+      if (!cleanTitle) continue;
+      const cleanItem = {
+        authors: normalizeWhitespace(item.authors),
+        title: cleanTitle,
+        year: normalizeWhitespace(item.year),
+        source: normalizeWhitespace(item.source),
+        why_it_matters: normalizeWhitespace(item.why_it_matters),
+        confidence: item.confidence || "medium",
+      };
+      const keyValue = bibliographyKey(cleanItem);
+      if (seen.has(keyValue)) continue;
+      existing.push(cleanItem);
+      seen.add(keyValue);
+      added += 1;
+    }
+    node.bibliography.categories[key] = existing;
+  }
+  return added;
+}
+
+async function auditBibliography(node) {
+  if (!node) return;
+  if (!hasLiveApiKey()) {
+    node.status = "Paste an OpenAI API key or configure OPENAI_API_KEY before running a bibliography audit.";
+    setSelected(node);
+    return;
+  }
+
+  node.bibliographyStatus = "loading";
+  node.auditStatus = "loading";
+  node.status = "Auditing bibliography for missing foundational, reference, and recent synthesis works...";
+  render();
+
+  try {
+    if (!node.bibliography) node.bibliography = localReadingList(node);
+    const payload = await fetchJson("/api/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "bibliography",
+        path: node.path,
+        summary: node.summary,
+        keywords: contextualTerms(node),
+        bibliography: node.bibliography,
+        apiKey: apiKey(),
+      }),
+    });
+    const added = mergeBibliographyCategories(node, payload.categories || {});
+    node.bibliography.note = payload.note || node.bibliography.note || "Bibliography audited with the configured API key.";
+    node.bibliography.caution_note = payload.caution_note || node.bibliography.caution_note || "";
+    node.status = added
+      ? `Bibliography audit added ${added} missing work${added === 1 ? "" : "s"}.`
+      : "Bibliography audit found no new unique works to add.";
+  } catch (error) {
+    node.status = `Bibliography audit failed: ${error.message || "unknown error"}.`;
+  } finally {
+    node.bibliographyStatus = "success";
+    node.auditStatus = "success";
+    setSelected(node);
+  }
+}
+
 function clearNextLevel(node) {
   if (!node) return;
   node.children = [];
@@ -833,8 +967,10 @@ function renderSelected() {
     refs.moreButton.disabled = true;
     refs.exhaustButton.disabled = true;
     refs.expandBranchButton.disabled = true;
+    refs.auditLevelButton.disabled = true;
     refs.explainButton.disabled = true;
     refs.readingButton.disabled = true;
+    refs.auditBibliographyButton.disabled = true;
     refs.clearLevelButton.disabled = true;
     refs.searchAllButton.disabled = true;
     refs.selectedStatus.textContent = state.staticStatus;
@@ -854,8 +990,10 @@ function renderSelected() {
   refs.moreButton.disabled = node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id);
   refs.exhaustButton.disabled = node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id);
   refs.expandBranchButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.auditLevelButton.disabled = node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id);
   refs.explainButton.disabled = node.explanationStatus === "loading";
   refs.readingButton.disabled = node.bibliographyStatus === "loading";
+  refs.auditBibliographyButton.disabled = node.bibliographyStatus === "loading";
   refs.clearLevelButton.disabled = node.children.length === 0;
   refs.searchAllButton.disabled = false;
   refs.expandButton.textContent = state.loadingIds.has(node.id)
@@ -867,6 +1005,8 @@ function renderSelected() {
         : `Generate Level ${node.path.length + 1}`;
   refs.explainButton.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
   refs.readingButton.textContent = node.bibliographyStatus === "loading" ? "Building list..." : "Reading list";
+  refs.auditLevelButton.textContent = node.auditStatus === "loading" && state.loadingIds.has(node.id) ? "Auditing..." : "Audit Missing Level Items";
+  refs.auditBibliographyButton.textContent = node.bibliographyStatus === "loading" && node.auditStatus === "loading" ? "Auditing bibliography..." : "Audit Bibliography";
   refs.selectedStatus.textContent = [
     state.staticStatus,
     state.generatedAt ? `Dataset generated ${new Date(state.generatedAt).toLocaleDateString()}.` : "",
@@ -1050,8 +1190,10 @@ refs.expandButton.addEventListener("click", () => expandNode(selectedNode()));
 refs.moreButton.addEventListener("click", () => expandNode(selectedNode(), "find_more"));
 refs.exhaustButton.addEventListener("click", () => expandUntilExhausted(selectedNode()));
 refs.expandBranchButton.addEventListener("click", () => fillBranchToLevelFour(selectedNode()));
+refs.auditLevelButton.addEventListener("click", () => auditMissingLevelItems(selectedNode()));
 refs.explainButton.addEventListener("click", () => explainNode(selectedNode()));
 refs.readingButton.addEventListener("click", () => readingListForNode(selectedNode()));
+refs.auditBibliographyButton.addEventListener("click", () => auditBibliography(selectedNode()));
 refs.clearLevelButton.addEventListener("click", () => clearNextLevel(selectedNode()));
 refs.clearAllButton.addEventListener("click", () => clearAllLevels());
 refs.searchAllButton.addEventListener("click", (event) => {
