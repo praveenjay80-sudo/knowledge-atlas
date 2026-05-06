@@ -80,6 +80,106 @@ const WORKS = {
   ],
 };
 
+const EXACT_L5_CONCEPTS = {
+  "Abstract algebra": [
+    "Group", "Ring", "Field", "Module", "Vector space", "Homomorphism", "Isomorphism", "Automorphism",
+    "Subgroup", "Normal subgroup", "Ideal", "Quotient structure", "Kernel", "Image", "Generator",
+    "Presentation", "Group action", "Orbit", "Stabilizer", "Exact sequence", "Category", "Functor",
+    "Universal property", "Galois correspondence",
+  ],
+  "Linear algebra": [
+    "Vector", "Matrix", "Vector space", "Basis", "Linear independence", "Span", "Dimension",
+    "Linear transformation", "Kernel", "Image", "Rank", "Nullity", "Determinant", "Eigenvalue",
+    "Eigenvector", "Diagonalization", "Inner product", "Orthogonality", "Projection", "Singular value",
+    "Canonical form", "Matrix factorization",
+  ],
+  "Real analysis": [
+    "Real number", "Sequence", "Series", "Limit", "Continuity", "Uniform continuity", "Derivative",
+    "Riemann integral", "Lebesgue integral", "Measure", "Measurable function", "Convergence",
+    "Uniform convergence", "Pointwise convergence", "Cauchy sequence", "Completeness", "Compactness",
+    "Open set", "Closed set", "Metric space", "Normed space", "Power series", "Absolute convergence",
+    "Dominated convergence", "Supremum", "Infimum",
+  ],
+  "Quantum mechanics": [
+    "Wave function", "State vector", "Hilbert space", "Superposition", "Observable", "Operator",
+    "Eigenvalue", "Eigenstate", "Commutator", "Uncertainty principle", "Schrodinger equation",
+    "Hamiltonian", "Born rule", "Probability amplitude", "Measurement", "Projection postulate",
+    "Density matrix", "Pure state", "Mixed state", "Entanglement", "Spin", "Angular momentum",
+    "Pauli matrix", "Harmonic oscillator", "Tunneling", "Scattering", "Perturbation theory",
+    "Path integral", "Decoherence",
+  ],
+  "Quantum field theory": [
+    "Quantum field", "Lagrangian density", "Hamiltonian formalism", "Path integral",
+    "Canonical quantization", "Feynman diagram", "Propagator", "Scattering amplitude",
+    "Renormalization", "Gauge symmetry", "Spontaneous symmetry breaking", "Vacuum state",
+    "Creation operator", "Annihilation operator", "Correlation function", "Effective field theory",
+  ],
+  "Fluid mechanics": [
+    "Navier-Stokes equations", "Reynolds number", "Laminar flow", "Turbulence", "Boundary layer",
+    "Vorticity", "Viscosity", "Incompressible flow", "Compressible flow", "Bernoulli principle",
+    "Continuity equation", "Euler equations", "Stokes flow", "Potential flow", "Lift and drag",
+    "Dimensional analysis", "Mach number", "Shock wave", "Vortex shedding",
+  ],
+  "Ecology": [
+    "Ecosystem", "Population", "Community", "Species", "Habitat", "Niche", "Food web",
+    "Trophic level", "Primary productivity", "Carrying capacity", "Biodiversity", "Keystone species",
+    "Invasive species", "Succession", "Disturbance", "Competition", "Predation", "Mutualism",
+    "Parasitism", "Symbiosis", "Nutrient cycling", "Biogeography", "Metapopulation",
+  ],
+  "Epidemiology": [
+    "Incidence", "Prevalence", "Risk factor", "Odds ratio", "Relative risk", "Attributable risk",
+    "Confounding", "Bias", "Cohort study", "Case-control study", "Cross-sectional study",
+    "Randomized controlled trial", "Outbreak", "Transmission", "Reservoir", "Vector",
+    "Basic reproduction number", "Herd immunity", "Screening", "Sensitivity", "Specificity",
+    "Surveillance", "Case definition", "Dose-response",
+  ],
+  "Civil engineering": [
+    "Load", "Stress", "Strain", "Shear", "Bending moment", "Factor of safety", "Beam", "Column",
+    "Truss", "Foundation", "Soil mechanics", "Bearing capacity", "Concrete", "Steel",
+    "Reinforcement", "Structural analysis", "Hydraulics", "Drainage", "Traffic flow", "Pavement",
+    "Surveying", "Seismic design", "Building code", "Retaining wall", "Bridge design",
+  ],
+};
+
+const SUBFIELD_L5_CONCEPTS = {
+  Algebra: ["Operation", "Equation", "Variable", "Structure", "Identity element", "Inverse element", "Closure", "Associativity", "Commutativity", "Distributivity", "Homomorphism", "Isomorphism", "Invariant", "Representation"],
+  "Number theory": ["Integer", "Prime number", "Divisibility", "Congruence", "Modular arithmetic", "Diophantine equation", "Arithmetic function", "Residue class", "Greatest common divisor", "Factorization", "Sieve method", "Zeta function"],
+  Geometry: ["Point", "Line", "Plane", "Curve", "Surface", "Manifold", "Metric", "Distance", "Angle", "Curvature", "Geodesic", "Symmetry", "Transformation", "Coordinate system"],
+  Topology: ["Topological space", "Open set", "Closed set", "Neighborhood", "Continuity", "Homeomorphism", "Compactness", "Connectedness", "Homotopy", "Fundamental group", "Covering space", "Knot invariant"],
+  Analysis: ["Limit", "Continuity", "Derivative", "Integral", "Convergence", "Series", "Measure", "Function space", "Operator", "Norm", "Metric", "Compactness", "Completeness", "Approximation"],
+  "Probability and statistics": ["Random variable", "Distribution", "Expectation", "Variance", "Estimator", "Hypothesis test", "Confidence interval", "Posterior distribution", "Likelihood", "Regression", "Sampling", "Bias", "Uncertainty"],
+  "Discrete mathematics": ["Graph", "Vertex", "Edge", "Tree", "Matching", "Coloring", "Matroid", "Code", "Design", "Enumeration", "Recurrence", "Extremal structure"],
+  "Applied mathematics": ["Model", "Differential equation", "Stability", "Optimization", "Simulation", "Approximation", "Numerical method", "Control", "Parameter", "Boundary condition", "Inverse problem", "Perturbation"],
+  "Classical physics": ["Force", "Mass", "Momentum", "Energy", "Work", "Torque", "Oscillation", "Wave", "Entropy", "Temperature", "Pressure", "Phase space", "Lagrangian", "Hamiltonian"],
+  "Quantum physics": ["State vector", "Observable", "Operator", "Superposition", "Entanglement", "Measurement", "Hamiltonian", "Wave function", "Hilbert space", "Quantization", "Spin", "Amplitude"],
+  Chemistry: ["Atom", "Molecule", "Bond", "Reaction", "Catalyst", "Equilibrium", "Kinetics", "Thermodynamics", "Orbital", "Functional group", "Stereochemistry", "Spectroscopy"],
+  "Molecular and cellular biology": ["Gene", "Protein", "DNA", "RNA", "Cell membrane", "Organelle", "Signal transduction", "Transcription", "Translation", "Metabolism", "Cell cycle", "Mutation"],
+  Ecology: ["Population", "Community", "Ecosystem", "Niche", "Habitat", "Food web", "Trophic level", "Succession", "Competition", "Predation", "Mutualism", "Biodiversity"],
+  Epidemiology: ["Incidence", "Prevalence", "Risk", "Exposure", "Confounding", "Bias", "Cohort", "Case-control", "Outbreak", "Transmission", "Screening", "Surveillance"],
+  "Mechanical systems": ["Mechanism", "Load", "Stress", "Strain", "Kinematics", "Dynamics", "Vibration", "Friction", "Wear", "Bearing", "Actuator", "Sensor"],
+  "Electrical engineering": ["Voltage", "Current", "Resistance", "Capacitance", "Inductance", "Impedance", "Signal", "Feedback", "Power", "Frequency", "Circuit", "Control loop"],
+  Economics: ["Preference", "Utility", "Constraint", "Equilibrium", "Market", "Price", "Incentive", "Elasticity", "Externality", "Welfare", "Game", "Information asymmetry"],
+  Psychology: ["Attention", "Memory", "Perception", "Learning", "Emotion", "Motivation", "Trait", "Cognition", "Behavior", "Development", "Assessment", "Intervention"],
+  Linguistics: ["Phoneme", "Morpheme", "Syntax", "Semantics", "Pragmatics", "Grammar", "Corpus", "Utterance", "Discourse", "Language change", "Typology", "Acquisition"],
+};
+
+const SEED_L5_CONCEPTS = {
+  mathematics: ["Theorem", "Proof", "Counterexample", "Structure", "Invariant", "Construction", "Duality", "Classification", "Representation", "Algorithm", "Axiom", "Lemma"],
+  logic: ["Syntax", "Semantics", "Inference rule", "Model", "Proof", "Consistency", "Completeness", "Decidability", "Soundness", "Validity", "Satisfiability", "Formal system"],
+  computerScience: ["Algorithm", "Data structure", "Complexity", "Abstraction", "State", "Protocol", "Architecture", "Concurrency", "Correctness", "Optimization", "Representation", "Interface"],
+  physics: ["State", "Symmetry", "Conservation law", "Field", "Particle", "Wave", "Energy", "Momentum", "Interaction", "Equation of motion", "Boundary condition", "Approximation"],
+  chemistry: ["Atom", "Molecule", "Bond", "Reaction mechanism", "Catalysis", "Equilibrium", "Kinetics", "Thermodynamics", "Structure", "Spectroscopy", "Synthesis", "Solvent"],
+  biology: ["Cell", "Gene", "Protein", "Organism", "Population", "Evolution", "Adaptation", "Regulation", "Pathway", "Trait", "Phenotype", "Genotype"],
+  earth: ["System", "Cycle", "Flux", "Reservoir", "Gradient", "Sediment", "Stratigraphy", "Feedback", "Forcing", "Hazard", "Proxy", "Model"],
+  medicine: ["Diagnosis", "Pathophysiology", "Risk factor", "Prognosis", "Treatment", "Prevention", "Screening", "Biomarker", "Outcome", "Trial", "Guideline", "Comorbidity"],
+  engineering: ["Requirement", "Design constraint", "Load", "Failure mode", "Safety factor", "Efficiency", "Control", "Optimization", "Prototype", "Reliability", "Standard", "Trade-off"],
+  social: ["Institution", "Norm", "Actor", "Incentive", "Power", "Network", "Identity", "Inequality", "Culture", "Policy", "Measurement", "Causal mechanism"],
+  psychology: ["Attention", "Memory", "Perception", "Learning", "Emotion", "Motivation", "Cognition", "Behavior", "Development", "Measurement", "Experiment", "Model"],
+  linguistics: ["Sound", "Meaning", "Form", "Grammar", "Usage", "Discourse", "Variation", "Corpus", "Acquisition", "Change", "Context", "Representation"],
+  agriculture: ["Yield", "Soil fertility", "Nutrient", "Cultivar", "Pest", "Irrigation", "Breeding", "Feed", "Pathogen", "Food safety", "Quality", "Sustainability"],
+  methods: ["Research question", "Variable", "Measurement", "Sampling", "Model", "Inference", "Validity", "Reliability", "Bias", "Replication", "Uncertainty", "Ethics"],
+};
+
 const TAXONOMY = [
   domain("Formal sciences", "Abstract, symbolic, mathematical, computational, and logical systems of knowledge.", [
     field("Mathematics", "Study of quantity, structure, space, change, pattern, and abstraction.", "mathematics", [
@@ -347,8 +447,63 @@ function specialtyNode(name, parent, seed) {
       work("Specialist literature", `Foundational papers and monographs on ${name}`, "various", `Topic-specific starting point for ${name}; verify exact canonical works in a scholarly index.`),
     ],
     readingList: readingList(name, parent.name, works),
-    children: [],
+    children: conceptNodesForSpecialty(name, parent, seed),
   };
+}
+
+function conceptNodesForSpecialty(name, parent, seed) {
+  const conceptNames = conceptsForSpecialty(name, parent, seed);
+  return conceptNames.map((conceptName) => ({
+    name: conceptName,
+    summary: `${conceptName} is a core Level 5 concept used in ${name}.`,
+    taxonomyRole: "concept_family",
+    keywords: keywords(`${conceptName} ${name} ${parent.name}`),
+    likely_has_children: false,
+    confidence: "medium",
+    children: [],
+  }));
+}
+
+function conceptsForSpecialty(name, parent, seed) {
+  const exact = EXACT_L5_CONCEPTS[name] || EXACT_L5_CONCEPTS[titleCase(name)];
+  const parentConcepts = SUBFIELD_L5_CONCEPTS[parent.name] || [];
+  const seedConcepts = SEED_L5_CONCEPTS[seed] || SEED_L5_CONCEPTS.methods;
+  return uniqueConcepts([
+    ...(exact || []),
+    ...parentConcepts,
+    ...seedConcepts,
+  ])
+    .filter((conceptName) => conceptName.toLowerCase() !== name.toLowerCase())
+    .slice(0, exact ? 32 : 18);
+}
+
+function uniqueConcepts(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values) {
+    const clean = normalizeConceptName(value);
+    const key = clean.toLowerCase();
+    if (!clean || seen.has(key) || isBlockedConceptName(clean)) continue;
+    seen.add(key);
+    result.push(clean);
+  }
+  return result;
+}
+
+function normalizeConceptName(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function isBlockedConceptName(value) {
+  return /\b(definitions?|scope|resources?|tutorials?|open problems?|links? to|case studies?)\b/i.test(value);
+}
+
+function titleCase(value) {
+  return String(value)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`)
+    .join(" ");
 }
 
 function readingList(topic, parent, works) {
@@ -407,6 +562,7 @@ const payload = {
     2: "Disciplines and broad fields",
     3: "Subdisciplines",
     4: "Specialist fields with reading scaffolds and seminal-work pointers",
+    5: "Preloaded core concepts, terms, methods, objects, and principles for each Level 4 specialty",
   },
   counts,
   roots,
