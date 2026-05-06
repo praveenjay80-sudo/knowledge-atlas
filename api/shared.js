@@ -634,6 +634,29 @@ const BLOCKED_TAXONOMY_PATTERNS = [
   /\bgeneral and miscellaneous\b/i,
 ];
 
+const GENERIC_LEVEL_FIVE_PATTERNS = [
+  /\bdefinitions? and scope\b/i,
+  /\bcore objects?\b/i,
+  /\bbasic examples?\b/i,
+  /\bstandard models?\b/i,
+  /\bcentral (?:theorems?|principles?)\b/i,
+  /\bcanonical problems?\b/i,
+  /\bmethods? and techniques?\b/i,
+  /\bmeasurements? and evidence\b/i,
+  /\bclassification schemes?\b/i,
+  /\bassumptions? and limitations?\b/i,
+  /\bapplications?\b/i,
+  /\bhistorical foundations?\b/i,
+  /\bmodern variants?\b/i,
+  /\bcomputational tools?\b/i,
+  /\bexperimental or observational methods?\b/i,
+  /\bnotation and terminology\b/i,
+  /\bopen problems?\b/i,
+  /\blinks? to neighboring topics?\b/i,
+  /\btutorials?\b/i,
+  /\bresources?\b/i,
+];
+
 function sanitizeTaxonomyItem(item) {
   return {
     ...item,
@@ -668,6 +691,16 @@ function isSuspiciousTaxonomyItem(item, currentNode) {
   }
 
   if (confidence === "low") {
+    return true;
+  }
+
+  const lowerName = normalizeName(name);
+  const lowerCurrentNode = normalizeName(currentNode);
+  if (
+    lowerCurrentNode &&
+    lowerName.startsWith(`${lowerCurrentNode} `) &&
+    GENERIC_LEVEL_FIVE_PATTERNS.some((pattern) => pattern.test(lowerName))
+  ) {
     return true;
   }
 
@@ -739,6 +772,8 @@ function taxonomyPrompt({
     `The current node is Level ${currentLevel}; return ${childLevelLabel}.`,
     "The app stops at Level 5. Level 4 should return established specialties or narrow research areas. Level 5 must return core concepts, objects, theories, models, phenomena, techniques, schools, problems, named topic keywords, or canonical subtopics directly used inside the selected Level 4 specialty.",
     "For Level 5, return concept keywords rather than another layer of broad disciplines.",
+    "For Level 5, return actual recognized concept names. Good examples for linear algebra include vector space, basis, eigenvalue, matrix rank, determinant, linear transformation, inner product, and diagonalization.",
+    "For Level 5, do not prefix every item with the parent topic. Bad examples include 'linear algebra definitions and scope', 'linear algebra core objects', 'linear algebra applications', and 'linear algebra open problems'.",
     "For Level 5, never return generic buckets such as history, methods, applications, foundations, contemporary issues, tutorials, surveys, resources, tools, or case studies unless that exact phrase is itself a recognized concept keyword in the Level 4 item.",
     "For Level 5, aim for comprehensive coverage of the core conceptual vocabulary of the selected Level 4 item, while keeping each item precise and academically recognizable.",
     "Do not treat the desired breadth as a conceptual cap. Return every well-established direct child you can fit in this batch.",

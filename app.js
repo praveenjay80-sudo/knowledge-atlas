@@ -297,48 +297,87 @@ function mergeChildren(node, items) {
   countLevels();
 }
 
-function localLevelFiveConcepts(node) {
-  if (!node || node.path.length !== 4) return [];
-  const topic = node.name;
-  const parent = node.path[2] || node.path[1] || "the parent field";
-  const concepts = [
-    `${topic} definitions and scope`,
-    `${topic} core objects`,
-    `${topic} basic examples`,
-    `${topic} standard models`,
-    `${topic} central theorems or principles`,
-    `${topic} canonical problems`,
-    `${topic} methods and techniques`,
-    `${topic} measurements and evidence`,
-    `${topic} classification schemes`,
-    `${topic} assumptions and limitations`,
-    `${topic} applications`,
-    `${topic} historical foundations`,
-    `${topic} modern variants`,
-    `${topic} computational tools`,
-    `${topic} experimental or observational methods`,
-    `${topic} notation and terminology`,
-    `${topic} open problems`,
-    `${topic} links to neighboring topics`,
-  ];
+const GENERIC_L5_PATTERNS = [
+  /\bdefinitions?\b/,
+  /\bscope\b/,
+  /\bcore objects?\b/,
+  /\bbasic examples?\b/,
+  /\bstandard models?\b/,
+  /\bcentral (?:theorems?|principles?)\b/,
+  /\bcanonical problems?\b/,
+  /\bmethods? and techniques?\b/,
+  /\bmeasurements? and evidence\b/,
+  /\bclassification schemes?\b/,
+  /\bassumptions? and limitations?\b/,
+  /\bapplications?\b/,
+  /\bhistorical foundations?\b/,
+  /\bmodern variants?\b/,
+  /\bcomputational tools?\b/,
+  /\bexperimental or observational methods?\b/,
+  /\bnotation and terminology\b/,
+  /\bopen problems?\b/,
+  /\blinks? to neighboring topics?\b/,
+  /\btutorials?\b/,
+  /\bsurveys?\b/,
+  /\bcase studies?\b/,
+  /\bresources?\b/,
+];
 
-  return concepts.map((name) => ({
-    name,
-    aliases: [],
-    summary: `${name} as a Level 5 concept area inside ${topic}, connected to ${parent}.`,
-    why_it_belongs: `${name} is part of the conceptual vocabulary needed to understand ${topic}.`,
-    keywords: uniqueStrings([topic, parent, name]).slice(0, 6),
-    likely_has_children: false,
-    child_scope_label: "concepts",
-    taxonomy_role: "concept_family",
-    confidence: "medium",
-    caution_note: "Starter generated concept; use an API key and Find More Siblings for a more field-specific list.",
-  }));
+function canonicalConceptKey(value) {
+  return normalizeWhitespace(value)
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\b(the|a|an|of|and|for|in|to|with)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function looksLikeGenericLevelFive(item, parentNode) {
+  const name = cleanName(item?.name || "");
+  const canonicalName = canonicalConceptKey(name);
+  const canonicalParent = canonicalConceptKey(parentNode?.name || "");
+
+  if (!name || canonicalName.length < 3 || name.length > 90) return true;
+  if (canonicalName === canonicalParent) return true;
+  if (canonicalParent && canonicalName.startsWith(`${canonicalParent} `)) {
+    const suffix = canonicalName.slice(canonicalParent.length).trim();
+    if (GENERIC_L5_PATTERNS.some((pattern) => pattern.test(suffix))) return true;
+  }
+  return GENERIC_L5_PATTERNS.some((pattern) => pattern.test(canonicalName));
+}
+
+function filterLevelFiveItems(parentNode, items) {
+  const existing = new Set(parentNode.children.map((child) => canonicalConceptKey(child.name)));
+  const seen = new Set(existing);
+  const accepted = [];
+  const dropped = [];
+
+  for (const item of items || []) {
+    const name = cleanName(item?.name || "");
+    const key = canonicalConceptKey(name);
+    if (!key || seen.has(key) || looksLikeGenericLevelFive(item, parentNode)) {
+      if (name) dropped.push(name);
+      continue;
+    }
+    seen.add(key);
+    accepted.push({
+      ...item,
+      name,
+      likely_has_children: false,
+      taxonomy_role: item.taxonomy_role || item.taxonomyRole || "concept_family",
+      confidence: item.confidence === "low" ? "medium" : item.confidence || "medium",
+    });
+  }
+
+  return { accepted, dropped };
 }
 
 async function expandNode(node, mode = "initial", options = {}) {
   const { selectFirstChild = true } = options;
   if (!node || node.path.length >= MAX_VISIBLE_LEVEL) return;
+  const isLevelFiveRequest = node.path.length === 4;
   state.loadingIds.add(node.id);
   node.status = mode === "find_more" ? "Searching for missing sibling topics..." : `Generating ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} items...`;
   render();
@@ -358,29 +397,23 @@ async function expandNode(node, mode = "initial", options = {}) {
       }),
     });
     const before = node.children.length;
-    mergeChildren(node, payload.items || []);
+    const incoming = isLevelFiveRequest ? filterLevelFiveItems(node, payload.items || []) : { accepted: payload.items || [], dropped: [] };
+    mergeChildren(node, incoming.accepted);
     const added = node.children.length - before;
-    if (!added && node.path.length === 4) {
-      mergeChildren(node, localLevelFiveConcepts(node));
-    }
-    const finalAdded = node.children.length - before;
-    node.status = finalAdded
-      ? payload.overview || `Loaded ${finalAdded} Level 5 concepts.`
-      : payload.overview || "No reliable new children were returned.";
+    const filteredNote = incoming.dropped.length
+      ? ` Suppressed ${incoming.dropped.length} generic or duplicate L5 item${incoming.dropped.length === 1 ? "" : "s"}.`
+      : "";
+    node.status = added
+      ? `${payload.overview || `Loaded ${added} Level 5 concepts.`}${filteredNote}`
+      : isLevelFiveRequest
+        ? `${payload.overview || "No real Level 5 concepts passed validation."}${filteredNote} Try a narrower L4 item, paste an API key, or use Find More Siblings.`
+        : payload.overview || "No reliable new children were returned.";
     node.remainingNote = payload.remaining_note || "";
-    if (selectFirstChild && finalAdded && node.children[0]) setSelected(node.children[0]);
+    if (selectFirstChild && added && node.children[0]) setSelected(node.children[0]);
   } catch (error) {
-    if (node.path.length === 4) {
-      const before = node.children.length;
-      mergeChildren(node, localLevelFiveConcepts(node));
-      const added = node.children.length - before;
-      node.status = added
-        ? `API generation failed (${error.message || "unknown error"}). Loaded ${added} starter Level 5 concepts.`
-        : error.message || "Generation failed.";
-      if (selectFirstChild && added && node.children[0]) setSelected(node.children[0]);
-    } else {
-      node.status = error.message || "Generation failed.";
-    }
+    node.status = isLevelFiveRequest
+      ? `Level 5 generation failed: ${error.message || "unknown error"}. No fallback concepts were added.`
+      : error.message || "Generation failed.";
   } finally {
     state.loadingIds.delete(node.id);
     render();
