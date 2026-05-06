@@ -325,6 +325,11 @@ textarea:focus {
   gap: 8px;
 }
 
+.audit-result-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .audit-results,
 .bibliography-list {
   display: grid;

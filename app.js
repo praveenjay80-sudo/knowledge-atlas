@@ -41,6 +41,7 @@ const state = {
   bibliographyByPath: {},
   auditItems: [],
   auditMode: "",
+  auditTargetId: "",
   auditLoading: false,
 };
 
@@ -155,6 +156,7 @@ function setTaxonomy(text, sourceLabel) {
   state.sourceLabel = sourceLabel;
   state.auditItems = [];
   state.auditMode = "";
+  state.auditTargetId = "";
   refs.sourceInput.value = text;
   render();
 }
@@ -167,6 +169,7 @@ function selectNode(node) {
   state.selectedId = node.id;
   state.auditItems = [];
   state.auditMode = "";
+  state.auditTargetId = "";
   render();
 }
 
@@ -369,9 +372,18 @@ function renderAuditResults() {
   clear(refs.auditResults);
   if (!state.auditItems.length) return;
 
+  const toolbar = document.createElement("div");
+  toolbar.className = "audit-result-toolbar";
+  const addAll = document.createElement("button");
+  addAll.type = "button";
+  addAll.textContent = `Add all ${state.auditItems.length}`;
+  addAll.addEventListener("click", addAllAuditItems);
+  toolbar.appendChild(addAll);
+  refs.auditResults.appendChild(toolbar);
+
   const list = document.createElement("div");
   list.className = "audit-results";
-  for (const item of state.auditItems) {
+  state.auditItems.forEach((item, index) => {
     const card = document.createElement("article");
     card.className = "audit-card";
     const title = state.auditMode === "bibliography"
@@ -383,13 +395,17 @@ function renderAuditResults() {
     card.innerHTML = `
       <strong></strong>
       <p class="item-meta"></p>
-      <p></p>
+      <p class="audit-why"></p>
+      <button type="button" class="add-audit-item"></button>
     `;
     card.querySelector("strong").textContent = title;
     card.querySelector(".item-meta").textContent = meta;
-    card.querySelector("p:last-child").textContent = item.why_missing || "";
+    card.querySelector(".audit-why").textContent = item.why_missing || "";
+    const addButton = card.querySelector(".add-audit-item");
+    addButton.textContent = state.auditMode === "bibliography" ? "Add to bibliography" : "Add to taxonomy";
+    addButton.addEventListener("click", () => addAuditItem(index));
     list.appendChild(card);
-  }
+  });
   refs.auditResults.appendChild(list);
 }
 
@@ -433,6 +449,7 @@ function dedupeTaxonomyItems(parent, items) {
       foundational: normalize(item.foundational_work),
       why_missing: normalize(item.why_missing),
       confidence: item.confidence || "medium",
+      parentId: parent.id,
     });
   }
   return accepted;
@@ -454,6 +471,7 @@ function dedupeBibliographyItems(node, items) {
       category: normalize(item.category) || "bibliography",
       why_missing: normalize(item.why_missing),
       confidence: item.confidence || "medium",
+      targetId: node.id,
     };
     const key = bibliographyKey(clean);
     if (seen.has(key)) continue;
@@ -463,6 +481,64 @@ function dedupeBibliographyItems(node, items) {
   return accepted;
 }
 
+function persistTaxonomy() {
+  const source = serializeTaxonomy();
+  localStorage.setItem(STORAGE_KEY, source);
+  refs.sourceInput.value = source;
+  state.sourceLabel = "Imported source + audit additions";
+}
+
+function addTaxonomyCandidate(item) {
+  const parent = state.flat.find((node) => node.id === item.parentId);
+  if (!parent || parent.level >= 4) return false;
+  if (parent.children.some((child) => normalizeKey(child.name) === normalizeKey(item.name))) return false;
+
+  const child = createNode(parent.level + 1, item.name, "", item.foundational, parent);
+  parent.children.push(child);
+  parent.children.sort((left, right) => left.name.localeCompare(right.name));
+  state.flat = flatten(state.roots);
+  applySavedBibliography();
+  persistTaxonomy();
+  return true;
+}
+
+function addBibliographyCandidate(item) {
+  const node = state.flat.find((candidate) => candidate.id === item.targetId);
+  if (!node) return false;
+  if (node.bibliography.some((entry) => bibliographyKey(entry) === bibliographyKey(item))) return false;
+
+  node.bibliography.push(item);
+  saveNodeBibliography(node);
+  return true;
+}
+
+function addAuditItem(index) {
+  const item = state.auditItems[index];
+  if (!item) return;
+  const added = state.auditMode === "bibliography"
+    ? addBibliographyCandidate(item)
+    : addTaxonomyCandidate(item);
+  state.auditItems.splice(index, 1);
+  refs.auditStatus.textContent = added
+    ? `Added "${state.auditMode === "bibliography" ? item.title : item.name}".`
+    : "That item was already present or could not be added.";
+  render();
+}
+
+function addAllAuditItems() {
+  let added = 0;
+  for (const item of state.auditItems) {
+    const ok = state.auditMode === "bibliography"
+      ? addBibliographyCandidate(item)
+      : addTaxonomyCandidate(item);
+    if (ok) added += 1;
+  }
+  const attempted = state.auditItems.length;
+  state.auditItems = [];
+  refs.auditStatus.textContent = `Added ${added} of ${attempted} audit item${attempted === 1 ? "" : "s"}.`;
+  render();
+}
+
 async function auditTaxonomy() {
   const node = selectedNode();
   const parent = auditParentFor(node);
@@ -470,6 +546,7 @@ async function auditTaxonomy() {
 
   state.auditLoading = true;
   state.auditMode = "taxonomy";
+  state.auditTargetId = parent.id;
   state.auditItems = [];
   refs.auditStatus.textContent = "Searching for core missing taxonomy items...";
   render();
@@ -488,20 +565,9 @@ async function auditTaxonomy() {
       }),
     });
     const accepted = dedupeTaxonomyItems(parent, payload.items);
-    for (const item of accepted) {
-      const child = createNode(parent.level + 1, item.name, "", item.foundational, parent);
-      parent.children.push(child);
-    }
-    parent.children.sort((left, right) => left.name.localeCompare(right.name));
-    state.flat = flatten(state.roots);
-    applySavedBibliography();
-    const source = serializeTaxonomy();
-    localStorage.setItem(STORAGE_KEY, source);
-    refs.sourceInput.value = source;
-    state.sourceLabel = "Imported source + audits";
     state.auditItems = accepted;
     refs.auditStatus.textContent = accepted.length
-      ? `${payload.overview || "Audit complete."} Added ${accepted.length} missing taxonomy item${accepted.length === 1 ? "" : "s"}.`
+      ? `${payload.overview || "Audit complete."} Found ${accepted.length} candidate item${accepted.length === 1 ? "" : "s"} to review and add.`
       : payload.overview || "Audit complete. No new core taxonomy items were safe to add.";
   } catch (error) {
     refs.auditStatus.textContent = error.message || "Taxonomy audit failed.";
@@ -517,6 +583,7 @@ async function auditBibliography() {
 
   state.auditLoading = true;
   state.auditMode = "bibliography";
+  state.auditTargetId = node.id;
   state.auditItems = [];
   refs.auditStatus.textContent = "Searching for missing core bibliography items...";
   render();
@@ -534,11 +601,9 @@ async function auditBibliography() {
       }),
     });
     const accepted = dedupeBibliographyItems(node, payload.items);
-    node.bibliography.push(...accepted);
-    saveNodeBibliography(node);
     state.auditItems = accepted;
     refs.auditStatus.textContent = accepted.length
-      ? `${payload.overview || "Bibliography audit complete."} Added ${accepted.length} missing work${accepted.length === 1 ? "" : "s"}.`
+      ? `${payload.overview || "Bibliography audit complete."} Found ${accepted.length} candidate work${accepted.length === 1 ? "" : "s"} to review and add.`
       : payload.overview || "Bibliography audit complete. No new core works were safe to add.";
   } catch (error) {
     refs.auditStatus.textContent = error.message || "Bibliography audit failed.";
