@@ -452,7 +452,17 @@ async function readingListForNode(node) {
   node.bibliographyStatus = "loading";
   render();
   if (!apiKey() && !state.serverKeyReady) {
-    node.bibliography = localReadingList(node);
+    node.bibliography = {
+      note: "Enter an OpenAI API key in the left panel, then press Reading list again to generate a comprehensive bibliography.",
+      caution_note: "No API key is configured on the server, so this app needs a browser-provided key for generated reading lists.",
+      categories: {
+        seminal_works: [],
+        breakthrough_works: [],
+        pedagogy_texts: [],
+        reference_works: [],
+        recent_syntheses: [],
+      },
+    };
     node.bibliographyStatus = "success";
     setSelected(node);
     return;
@@ -468,9 +478,29 @@ async function readingListForNode(node) {
         apiKey: apiKey(),
       }),
     });
-    node.bibliography = payload.categories ? payload : localReadingList(node);
+    node.bibliography = payload.categories ? payload : {
+      note: "The API did not return a structured bibliography. Try again with a narrower selected item.",
+      caution_note: "No fallback list was used because this button is configured to generate by API key.",
+      categories: {
+        seminal_works: [],
+        breakthrough_works: [],
+        pedagogy_texts: [],
+        reference_works: [],
+        recent_syntheses: [],
+      },
+    };
   } catch {
-    node.bibliography = localReadingList(node);
+    node.bibliography = {
+      note: "The API reading-list request failed. Check the API key and try again.",
+      caution_note: "No fallback list was used because this button is configured to generate by API key.",
+      categories: {
+        seminal_works: [],
+        breakthrough_works: [],
+        pedagogy_texts: [],
+        reference_works: [],
+        recent_syntheses: [],
+      },
+    };
   } finally {
     node.bibliographyStatus = "success";
     setSelected(node);

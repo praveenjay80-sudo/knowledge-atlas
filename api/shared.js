@@ -785,12 +785,13 @@ function bibliographyPrompt({ pathSegments, summary, keywords }) {
   const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
 
   return [
-    "Generate a categorized bibliography for the requested knowledge-taxonomy item.",
+    "Generate a comprehensive reading list for the requested knowledge-taxonomy item, ordered from basic orientation to advanced specialist work.",
     "Be conservative and avoid invented details.",
     "Prefer classic primary sources, field-defining books, major surveys, breakthrough papers, and strong teaching texts.",
     "If exact details are uncertain, either omit the item or state the uncertainty in the note rather than fabricating.",
     "Return references specific to the target item, not generic references to the entire parent discipline unless they are truly foundational for the target.",
-    "Use the categories seminals works, breakthrough works, pedagogy texts, reference works, and recent syntheses.",
+    "Use the categories seminal works, breakthrough works, pedagogy texts, reference works, and recent syntheses.",
+    "Aim for a rich list: include enough items to be useful for a serious learner, while still omitting doubtful or invented citations.",
     "Pedagogy texts should help a serious newcomer learn the area rather than only document frontier research.",
     "",
     `Target item: ${target}`,
@@ -906,7 +907,7 @@ function bibliographyCategorySchema() {
   return {
     type: "array",
     minItems: 0,
-    maxItems: 5,
+    maxItems: 8,
     items: bibliographyItemSchema(),
   };
 }
@@ -1959,6 +1960,7 @@ async function handleBibliographyRequest(req, res) {
   let pathSegments = [];
   let summary = "";
   let keywords = [];
+  let apiKey = "";
   try {
     if (req.method !== "POST") {
       sendJson(res, 405, { error: "Method not allowed." });
@@ -1977,18 +1979,26 @@ async function handleBibliographyRequest(req, res) {
 
     summary = typeof body.summary === "string" ? body.summary.trim() : "";
     keywords = Array.isArray(body.keywords) ? body.keywords.map(String) : [];
+    apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
 
     const payload = await callOpenAI({
+      apiKey,
       prompt: bibliographyPrompt({ pathSegments, summary, keywords }),
       schemaName: "categorized_seminal_bibliography",
       schema: bibliographySchema(),
-      maxOutputTokens: 1200,
+      maxOutputTokens: 3600,
       reasoningEffort: "low",
-      timeoutMs: 30000,
+      timeoutMs: 45000,
     });
 
     sendJson(res, 200, payload);
   } catch (error) {
+    if (apiKey || process.env.OPENAI_API_KEY) {
+      sendJson(res, error?.statusCode || 502, {
+        error: error?.message || "Bibliography generation failed.",
+      });
+      return;
+    }
     sendJson(res, 200, fallbackBibliography(pathSegments, summary, keywords));
   }
 }
