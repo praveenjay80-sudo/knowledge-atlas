@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Single-app knowledge atlas for dynamic taxonomy, core concepts, and categorized bibliography across sciences and philosophy",
   "scripts": {
-    "build:taxonomy": "node scripts/build_static_science_taxonomy.mjs",
+    "build:taxonomy": "node scripts/build_human_scientific_taxonomy.mjs",
     "dev": "node server.js",
     "start": "node server.js",
     "check": "node --check server.js && node --check app.js && node --check api/shared.js && node --check api/health.mjs && node --check api/taxonomy.mjs && node --check api/bibliography.mjs && node --check api/concepts.mjs && node --check api/explain.mjs"

@@ -1,3 +1,6 @@
+const STATIC_TAXONOMY_URL = "/data/human_scientific_knowledge_taxonomy.json";
+const MAX_VISIBLE_LEVEL = 5;
+
 const ROOT_DEFINITIONS = [
   {
     name: "Formal sciences",
@@ -15,11 +18,6 @@ const ROOT_DEFINITIONS = [
     keywords: ["social sciences", "society", "institutions", "human behavior", "culture"],
   },
   {
-    name: "Humanities and arts",
-    summary: "Interpretive and creative study of history, language, literature, religion, art, music, and meaning.",
-    keywords: ["humanities", "arts", "history", "literature", "religion"],
-  },
-  {
     name: "Health sciences",
     summary: "Knowledge of health, disease, care, prevention, public health, and clinical practice.",
     keywords: ["health sciences", "medicine", "nursing", "public health", "clinical care"],
@@ -28,16 +26,6 @@ const ROOT_DEFINITIONS = [
     name: "Engineering and technology",
     summary: "Design, construction, optimization, and governance of technical systems and artifacts.",
     keywords: ["engineering", "technology", "design", "systems", "infrastructure"],
-  },
-  {
-    name: "Applied sciences and professions",
-    summary: "Knowledge organized around design, intervention, practice, technology, health, and professional work.",
-    keywords: ["applied sciences", "engineering", "medicine", "technology", "professional practice"],
-  },
-  {
-    name: "Philosophy",
-    summary: "Critical inquiry into reality, knowledge, value, reason, mind, language, and science.",
-    keywords: ["philosophy", "metaphysics", "epistemology", "ethics", "logic"],
   },
   {
     name: "Interdisciplinary and integrative studies",
@@ -50,7 +38,24 @@ const LEVEL_LABELS = {
   1: "Level 1 Domain",
   2: "Level 2 Field",
   3: "Level 3 Subfield",
-  4: "Level 4 Concept",
+  4: "Level 4 Specialty",
+  5: "Extra Topic",
+};
+
+const LEVEL_TITLES = {
+  1: "Domains",
+  2: "Fields",
+  3: "Subfields",
+  4: "Specialties",
+  5: "Topics",
+};
+
+const READING_CATEGORY_LABELS = {
+  pedagogy_texts: "Basic texts",
+  seminal_works: "Founding and seminal works",
+  breakthrough_works: "Breakthrough works",
+  reference_works: "Reference works",
+  recent_syntheses: "Advanced syntheses",
 };
 
 const SEARCH_PROVIDERS = {
@@ -62,13 +67,9 @@ const SEARCH_PROVIDERS = {
     label: "Google Scholar",
     url: (query) => `https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`,
   },
-  eth: {
-    label: "ETH Library",
-    url: (query) => `https://eth.swisscovery.slsp.ch/discovery/search?query=any,contains,${encodeURIComponent(query)}&tab=discovery_network&search_scope=DiscoveryNetwork&vid=41SLSP_ETH:ETH&lang=en&offset=0`,
-  },
-  michigan: {
-    label: "Uni Michigan Library",
-    url: (query) => `https://search.lib.umich.edu/catalog?query=${encodeURIComponent(query)}`,
+  openalex: {
+    label: "OpenAlex",
+    url: (query) => `https://openalex.org/works?filter=default.search:${encodeURIComponent(query)}`,
   },
 };
 
@@ -92,69 +93,54 @@ const refs = {
   exhaustButton: document.querySelector("#exhaustButton"),
   expandBranchButton: document.querySelector("#expandBranchButton"),
   explainButton: document.querySelector("#explainButton"),
+  readingButton: document.querySelector("#readingButton"),
   clearLevelButton: document.querySelector("#clearLevelButton"),
   clearAllButton: document.querySelector("#clearAllButton"),
   searchAllButton: document.querySelector("#searchAllButton"),
   selectedStatus: document.querySelector("#selectedStatus"),
   explanationPanel: document.querySelector("#explanationPanel"),
   explanationContent: document.querySelector("#explanationContent"),
-  levels: {
-    1: document.querySelector("#level1List"),
-    2: document.querySelector("#level2List"),
-    3: document.querySelector("#level3List"),
-    4: document.querySelector("#level4List"),
-  },
+  readingPanel: document.querySelector("#readingPanel"),
+  readingContent: document.querySelector("#readingContent"),
+  levelGrid: document.querySelector(".level-grid"),
   nodeTemplate: document.querySelector("#nodeTemplate"),
   resultTemplate: document.querySelector("#resultTemplate"),
 };
 
 const state = {
   health: "Checking API...",
+  staticStatus: "Loading atlas...",
   serverKeyReady: false,
   roots: [],
   selectedId: "",
   activePathIds: [],
   search: "",
   loadingIds: new Set(),
+  counts: {},
+  generatedAt: "",
 };
 
 function makeId(path) {
   return path.join(" > ");
 }
 
-function createNode(item, path) {
-  return {
-    id: makeId(path),
-    path,
-    name: item.name,
-    summary: item.summary || "",
-    whyItBelongs: item.why_it_belongs || "",
-    keywords: uniqueStrings(item.keywords || path),
-    aliases: uniqueStrings(item.aliases || []),
-    likelyHasChildren: item.likely_has_children ?? path.length < 4,
-    taxonomyRole: item.taxonomy_role || roleForLevel(path.length),
-    confidence: item.confidence || "high",
-    cautionNote: item.caution_note || "",
-    children: [],
-    status: "",
-    remainingNote: "",
-    explanation: null,
-    explanationStatus: "idle",
-  };
+function normalizeWhitespace(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
-function roleForLevel(level) {
-  if (level === 1) return "domain";
-  if (level === 2) return "field";
-  if (level === 3) return "subfield";
-  return "concept_family";
+function cleanName(value) {
+  return normalizeWhitespace(value)
+    .replace(/\s*\{[^}]*\}/g, "")
+    .replace(/\s*\[[^\]]*(?:see|See)[^\]]*\]/g, "")
+    .replace(/\s*--\s*/g, " - ")
+    .trim();
 }
 
 function uniqueStrings(values) {
   const seen = new Set();
   const result = [];
   for (const value of values || []) {
-    const clean = String(value || "").replace(/\s+/g, " ").trim();
+    const clean = normalizeWhitespace(value);
     const key = clean.toLowerCase();
     if (clean && !seen.has(key)) {
       seen.add(key);
@@ -164,8 +150,58 @@ function uniqueStrings(values) {
   return result;
 }
 
+function roleForLevel(level) {
+  if (level === 1) return "domain";
+  if (level === 2) return "field";
+  if (level === 3) return "subfield";
+  if (level === 4) return "specialty";
+  return "topic";
+}
+
+function createNode(item, path) {
+  const name = cleanName(item.name);
+  const cleanPath = [...path.slice(0, -1), name];
+  const node = {
+    id: makeId(cleanPath),
+    path: cleanPath,
+    name,
+    originalName: normalizeWhitespace(item.name),
+    summary: normalizeWhitespace(item.summary) || `${name} within ${cleanPath.slice(0, -1).pop() || "human scientific knowledge"}.`,
+    whyItBelongs: normalizeWhitespace(item.why_it_belongs || item.whyItBelongs),
+    keywords: uniqueStrings(item.keywords || cleanPath),
+    aliases: uniqueStrings(item.aliases || []),
+    likelyHasChildren: item.likely_has_children ?? (Array.isArray(item.children) && item.children.length > 0),
+    taxonomyRole: item.taxonomy_role || item.taxonomyRole || roleForLevel(cleanPath.length),
+    confidence: item.confidence || "high",
+    cautionNote: normalizeWhitespace(item.caution_note || item.cautionNote),
+    seminalWorks: Array.isArray(item.seminalWorks) ? item.seminalWorks : [],
+    readingList: item.readingList || null,
+    children: [],
+    status: "",
+    remainingNote: "",
+    explanation: null,
+    explanationStatus: "idle",
+    bibliography: null,
+    bibliographyStatus: "idle",
+  };
+
+  node.children = (item.children || [])
+    .map((child) => createNode(child, [...cleanPath, child.name]))
+    .filter((child) => child.name);
+
+  return node;
+}
+
 function flatten(nodes = state.roots) {
   return nodes.flatMap((node) => [node, ...flatten(node.children)]);
+}
+
+function countLevels() {
+  state.counts = {};
+  for (const node of flatten()) {
+    const level = Math.min(node.path.length, MAX_VISIBLE_LEVEL);
+    state.counts[level] = (state.counts[level] || 0) + 1;
+  }
 }
 
 function findNode(id, nodes = state.roots) {
@@ -207,30 +243,46 @@ async function refreshHealth() {
     state.serverKeyReady = Boolean(payload.apiKeyConfigured);
     state.health = state.serverKeyReady
       ? `Server API ready (${payload.model})`
-      : "Enter an API key to generate dynamically";
+      : "Static atlas ready; add API key for richer AI results";
   } catch {
-    state.health = "API route unavailable";
+    state.health = "Static atlas ready; API route unavailable";
+  }
+  render();
+}
+
+async function loadStaticAtlas() {
+  state.staticStatus = "Loading static atlas...";
+  render();
+  try {
+    const payload = await fetchJson(STATIC_TAXONOMY_URL);
+    const roots = Array.isArray(payload) ? payload : payload.roots || payload.items || [];
+    state.roots = roots.map((item) => createNode(item, [item.name]));
+    state.generatedAt = payload.generated_at || payload.generatedAt || "";
+    countLevels();
+    state.staticStatus = `Loaded ${flatten().length.toLocaleString()} taxonomy items`;
+    if (state.roots[0]) setSelected(state.roots[0]);
+  } catch (error) {
+    state.roots = ROOT_DEFINITIONS.map((item) => createNode(item, [item.name]));
+    countLevels();
+    state.staticStatus = "Using built-in starter roots";
+    if (state.roots[0]) setSelected(state.roots[0]);
   }
   render();
 }
 
 function loadRoots() {
-  state.roots = ROOT_DEFINITIONS.map((item) => createNode(item, [item.name]));
-  if (state.roots[0]) {
-    setSelected(state.roots[0]);
-  }
-  render();
+  loadStaticAtlas();
 }
 
 function mergeChildren(node, items) {
   const existing = new Map(node.children.map((child) => [child.name.toLowerCase(), child]));
   for (const item of items || []) {
-    const name = String(item.name || "").trim();
+    const name = cleanName(item.name);
     if (!name || existing.has(name.toLowerCase())) continue;
     const child = createNode(
       {
         ...item,
-        likely_has_children: node.path.length + 1 < 4 && (item.likely_has_children ?? true),
+        likely_has_children: node.path.length + 1 < MAX_VISIBLE_LEVEL && (item.likely_has_children ?? true),
       },
       [...node.path, name],
     );
@@ -238,15 +290,14 @@ function mergeChildren(node, items) {
     existing.set(name.toLowerCase(), child);
   }
   node.children.sort((left, right) => left.name.localeCompare(right.name));
+  countLevels();
 }
 
 async function expandNode(node, mode = "initial", options = {}) {
   const { selectFirstChild = true } = options;
-  if (!node || node.path.length >= 4) return;
+  if (!node || node.path.length >= MAX_VISIBLE_LEVEL) return;
   state.loadingIds.add(node.id);
-  node.status = mode === "find_more"
-    ? `Searching for missing ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} keywords...`
-    : `Generating ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} keywords...`;
+  node.status = mode === "find_more" ? "Searching for missing sibling topics..." : `Generating ${LEVEL_LABELS[node.path.length + 1].toLowerCase()} items...`;
   render();
 
   try {
@@ -259,20 +310,16 @@ async function expandNode(node, mode = "initial", options = {}) {
         breadth: refs.breadthSelect.value,
         customFocus: refs.focusInput.value.trim(),
         mode,
-        maxDepth: 4,
+        maxDepth: MAX_VISIBLE_LEVEL,
         apiKey: apiKey(),
       }),
     });
     const before = node.children.length;
     mergeChildren(node, payload.items || []);
     const added = node.children.length - before;
-    node.status = added
-      ? payload.overview || `Loaded ${added} new children.`
-      : payload.overview || "No reliable new children were returned.";
+    node.status = added ? payload.overview || `Loaded ${added} new children.` : payload.overview || "No reliable new children were returned.";
     node.remainingNote = payload.remaining_note || "";
-    if (selectFirstChild && added && node.children[0]) {
-      setSelected(node.children[0]);
-    }
+    if (selectFirstChild && added && node.children[0]) setSelected(node.children[0]);
   } catch (error) {
     node.status = error.message || "Generation failed.";
   } finally {
@@ -284,22 +331,12 @@ async function expandNode(node, mode = "initial", options = {}) {
 async function fillBranchToLevelFour(root) {
   if (!root || state.loadingIds.has(root.id)) return;
   const queue = [root];
-
   while (queue.length) {
     const node = queue.shift();
     if (!node || node.path.length >= 4) continue;
-
-    if (!node.children.length) {
-      await expandNode(node, "initial", { selectFirstChild: false });
-    }
-
-    if (node.remainingNote && !/not set|failed|unavailable/i.test(node.remainingNote)) {
-      await expandNode(node, "find_more", { selectFirstChild: false });
-    }
-
+    if (!node.children.length) await expandNode(node, "initial", { selectFirstChild: false });
     queue.push(...node.children.filter((child) => child.path.length < 4));
   }
-
   setSelected(root);
 }
 
@@ -310,54 +347,41 @@ function mayHaveMoreChildren(node, gained) {
 }
 
 async function expandUntilExhausted(node) {
-  if (!node || node.path.length >= 4 || state.loadingIds.has(node.id)) return;
-
+  if (!node || node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id)) return;
   let stagnantRounds = 0;
   let shouldContinue = true;
-
   while (shouldContinue && stagnantRounds < 2) {
     const before = node.children.length;
     await expandNode(node, before ? "find_more" : "initial", { selectFirstChild: false });
     const gained = node.children.length - before;
     stagnantRounds = gained > 0 ? 0 : stagnantRounds + 1;
     shouldContinue = mayHaveMoreChildren(node, gained);
-
-    if (!apiKey() && !state.serverKeyReady) {
-      break;
-    }
+    if (!apiKey() && !state.serverKeyReady) break;
   }
-
   node.status = `Loaded ${node.children.length} direct children${stagnantRounds ? "; no new unique siblings were returned." : "."}`;
   setSelected(node);
 }
 
 function fallbackExplanation(node) {
-  const path = node.path.join(" > ");
   const parent = node.path.length > 1 ? node.path[node.path.length - 2] : "human knowledge";
   const examples = contextualTerms(node).slice(0, 3);
-
   return {
-    simple_definition: `${node.name} is a topic in ${parent}. In school-level terms, it is a way of organizing ideas so you can ask clearer questions and find better sources.`,
-    why_it_matters: `It matters because ${node.name} gives you vocabulary for searching, comparing examples, and understanding how this part of knowledge connects to the wider path ${path}.`,
-    example: examples.length
-      ? `For example, if you search for ${examples.map((item) => `"${item}"`).join(" + ")}, you are more likely to find material that is about this exact topic rather than a vague nearby subject.`
-      : `For example, a student could start by asking what the main objects, problems, and uses of ${node.name} are.`,
-    analogy: `Think of it like a labeled drawer in a large library cabinet: the label helps you know what belongs there and what probably belongs somewhere else.`,
+    simple_definition: `${node.name} is a topic in ${parent}. In plain language, it is a named area of study that groups related questions, methods, evidence, and examples.`,
+    why_it_matters: `It matters because ${node.name} gives learners and researchers a precise label for finding sources and understanding where this topic sits in the wider map of science.`,
+    example: node.summary || (examples.length ? `Search for ${examples.join(" and ")} to find sources about this exact area.` : `A learner could start by asking what ${node.name} studies and what problems it tries to solve.`),
+    analogy: "Think of it as a shelf label in a very large research library: it does not contain every book, but it tells you which books belong together.",
     study_questions: [
       `What does ${node.name} study?`,
-      `What are two examples of ${node.name}?`,
+      `What are two examples or problems in ${node.name}?`,
       `How does ${node.name} connect to ${parent}?`,
     ],
   };
 }
 
-async function explainSelectedNode() {
-  const node = selectedNode();
+async function explainNode(node) {
   if (!node) return;
-
   node.explanationStatus = "loading";
   render();
-
   try {
     const payload = await fetchJson("/api/explain", {
       method: "POST",
@@ -370,13 +394,79 @@ async function explainSelectedNode() {
       }),
     });
     node.explanation = payload.explanation || fallbackExplanation(node);
-    node.explanationStatus = "success";
   } catch {
     node.explanation = fallbackExplanation(node);
+  } finally {
     node.explanationStatus = "success";
+    setSelected(node);
   }
+}
 
+function localReadingList(node) {
+  const topic = node.name;
+  const query = preciseSearchQuery(node);
+  const searchNote = `Search exact phrase: ${query}`;
+  const seededWorks = node.seminalWorks.map((item) => ({
+    authors: item.authors || "",
+    title: item.title || "",
+    year: item.year || "",
+    source: "Curated taxonomy seed",
+    why_it_matters: item.why_it_matters || "A foundational or field-defining work connected to this topic.",
+    confidence: /specialist literature/i.test(item.authors || "") ? "medium" : "high",
+  }));
+  return {
+    note: node.readingList
+      ? "Curated reading scaffold from the new taxonomy. Add an OpenAI API key or server key for a more specific bibliography."
+      : "Offline reading list scaffold. Add an OpenAI API key or server key for a more specific bibliography with named works.",
+    caution_note: "For highly specialized items, verify editions and exact paper titles in a library catalog or index.",
+    categories: {
+      pedagogy_texts: [
+        { authors: "Start here", title: `Introductory textbook or lecture notes on ${topic}`, year: "current", source: searchNote, why_it_matters: "Builds vocabulary and basic examples before primary literature.", confidence: "high" },
+      ],
+      seminal_works: seededWorks.length ? seededWorks : [
+        { authors: "Founding authors vary by subfield", title: `Foundational or original papers on ${topic}`, year: "various", source: `Google Scholar / OpenAlex query: ${query} seminal foundational`, why_it_matters: "Identifies the works that created or stabilized the area.", confidence: "medium" },
+      ],
+      breakthrough_works: [
+        { authors: "Major contributors vary by subfield", title: `Highly cited breakthrough works in ${topic}`, year: "various", source: `Scholar query: ${query} highly cited breakthrough`, why_it_matters: "Shows how the field changed after its initial formation.", confidence: "medium" },
+      ],
+      reference_works: [
+        { authors: "Specialist editors or societies", title: `Handbook, encyclopedia, or survey chapter on ${topic}`, year: "various", source: `WorldCat query: ${query} handbook encyclopedia survey`, why_it_matters: "Gives stable definitions, neighboring areas, and bibliographic trails.", confidence: "medium" },
+      ],
+      recent_syntheses: [
+        { authors: "Recent survey authors", title: `Recent review or synthesis of ${topic}`, year: "recent", source: `OpenAlex query: ${query} review survey`, why_it_matters: "Connects older foundations to current research questions.", confidence: "medium" },
+      ],
+    },
+  };
+}
+
+async function readingListForNode(node) {
+  if (!node) return;
+  node.bibliographyStatus = "loading";
   render();
+  if (!apiKey() && !state.serverKeyReady) {
+    node.bibliography = localReadingList(node);
+    node.bibliographyStatus = "success";
+    setSelected(node);
+    return;
+  }
+  try {
+    const payload = await fetchJson("/api/bibliography", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: node.path,
+        summary: node.summary,
+        keywords: contextualTerms(node),
+        apiKey: apiKey(),
+      }),
+    });
+    node.bibliography = payload.categories ? payload : localReadingList(node);
+  } catch {
+    node.bibliography = localReadingList(node);
+  } finally {
+    node.bibliographyStatus = "success";
+    setSelected(node);
+  }
 }
 
 function clearNextLevel(node) {
@@ -384,6 +474,7 @@ function clearNextLevel(node) {
   node.children = [];
   node.status = "Cleared the next level under this item.";
   node.remainingNote = "";
+  countLevels();
   setSelected(node);
 }
 
@@ -392,36 +483,21 @@ function clearAllLevels() {
   state.selectedId = "";
   state.activePathIds = [];
   state.search = "";
+  state.counts = {};
   refs.searchInput.value = "";
   render();
 }
 
 function contextualTerms(node) {
   if (!node) return [];
-  const level2 = node.path[1] || "";
-  const focus = node.path.length >= 4 ? node.path[3] : node.path[2] || "";
-  return uniqueStrings([focus, level2].filter(Boolean)).slice(0, 2);
+  return uniqueStrings([node.name, node.path[2], node.path[1], ...node.keywords].filter(Boolean)).slice(0, 5);
 }
 
 function preciseSearchQuery(node, focusTerm = "") {
   if (!node) return "";
-  const level = node.path.length;
-  const level2 = node.path[1] || "";
-  const level3 = node.path[2] || "";
-  const level4 = node.path[3] || "";
   const requested = normalizeWhitespace(focusTerm);
-  const focus = level >= 4
-    ? level4
-    : level >= 3
-      ? level3
-      : requested && requested !== level2
-        ? requested
-        : "";
-  const terms = level2 ? uniqueStrings([focus, level2].filter(Boolean)).slice(0, 2) : [node.name];
-
-  return terms
-    .map((term) => (/\s/.test(term) ? `"${term}"` : term))
-    .join(" ");
+  const terms = uniqueStrings([requested || node.name, node.path[2], node.path[1]].filter(Boolean)).slice(0, 3);
+  return terms.map((term) => (/\s/.test(term) ? `"${term}"` : term)).join(" ");
 }
 
 function openProvider(providerKey, node, focusTerm = "") {
@@ -429,9 +505,7 @@ function openProvider(providerKey, node, focusTerm = "") {
   if (!provider || !node) return;
   const url = provider.url(preciseSearchQuery(node, focusTerm));
   const opened = window.open(url, "_blank", "noopener,noreferrer");
-  if (!opened) {
-    window.location.href = url;
-  }
+  if (!opened) window.location.href = url;
 }
 
 function clear(element) {
@@ -445,15 +519,13 @@ function createKeywordChips(node, target) {
 
   const queryChip = document.createElement("span");
   queryChip.className = "keyword-chip query-chip";
-  queryChip.textContent = `Library query: ${query}`;
-  queryChip.title = "This exact query is sent to WorldCat, Scholar, ETH, and Michigan.";
+  queryChip.textContent = `Query: ${query}`;
   target.appendChild(queryChip);
 
-  for (const term of contextualTerms(node)) {
+  for (const term of contextualTerms(node).slice(0, 3)) {
     const chip = document.createElement("span");
     chip.className = "keyword-chip context-chip";
     chip.textContent = term;
-    chip.title = "Context term used in the library query.";
     target.appendChild(chip);
   }
 }
@@ -470,14 +542,15 @@ function renderNodeCard(node) {
   const card = fragment.querySelector(".node-card");
   const main = fragment.querySelector(".node-main");
   const inlineExpand = fragment.querySelector(".expand-inline");
-  const level = node.path.length;
+  const explainInline = fragment.querySelector(".explain-inline");
+  const readingInline = fragment.querySelector(".reading-inline");
+  const level = Math.min(node.path.length, MAX_VISIBLE_LEVEL);
 
   card.classList.toggle("selected", node.id === state.selectedId);
   card.classList.toggle("in-path", state.activePathIds.includes(node.id));
   fragment.querySelector(".node-level").textContent = LEVEL_LABELS[level];
   fragment.querySelector(".node-name").textContent = node.name;
   fragment.querySelector(".node-summary").textContent = node.summary;
-
   createKeywordChips(node, fragment.querySelector(".node-keywords"));
 
   main.addEventListener("click", () => setSelected(node));
@@ -491,29 +564,52 @@ function renderNodeCard(node) {
     });
   }
 
-  inlineExpand.hidden = level >= 4;
+  inlineExpand.hidden = node.path.length >= MAX_VISIBLE_LEVEL;
   inlineExpand.disabled = state.loadingIds.has(node.id);
-  inlineExpand.textContent = state.loadingIds.has(node.id) ? "Generating..." : `Generate Level ${level + 1}`;
+  inlineExpand.textContent = state.loadingIds.has(node.id) ? "Generating..." : `Generate Level ${node.path.length + 1}`;
   inlineExpand.addEventListener("click", () => expandNode(node));
+
+  explainInline.disabled = node.explanationStatus === "loading";
+  explainInline.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
+  explainInline.addEventListener("click", () => explainNode(node));
+
+  readingInline.disabled = node.bibliographyStatus === "loading";
+  readingInline.textContent = node.bibliographyStatus === "loading" ? "Reading..." : "Reading list";
+  readingInline.addEventListener("click", () => readingListForNode(node));
 
   return fragment;
 }
 
 function renderLevels() {
-  for (const [levelText, list] of Object.entries(refs.levels)) {
-    const level = Number(levelText);
-    clear(list);
+  clear(refs.levelGrid);
+  for (let level = 1; level <= MAX_VISIBLE_LEVEL; level += 1) {
+    const column = document.createElement("section");
+    column.className = "level-column";
+    column.dataset.level = String(level);
+
+    const head = document.createElement("div");
+    head.className = "level-head";
+    const eyebrow = document.createElement("p");
+    eyebrow.className = "eyebrow";
+    eyebrow.textContent = level === 5 ? "Extra Depth" : `Level ${level}`;
+    const title = document.createElement("h2");
+    title.textContent = LEVEL_TITLES[level];
+    head.append(eyebrow, title);
+
+    const list = document.createElement("div");
+    list.className = "node-list";
     const nodes = visibleChildrenForLevel(level);
     if (!nodes.length) {
       const empty = document.createElement("p");
       empty.className = "empty-note";
-      empty.textContent = level === 1 ? "Load Level 1 to begin." : "Select and generate the parent level.";
+      empty.textContent = level === 1 ? "Loading the atlas..." : "Select a parent item to view this level.";
       list.appendChild(empty);
-      continue;
+    } else {
+      for (const node of nodes) list.appendChild(renderNodeCard(node));
     }
-    for (const node of nodes) {
-      list.appendChild(renderNodeCard(node));
-    }
+
+    column.append(head, list);
+    refs.levelGrid.appendChild(column);
   }
 }
 
@@ -521,54 +617,62 @@ function renderSelected() {
   const node = selectedNode();
   if (!node) {
     refs.selectedLevel.textContent = "No Selection";
-    refs.selectedName.textContent = "Load the top-level domains to begin";
-    refs.selectedSummary.textContent = "Generate a structured four-level taxonomy of human knowledge, then search any keyword with scholarly context.";
+    refs.selectedName.textContent = "Loading the scientific knowledge atlas";
+    refs.selectedSummary.textContent = "The app loads a large static taxonomy first, then lets you generate, explain, search, and build reading lists for any item.";
     refs.selectedPath.textContent = "";
     clear(refs.selectedKeywords);
-  refs.expandButton.disabled = true;
+    refs.expandButton.disabled = true;
+    refs.moreButton.disabled = true;
+    refs.exhaustButton.disabled = true;
+    refs.expandBranchButton.disabled = true;
     refs.explainButton.disabled = true;
+    refs.readingButton.disabled = true;
     refs.clearLevelButton.disabled = true;
     refs.searchAllButton.disabled = true;
-    refs.selectedStatus.textContent = "";
+    refs.selectedStatus.textContent = state.staticStatus;
     refs.explanationPanel.hidden = true;
+    refs.readingPanel.hidden = true;
     clear(refs.explanationContent);
+    clear(refs.readingContent);
     return;
   }
 
-  refs.selectedLevel.textContent = LEVEL_LABELS[node.path.length];
+  const level = Math.min(node.path.length, MAX_VISIBLE_LEVEL);
+  refs.selectedLevel.textContent = LEVEL_LABELS[level];
   refs.selectedName.textContent = node.name;
   refs.selectedSummary.textContent = node.summary;
   refs.selectedPath.textContent = node.path.join(" > ");
-  refs.expandButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
-  refs.moreButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
-  refs.exhaustButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
+  refs.expandButton.disabled = node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id);
+  refs.moreButton.disabled = node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id);
+  refs.exhaustButton.disabled = node.path.length >= MAX_VISIBLE_LEVEL || state.loadingIds.has(node.id);
   refs.expandBranchButton.disabled = node.path.length >= 4 || state.loadingIds.has(node.id);
   refs.explainButton.disabled = node.explanationStatus === "loading";
+  refs.readingButton.disabled = node.bibliographyStatus === "loading";
   refs.clearLevelButton.disabled = node.children.length === 0;
-  refs.expandButton.textContent = state.loadingIds.has(node.id)
-    ? "Generating..."
-    : node.path.length >= 4
-      ? "Level 4 reached"
-      : `Generate Level ${node.path.length + 1}`;
-  refs.moreButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Find More Siblings";
-  refs.exhaustButton.textContent = node.path.length >= 4 ? "Level 4 reached" : "Expand Until Exhausted";
-  refs.expandBranchButton.textContent = node.path.length >= 4 ? "Branch Complete" : "Fill Branch to Level 4";
-  refs.explainButton.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
   refs.searchAllButton.disabled = false;
-  refs.selectedStatus.textContent = [node.status, node.remainingNote, node.cautionNote].filter(Boolean).join(" ");
+  refs.expandButton.textContent = state.loadingIds.has(node.id) ? "Generating..." : node.path.length >= MAX_VISIBLE_LEVEL ? "Maximum depth reached" : `Generate Level ${node.path.length + 1}`;
+  refs.explainButton.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
+  refs.readingButton.textContent = node.bibliographyStatus === "loading" ? "Building list..." : "Reading list";
+  refs.selectedStatus.textContent = [
+    state.staticStatus,
+    state.generatedAt ? `Dataset generated ${new Date(state.generatedAt).toLocaleDateString()}.` : "",
+    node.children.length ? `${node.children.length.toLocaleString()} direct children.` : "No loaded children below this item.",
+    node.status,
+    node.remainingNote,
+    node.cautionNote,
+  ].filter(Boolean).join(" ");
   createKeywordChips(node, refs.selectedKeywords);
   renderExplanation(node);
+  renderBibliography(node);
 }
 
 function renderExplanation(node) {
   clear(refs.explanationContent);
   refs.explanationPanel.hidden = !node.explanation && node.explanationStatus !== "loading";
-
   if (node.explanationStatus === "loading") {
-    refs.explanationContent.textContent = "Building a school-level explanation...";
+    refs.explanationContent.textContent = "Building a plain-language explanation...";
     return;
   }
-
   if (!node.explanation) return;
 
   const sections = [
@@ -604,6 +708,61 @@ function renderExplanation(node) {
   }
 }
 
+function renderBibliography(node) {
+  clear(refs.readingContent);
+  refs.readingPanel.hidden = !node.bibliography && node.bibliographyStatus !== "loading";
+  if (node.bibliographyStatus === "loading") {
+    refs.readingContent.textContent = "Building a reading list from basic to advanced...";
+    return;
+  }
+  if (!node.bibliography) return;
+
+  if (node.bibliography.note) {
+    const note = document.createElement("p");
+    note.className = "reading-note";
+    note.textContent = node.bibliography.note;
+    refs.readingContent.appendChild(note);
+  }
+
+  const categories = node.bibliography.categories || {};
+  for (const [key, label] of Object.entries(READING_CATEGORY_LABELS)) {
+    const items = categories[key] || [];
+    const section = document.createElement("section");
+    const heading = document.createElement("h4");
+    heading.textContent = label;
+    section.appendChild(heading);
+
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-reading";
+      empty.textContent = "No conservative recommendation returned for this category.";
+      section.appendChild(empty);
+    } else {
+      const list = document.createElement("ol");
+      for (const item of items) {
+        const li = document.createElement("li");
+        const title = document.createElement("strong");
+        title.textContent = item.title || "Untitled work";
+        const meta = document.createElement("span");
+        meta.textContent = ` ${[item.authors, item.year, item.source].filter(Boolean).join(" | ")}`;
+        const why = document.createElement("p");
+        why.textContent = item.why_it_matters || "";
+        li.append(title, meta, why);
+        list.appendChild(li);
+      }
+      section.appendChild(list);
+    }
+    refs.readingContent.appendChild(section);
+  }
+
+  if (node.bibliography.caution_note) {
+    const caution = document.createElement("p");
+    caution.className = "reading-note";
+    caution.textContent = node.bibliography.caution_note;
+    refs.readingContent.appendChild(caution);
+  }
+}
+
 function renderSearch() {
   clear(refs.searchResults);
   const query = state.search.toLowerCase().trim();
@@ -616,7 +775,7 @@ function renderSearch() {
         .toLowerCase()
         .includes(query),
     )
-    .slice(0, 20);
+    .slice(0, 80);
 
   for (const node of matches) {
     const fragment = refs.resultTemplate.content.cloneNode(true);
@@ -627,23 +786,24 @@ function renderSearch() {
   }
 }
 
+function renderCounts() {
+  const parts = [];
+  for (let level = 1; level <= MAX_VISIBLE_LEVEL; level += 1) {
+    if (state.counts[level]) parts.push(`L${level}: ${state.counts[level].toLocaleString()}`);
+  }
+  refs.nodeCount.textContent = parts.length ? parts.join("  ") : "0 items";
+}
+
 function render() {
   refs.apiStatus.textContent = apiKey() ? "Browser API key ready" : state.health;
-  refs.nodeCount.textContent = `${flatten().length} keywords`;
+  renderCounts();
   renderSelected();
   renderLevels();
   renderSearch();
 }
 
 refs.loadRootsButton.addEventListener("click", loadRoots);
-refs.resetButton.addEventListener("click", () => {
-  state.roots = [];
-  state.selectedId = "";
-  state.activePathIds = [];
-  state.search = "";
-  refs.searchInput.value = "";
-  render();
-});
+refs.resetButton.addEventListener("click", loadStaticAtlas);
 refs.searchInput.addEventListener("input", (event) => {
   state.search = event.target.value;
   renderSearch();
@@ -653,7 +813,8 @@ refs.expandButton.addEventListener("click", () => expandNode(selectedNode()));
 refs.moreButton.addEventListener("click", () => expandNode(selectedNode(), "find_more"));
 refs.exhaustButton.addEventListener("click", () => expandUntilExhausted(selectedNode()));
 refs.expandBranchButton.addEventListener("click", () => fillBranchToLevelFour(selectedNode()));
-refs.explainButton.addEventListener("click", () => explainSelectedNode());
+refs.explainButton.addEventListener("click", () => explainNode(selectedNode()));
+refs.readingButton.addEventListener("click", () => readingListForNode(selectedNode()));
 refs.clearLevelButton.addEventListener("click", () => clearNextLevel(selectedNode()));
 refs.clearAllButton.addEventListener("click", () => clearAllLevels());
 refs.searchAllButton.addEventListener("click", (event) => {
@@ -662,4 +823,5 @@ refs.searchAllButton.addEventListener("click", (event) => {
 });
 
 render();
+loadStaticAtlas();
 refreshHealth();

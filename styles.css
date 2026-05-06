@@ -173,7 +173,9 @@ select:focus {
 .primary-button,
 .secondary-button,
 .ghost-button,
-.expand-inline {
+.expand-inline,
+.explain-inline,
+.reading-inline {
   min-height: 38px;
   padding: 9px 12px;
   border-radius: 6px;
@@ -192,7 +194,9 @@ select:focus {
 }
 
 .ghost-button,
-.expand-inline {
+.expand-inline,
+.explain-inline,
+.reading-inline {
   border-color: var(--line);
   background: #fff;
   color: var(--ink);
@@ -242,7 +246,8 @@ button:disabled {
 .explanation-panel h3,
 .explanation-panel h4,
 .explanation-panel p,
-.explanation-panel ul {
+.explanation-panel ul,
+.explanation-panel ol {
   margin: 0;
 }
 
@@ -267,9 +272,29 @@ button:disabled {
   padding-left: 18px;
 }
 
+.reading-panel {
+  background: #fffefa;
+}
+
+.reading-panel ol {
+  display: grid;
+  gap: 8px;
+  padding-left: 22px;
+}
+
+.reading-panel li p {
+  margin-top: 3px;
+}
+
+.reading-note,
+.empty-reading {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .level-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, minmax(210px, 1fr));
   gap: 12px;
   align-items: start;
 }
@@ -339,6 +364,18 @@ button:disabled {
 .keyword-chip,
 .search-button {
   padding: 6px 9px;
+}
+
+.node-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.node-actions button {
+  min-width: 0;
+  padding-inline: 8px;
+  font-size: 0.84rem;
 }
 
 .keyword-chip {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Human Knowledge Taxonomy</title>
+  <title>Human Scientific Knowledge Taxonomy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet">
@@ -13,8 +13,8 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <p class="eyebrow">Dynamic Taxonomy Explorer</p>
-        <h1>Human Knowledge Map</h1>
+        <p class="eyebrow">Encyclopedic Taxonomy Explorer</p>
+        <h1>Human Scientific Knowledge Map</h1>
       </div>
       <div class="status-strip">
         <span id="apiStatus">Checking API...</span>
@@ -26,8 +26,8 @@
       <aside class="controls">
         <section class="panel">
           <div class="panel-title">
-            <p class="eyebrow">Generation</p>
-            <h2>API key and scope</h2>
+            <p class="eyebrow">Atlas</p>
+            <h2>Taxonomy and scope</h2>
           </div>
           <label class="field">
             <span>OpenAI API key</span>
@@ -46,10 +46,10 @@
             <input id="focusInput" type="search" placeholder="e.g. include humanities, engineering, medicine" />
           </label>
           <div class="button-row">
-            <button id="loadRootsButton" class="primary-button" type="button">Load Level 1</button>
+            <button id="loadRootsButton" class="primary-button" type="button">Reload Atlas</button>
             <button id="resetButton" class="ghost-button" type="button">Reset</button>
           </div>
-          <p class="hint">The API generates direct children on demand. Library searches use only Level 2 plus the selected Level 3 or Level 4 term.</p>
+          <p class="hint">The app loads a new curated L1-L4 scientific taxonomy. The API can extend branches and improve explanations or bibliographies when a key is available.</p>
         </section>
 
         <section class="panel">
@@ -78,46 +78,23 @@
             <button id="exhaustButton" class="secondary-button" type="button" disabled>Expand Until Exhausted</button>
             <button id="expandBranchButton" class="secondary-button" type="button" disabled>Fill Branch to Level 4</button>
             <button id="explainButton" class="secondary-button" type="button" disabled>Explain</button>
+            <button id="readingButton" class="secondary-button" type="button" disabled>Reading list</button>
             <button id="clearLevelButton" class="ghost-button" type="button" disabled>Clear Next Level</button>
             <button id="clearAllButton" class="ghost-button" type="button">Clear All Levels</button>
             <button id="searchAllButton" class="secondary-button" type="button" disabled>Search Selected Context</button>
           </div>
           <p id="selectedStatus" class="hint"></p>
           <div id="explanationPanel" class="explanation-panel" hidden>
-            <h3>School-Level Explanation</h3>
+            <h3>Plain-Language Explanation</h3>
             <div id="explanationContent"></div>
+          </div>
+          <div id="readingPanel" class="explanation-panel reading-panel" hidden>
+            <h3>Reading List</h3>
+            <div id="readingContent"></div>
           </div>
         </section>
 
         <section class="level-grid" aria-label="Knowledge hierarchy">
-          <section class="level-column" data-level="1">
-            <div class="level-head">
-              <p class="eyebrow">Level 1</p>
-              <h2>Domains</h2>
-            </div>
-            <div id="level1List" class="node-list"></div>
-          </section>
-          <section class="level-column" data-level="2">
-            <div class="level-head">
-              <p class="eyebrow">Level 2</p>
-              <h2>Fields</h2>
-            </div>
-            <div id="level2List" class="node-list"></div>
-          </section>
-          <section class="level-column" data-level="3">
-            <div class="level-head">
-              <p class="eyebrow">Level 3</p>
-              <h2>Subfields</h2>
-            </div>
-            <div id="level3List" class="node-list"></div>
-          </section>
-          <section class="level-column" data-level="4">
-            <div class="level-head">
-              <p class="eyebrow">Level 4</p>
-              <h2>Concepts</h2>
-            </div>
-            <div id="level4List" class="node-list"></div>
-          </section>
         </section>
       </section>
     </main>
@@ -134,10 +111,13 @@
       <div class="search-row">
         <button class="search-button" data-provider="worldcat" type="button">WorldCat</button>
         <button class="search-button" data-provider="scholar" type="button">Scholar</button>
-        <button class="search-button" data-provider="eth" type="button">ETH</button>
-        <button class="search-button" data-provider="michigan" type="button">Michigan</button>
+        <button class="search-button" data-provider="openalex" type="button">OpenAlex</button>
       </div>
-      <button class="expand-inline" type="button">Generate children</button>
+      <div class="node-actions">
+        <button class="expand-inline" type="button">Generate children</button>
+        <button class="explain-inline" type="button">Explain</button>
+        <button class="reading-inline" type="button">Reading list</button>
+      </div>
     </article>
   </template>
 
