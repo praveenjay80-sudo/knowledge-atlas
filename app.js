@@ -1,5 +1,5 @@
 const STATIC_TAXONOMY_URL = "/data/human_scientific_knowledge_taxonomy.json";
-const MAX_VISIBLE_LEVEL = 4;
+const MAX_VISIBLE_LEVEL = 5;
 
 const ROOT_DEFINITIONS = [
   {
@@ -39,6 +39,7 @@ const LEVEL_LABELS = {
   2: "Level 2 Field",
   3: "Level 3 Subfield",
   4: "Level 4 Specialty",
+  5: "Level 5 Concept",
 };
 
 const LEVEL_TITLES = {
@@ -46,6 +47,7 @@ const LEVEL_TITLES = {
   2: "Fields",
   3: "Subfields",
   4: "Specialties",
+  5: "Concepts",
 };
 
 const READING_CATEGORY_LABELS = {
@@ -402,6 +404,7 @@ function fallbackExplanation(node) {
 async function explainNode(node) {
   if (!node) return;
   node.explanationStatus = "loading";
+  node.status = "Building explanation...";
   render();
   if (!apiKey() && !state.serverKeyReady) {
     node.explanation = fallbackExplanation(node);
@@ -421,7 +424,8 @@ async function explainNode(node) {
       }),
     });
     node.explanation = payload.explanation || fallbackExplanation(node);
-  } catch {
+  } catch (error) {
+    node.status = `Explanation API failed: ${error.message || "unknown error"}. Showing local explanation.`;
     node.explanation = fallbackExplanation(node);
   } finally {
     node.explanationStatus = "success";
@@ -469,19 +473,11 @@ function localReadingList(node) {
 async function readingListForNode(node) {
   if (!node) return;
   node.bibliographyStatus = "loading";
+  node.status = "Building reading list...";
   render();
   if (!apiKey() && !state.serverKeyReady) {
-    node.bibliography = {
-      note: "Enter an OpenAI API key in the left panel, then press Reading list again to generate a comprehensive bibliography.",
-      caution_note: "No API key is configured on the server, so this app needs a browser-provided key for generated reading lists.",
-      categories: {
-        seminal_works: [],
-        breakthrough_works: [],
-        pedagogy_texts: [],
-        reference_works: [],
-        recent_syntheses: [],
-      },
-    };
+    node.status = "No API key configured. Showing the built-in starter list; paste an API key for a generated comprehensive list.";
+    node.bibliography = localReadingList(node);
     node.bibliographyStatus = "success";
     setSelected(node);
     return;
@@ -508,18 +504,10 @@ async function readingListForNode(node) {
         recent_syntheses: [],
       },
     };
-  } catch {
-    node.bibliography = {
-      note: "The API reading-list request failed. Check the API key and try again.",
-      caution_note: "No fallback list was used because this button is configured to generate by API key.",
-      categories: {
-        seminal_works: [],
-        breakthrough_works: [],
-        pedagogy_texts: [],
-        reference_works: [],
-        recent_syntheses: [],
-      },
-    };
+    node.status = "Generated reading list with the configured API key.";
+  } catch (error) {
+    node.status = `Reading-list API failed: ${error.message || "unknown error"}. Showing the built-in starter list.`;
+    node.bibliography = localReadingList(node);
   } finally {
     node.bibliographyStatus = "success";
     setSelected(node);
@@ -713,8 +701,10 @@ function renderChildDataPanel() {
     const empty = document.createElement("p");
     empty.className = "empty-note";
     empty.textContent = node.path.length >= MAX_VISIBLE_LEVEL
-      ? "This is a Level 4 item. Use Explain, Reading list, and library searches above."
-      : "No children are loaded yet. Use Generate Next Level to add more items.";
+      ? "This is a Level 5 concept. Use Explain, Reading list, and library searches above."
+      : node.path.length === 4
+        ? "No Level 5 concepts are loaded yet. Use Generate Level 5 Concepts above; an API key gives the most comprehensive list."
+        : "No children are loaded yet. Use Generate Next Level to add more items.";
     refs.childDataList.appendChild(empty);
     return;
   }
@@ -762,7 +752,13 @@ function renderSelected() {
   refs.readingButton.disabled = node.bibliographyStatus === "loading";
   refs.clearLevelButton.disabled = node.children.length === 0;
   refs.searchAllButton.disabled = false;
-  refs.expandButton.textContent = state.loadingIds.has(node.id) ? "Generating..." : node.path.length >= MAX_VISIBLE_LEVEL ? "Maximum depth reached" : `Generate Level ${node.path.length + 1}`;
+  refs.expandButton.textContent = state.loadingIds.has(node.id)
+    ? "Generating..."
+    : node.path.length >= MAX_VISIBLE_LEVEL
+      ? "Maximum depth reached"
+      : node.path.length === 4
+        ? "Generate Level 5 Concepts"
+        : `Generate Level ${node.path.length + 1}`;
   refs.explainButton.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
   refs.readingButton.textContent = node.bibliographyStatus === "loading" ? "Building list..." : "Reading list";
   refs.selectedStatus.textContent = [

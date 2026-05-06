@@ -727,7 +727,9 @@ function taxonomyPrompt({
     ? "Level 2 fields"
     : childLevel === 3
       ? "Level 3 subfields"
-      : "Level 4 concepts directly related to the Level 3 item";
+      : childLevel === 4
+        ? "Level 4 specialties directly related to the Level 3 item"
+        : "Level 5 concepts, theories, methods, objects, terms, and canonical problems inside the selected Level 4 specialty";
 
   return [
     "You are building a high-coverage taxonomy of all areas of human knowledge for an interactive explorer.",
@@ -735,17 +737,17 @@ function taxonomyPrompt({
     "Aim for exhaustive coverage of the direct children at the requested level, bounded by the response schema.",
     "Do not return grandchildren.",
     `The current node is Level ${currentLevel}; return ${childLevelLabel}.`,
-    "The app stops at Level 4. Level 4 must return core concepts, objects, theories, models, phenomena, techniques, schools, problems, or named topic keywords directly used inside the Level 3 item.",
-    "For Level 4, return concept keywords rather than another layer of broad disciplines.",
-    "For Level 4, never return generic buckets such as history, methods, applications, foundations, contemporary issues, tutorials, surveys, resources, tools, or case studies unless that exact phrase is itself a recognized concept keyword in the Level 3 item.",
-    "For Level 4, it is better to return fewer precise concepts than many vague or irrelevant concepts.",
+    "The app stops at Level 5. Level 4 should return established specialties or narrow research areas. Level 5 must return core concepts, objects, theories, models, phenomena, techniques, schools, problems, named topic keywords, or canonical subtopics directly used inside the selected Level 4 specialty.",
+    "For Level 5, return concept keywords rather than another layer of broad disciplines.",
+    "For Level 5, never return generic buckets such as history, methods, applications, foundations, contemporary issues, tutorials, surveys, resources, tools, or case studies unless that exact phrase is itself a recognized concept keyword in the Level 4 item.",
+    "For Level 5, aim for comprehensive coverage of the core conceptual vocabulary of the selected Level 4 item, while keeping each item precise and academically recognizable.",
     "Do not treat the desired breadth as a conceptual cap. Return every well-established direct child you can fit in this batch.",
     "Use only established academic fields, catalog headings, recognized specialties, or durable research areas.",
     "Avoid invented labels, trendy buzzwords, administrative units, departments, degree names, or vague umbrella phrases unless they are standard field names.",
     "Prefer canonical academic branches, recognized subdisciplines, or recognized specialty areas.",
     "Be conservative. If uncertain, omit the item rather than inventing a dubious discipline.",
     "Do not return meta-categories about textbooks, proceedings, surveys, bibliography, software, history, or general reference material.",
-    "Do not return fashionable buzzwords. Named theories, models, methods, and canonical problems are allowed only for Level 4 concept lists.",
+    "Do not return fashionable buzzwords. Named theories, models, methods, and canonical problems are allowed for Level 5 concept lists.",
     "Avoid duplicate or near-duplicate labels, abbreviations that duplicate full names, and singular/plural variants of the same concept.",
     "Keep all returned children at the same level of abstraction.",
     "Do not mix disciplines with methods, institutions, named theories, or example case studies unless the current node is already narrow enough that those are the correct direct children.",
@@ -768,13 +770,13 @@ function taxonomyPrompt({
     "- summary: one sentence describing the child",
     "- why_it_belongs: why it is a direct child of the target node",
     "- keywords: three to six precise search keywords; include discipline terms, not prose phrases",
-    `- likely_has_children: ${childLevel < 4 ? "true when the item can be expanded further" : "false for Level 4 items"}`,
+    `- likely_has_children: ${childLevel < 5 ? "true when the item can be expanded further" : "false for Level 5 items"}`,
     "- child_scope_label: short phrase like 'subfields', 'branches', 'specialties', or 'concept families'",
-    "- taxonomy_role: one of domain, field, subfield, specialty, topic, concept_family; use concept_family for Level 4 concepts",
+    "- taxonomy_role: one of domain, field, subfield, specialty, topic, concept_family; use specialty for Level 4 specialties and concept_family or topic for Level 5 concepts",
     "- confidence: high, medium, or low",
     "- caution_note: leave empty unless there is a real ambiguity or overlap worth flagging",
     "",
-    "For Level 3 and Level 4, keywords must work well when combined with the parent Level 1 and Level 2 terms.",
+    "For Level 3, Level 4, and Level 5, keywords must work well when combined with the parent Level 1 and Level 2 terms.",
     "If there are more valid children beyond the list, state clearly in remaining_note that another find_more batch should be requested.",
     "If you believe the direct children are exhausted, say so clearly in remaining_note.",
   ].join("\n");
@@ -1983,7 +1985,7 @@ async function handleTaxonomyRequest(req, res) {
         : `No reliable built-in Level ${(pathSegments.length || 0) + 1} children are available for this branch.`,
       remaining_note: acceptedItems.length
         ? error.message || "Live generation is unavailable right now."
-        : "Add an API key or configure OPENAI_API_KEY to generate source-seeking children; generic fallback items were suppressed to avoid irrelevant Level 4 data.",
+        : "Add an API key or configure OPENAI_API_KEY to generate source-seeking children; generic fallback items were suppressed to avoid irrelevant deep-level data.",
       dropped_duplicates: droppedNames,
       items: acceptedItems,
     });
