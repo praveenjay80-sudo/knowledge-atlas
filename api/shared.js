@@ -822,14 +822,16 @@ function bibliographyPrompt({ pathSegments, summary, keywords }) {
   const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
 
   return [
-    "Generate a comprehensive reading list for the requested knowledge-taxonomy item, ordered from basic orientation to advanced specialist work.",
+    "Generate a very detailed, comprehensive reading list for the requested knowledge-taxonomy item, ordered from basic orientation to advanced specialist work.",
     "Be conservative and avoid invented details.",
     "Prefer classic primary sources, field-defining books, major surveys, breakthrough papers, and strong teaching texts.",
     "If exact details are uncertain, either omit the item or state the uncertainty in the note rather than fabricating.",
     "Return references specific to the target item, not generic references to the entire parent discipline unless they are truly foundational for the target.",
     "Use the categories seminal works, breakthrough works, pedagogy texts, reference works, and recent syntheses.",
-    "Aim for a rich list: include enough items to be useful for a serious learner, while still omitting doubtful or invented citations.",
+    "Aim for a rich list: include 4 to 10 strong items per non-empty category whenever the topic has enough literature, while still omitting doubtful or invented citations.",
     "Pedagogy texts should help a serious newcomer learn the area rather than only document frontier research.",
+    "For every entry, explain in detail why the work belongs at that stage, what the reader should get from it, and how it connects to the selected topic.",
+    "Include a mix of books, classic papers, review articles, handbooks, companions, standards, and recent surveys when appropriate.",
     "",
     `Target item: ${target}`,
     `Summary: ${summary || "No summary supplied."}`,
@@ -944,7 +946,7 @@ function bibliographyCategorySchema() {
   return {
     type: "array",
     minItems: 0,
-    maxItems: 8,
+    maxItems: 12,
     items: bibliographyItemSchema(),
   };
 }
@@ -1068,7 +1070,7 @@ function explanationSchema() {
           qa_pairs: {
             type: "array",
             minItems: 4,
-            maxItems: 7,
+            maxItems: 9,
             items: {
               type: "object",
               additionalProperties: false,
@@ -1082,7 +1084,7 @@ function explanationSchema() {
           study_questions: {
             type: "array",
             minItems: 3,
-            maxItems: 5,
+            maxItems: 7,
             items: { type: "string" },
           },
         },
@@ -1832,8 +1834,8 @@ function explanationPrompt({ pathSegments, summary, keywords }) {
   const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
 
   return [
-    "Explain the selected taxonomy item for a school student using a question-and-answer format.",
-    "Use clear language, but include enough detail to be genuinely useful.",
+    "Explain the selected taxonomy item for a school student using a very detailed question-and-answer format.",
+    "Use clear language, but include enough detail to be genuinely useful for a serious learner deciding what to read next.",
     "Do not talk down to the reader.",
     "Every answer in the Q&A section must use an analogy and at least one concrete real-world example tied to the actual field, not vague generic examples.",
     "Prefer analogies such as maps, tools, kitchens, bridges, medical diagnosis, courts, factories, teams, weather forecasts, libraries, or engineering systems when they genuinely fit the topic.",
@@ -1843,8 +1845,9 @@ function explanationPrompt({ pathSegments, summary, keywords }) {
     `Summary: ${summary || "No summary supplied."}`,
     `Keywords: ${keywordLine}`,
     "",
-    "Return a simple definition, why it matters, one concrete example, one analogy, four to seven Q&A pairs, and three to five study questions.",
-    "For each Q&A pair: the question should be something a curious beginner would ask; the answer should explain by analogy and then ground the analogy with a real example.",
+    "Return a detailed simple definition, a detailed why-it-matters section, one concrete example, one analogy, six to nine Q&A pairs, and five to seven study questions.",
+    "Each Q&A answer should be 4 to 7 sentences, explain by analogy, ground the analogy with a real example, and mention what a learner should pay attention to when reading about the topic.",
+    "Make the Q&A cumulative: start with meaning and purpose, then cover mechanisms or methods, examples, common misunderstandings, neighboring topics, and how to study it.",
   ].join("\n");
 }
 
@@ -2057,9 +2060,9 @@ async function handleBibliographyRequest(req, res) {
       prompt: bibliographyPrompt({ pathSegments, summary, keywords }),
       schemaName: "categorized_seminal_bibliography",
       schema: bibliographySchema(),
-      maxOutputTokens: 3600,
+      maxOutputTokens: 7600,
       reasoningEffort: "low",
-      timeoutMs: 45000,
+      timeoutMs: 58000,
     });
 
     sendJson(res, 200, payload);
@@ -2142,9 +2145,9 @@ async function handleExplainRequest(req, res) {
       prompt: explanationPrompt({ pathSegments, summary, keywords }),
       schemaName: "school_level_taxonomy_explanation",
       schema: explanationSchema(),
-      maxOutputTokens: 1000,
+      maxOutputTokens: 3200,
       reasoningEffort: "low",
-      timeoutMs: 25000,
+      timeoutMs: 45000,
     });
 
     sendJson(res, 200, payload);

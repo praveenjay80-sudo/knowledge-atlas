@@ -180,6 +180,163 @@ const SEED_L5_CONCEPTS = {
   methods: ["Research question", "Variable", "Measurement", "Sampling", "Model", "Inference", "Validity", "Reliability", "Bias", "Replication", "Uncertainty", "Ethics"],
 };
 
+const READING_TOPIC_REWRITES = {
+  Action: "Group actions",
+  Algorithm: "Algorithmic methods",
+  Amplitude: "Probability amplitudes",
+  Architecture: "System architectures",
+  Automorphism: "Automorphism groups",
+  Basis: "Bases and coordinates",
+  Bias: "Bias control",
+  Bond: "Chemical bonding",
+  Case: "Case-based reasoning",
+  Change: "Language change",
+  Classification: "Classification theory",
+  Closure: "Closure properties",
+  Code: "Coding theory",
+  Coloring: "Graph coloring",
+  Commutativity: "Commutative structures",
+  Completeness: "Completeness theory",
+  Complexity: "Complexity analysis",
+  Concurrency: "Concurrent systems",
+  Constraint: "Constraint models",
+  Construction: "Constructive methods",
+  Context: "Contextual analysis",
+  Control: "Control methods",
+  Correctness: "Correctness proofs",
+  Culture: "Cultural analysis",
+  Data: "Data-centered methods",
+  Design: "Design methods",
+  "Design constraint": "Design-constraint analysis",
+  Diagnosis: "Diagnosis and assessment",
+  Dimension: "Dimension theory",
+  Discourse: "Discourse analysis",
+  Distributivity: "Distributive structures",
+  Duality: "Duality theory",
+  Efficiency: "Efficiency analysis",
+  Energy: "Energy methods",
+  Equation: "Equation solving",
+  Ethics: "Research ethics",
+  Experiment: "Experimental methods",
+  Exposure: "Exposure assessment",
+  "Failure mode": "Failure-mode analysis",
+  Feed: "Feed science",
+  Field: "Field theory",
+  Flux: "Flux analysis",
+  Force: "Force models",
+  Form: "Formal analysis",
+  Grammar: "Grammar theory",
+  Group: "Group theory",
+  Image: "Kernel and image methods",
+  Ideal: "Ideal theory",
+  Inference: "Inference methods",
+  Integral: "Integration theory",
+  Interaction: "Interaction models",
+  Interface: "Interface design",
+  Invariant: "Invariant theory",
+  Kernel: "Kernel and image methods",
+  Lemma: "Proof lemmas and proof strategy",
+  Load: "Load analysis",
+  Market: "Market analysis",
+  Matrix: "Matrix theory",
+  Measurement: "Measurement theory",
+  Model: "Modeling methods",
+  Molecule: "Molecular structure",
+  Momentum: "Momentum methods",
+  Module: "Module theory",
+  "Normal subgroup": "Normal subgroups",
+  Norm: "Normed-space methods",
+  Nullity: "Rank-nullity theory",
+  Operator: "Operator methods",
+  Outcome: "Outcome evaluation",
+  Parameter: "Parameter estimation",
+  Particle: "Particle models",
+  Pest: "Pest management",
+  Policy: "Policy analysis",
+  Power: "Power systems analysis",
+  Preference: "Preference theory",
+  Prevention: "Prevention strategies",
+  Proof: "Proof methods",
+  Protocol: "Protocol design",
+  Prototype: "Prototyping methods",
+  Proxy: "Proxy reconstruction",
+  Rank: "Rank-nullity theory",
+  Reliability: "Reliability analysis",
+  Representation: "Representation theory",
+  Requirement: "Requirements analysis",
+  Reservoir: "Reservoir modeling",
+  Risk: "Risk analysis",
+  Ring: "Ring theory",
+  Screening: "Screening methods",
+  Sediment: "Sediment analysis",
+  Semantics: "Semantic theory",
+  Sensor: "Sensor systems",
+  Signal: "Signal analysis",
+  Sound: "Sound systems",
+  Standard: "Standards and codes",
+  State: "State-space models",
+  Subgroup: "Subgroup theory",
+  Stress: "Stress analysis",
+  Strain: "Strain analysis",
+  Structure: "Structural theory",
+  Syntax: "Syntactic theory",
+  Theorem: "Theorem-proving methods",
+  Trait: "Trait models",
+  Treatment: "Treatment strategies",
+  Trial: "Clinical trial methods",
+  Utility: "Utility theory",
+  Validity: "Validity theory",
+  Variable: "Variables and equations",
+  Vector: "Vector methods",
+  "Vector space": "Vector spaces",
+  Wave: "Wave models",
+  Wear: "Wear and tribology",
+  Yield: "Yield analysis",
+};
+
+const STANDALONE_READING_TOPICS = new Set([
+  "Bayesian inference",
+  "Bernoulli principle",
+  "Biodiversity",
+  "Catalysis",
+  "Category",
+  "Causal mechanism",
+  "Commutator",
+  "Decidability",
+  "Decoherence",
+  "Diagonalization",
+  "Entanglement",
+  "Feynman diagram",
+  "Galois correspondence",
+  "Hamiltonian",
+  "Harmonic oscillator",
+  "Hilbert space",
+  "Homomorphism",
+  "Isomorphism",
+  "Kinematics",
+  "Lagrangian density",
+  "Lebesgue integral",
+  "Machine learning workflows",
+  "Monte Carlo methods",
+  "Navier-Stokes equations",
+  "Optimization",
+  "Path integral",
+  "Perturbation theory",
+  "Randomized controlled trial",
+  "Regression",
+  "Renormalization",
+  "Schrodinger equation",
+  "Signal transduction",
+  "Simulation",
+  "Spectroscopy",
+  "Stochastic processes",
+  "Superposition",
+  "Tunneling",
+  "Turbulence",
+  "Uncertainty principle",
+  "Wave function",
+]);
+
 const TAXONOMY = [
   domain("Formal sciences", "Abstract, symbolic, mathematical, computational, and logical systems of knowledge.", [
     field("Mathematics", "Study of quantity, structure, space, change, pattern, and abstraction.", "mathematics", [
@@ -452,12 +609,12 @@ function specialtyNode(name, parent, seed) {
 }
 
 function conceptNodesForSpecialty(name, parent, seed) {
-  const conceptNames = conceptsForSpecialty(name, parent, seed);
-  return conceptNames.map((conceptName) => ({
-    name: conceptName,
-    summary: `${conceptName} is a core Level 5 concept used in ${name}.`,
+  const topicNames = conceptsForSpecialty(name, parent, seed);
+  return topicNames.map((topicName) => ({
+    name: topicName,
+    summary: `${topicName} is a Level 5 reading topic within ${name}.`,
     taxonomyRole: "concept_family",
-    keywords: keywords(`${conceptName} ${name} ${parent.name}`),
+    keywords: keywords(`${topicName} ${name} ${parent.name}`),
     likely_has_children: false,
     confidence: "medium",
     children: [],
@@ -474,7 +631,23 @@ function conceptsForSpecialty(name, parent, seed) {
     ...seedConcepts,
   ])
     .filter((conceptName) => conceptName.toLowerCase() !== name.toLowerCase())
+    .map((conceptName) => readingTopicName(conceptName, name))
+    .filter((conceptName, index, all) => all.findIndex((item) => item.toLowerCase() === conceptName.toLowerCase()) === index)
+    .filter((conceptName) => conceptName.toLowerCase() !== name.toLowerCase())
     .slice(0, exact ? 32 : 18);
+}
+
+function readingTopicName(rawName, specialtyName) {
+  const raw = normalizeConceptName(rawName);
+  const rewritten = READING_TOPIC_REWRITES[raw] || raw;
+  if (STANDALONE_READING_TOPICS.has(rewritten) || isAlreadyReadingTopic(rewritten)) {
+    return rewritten;
+  }
+  return `${rewritten} in ${specialtyName}`;
+}
+
+function isAlreadyReadingTopic(value) {
+  return /\b(analysis|assessment|biology|chemistry|control|design|dynamics|ecology|economics|engineering|epidemiology|evaluation|frameworks?|inference|management|mechanics|methods?|models?|policy|processes|science|systems?|strategies|studies|theory|treatment|trials?)\b/i.test(value);
 }
 
 function uniqueConcepts(values) {
@@ -562,7 +735,7 @@ const payload = {
     2: "Disciplines and broad fields",
     3: "Subdisciplines",
     4: "Specialist fields with reading scaffolds and seminal-work pointers",
-    5: "Preloaded core concepts, terms, methods, objects, and principles for each Level 4 specialty",
+    5: "Preloaded reading-list-qualified topics for each Level 4 specialty",
   },
   counts,
   roots,

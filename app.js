@@ -459,10 +459,10 @@ function fallbackExplanation(node) {
   const examples = contextualTerms(node).slice(0, 3);
   const exampleText = examples.length ? examples.join(", ") : node.name;
   return {
-    simple_definition: `${node.name} is a topic in ${parent}. In plain language, it is a named area of study that groups related questions, methods, evidence, and examples.`,
-    why_it_matters: `It matters because ${node.name} gives learners and researchers a precise label for finding sources and understanding where this topic sits in the wider map of science.`,
-    example: node.summary || (examples.length ? `Search for ${examples.join(" and ")} to find sources about this exact area.` : `A learner could start by asking what ${node.name} studies and what problems it tries to solve.`),
-    analogy: "Think of it as a shelf label in a very large research library: it does not contain every book, but it tells you which books belong together.",
+    simple_definition: `${node.name} is a topic in ${parent}. In plain language, it is a focused reading area: a named cluster of questions, methods, examples, technical vocabulary, and evidence that belongs together closely enough for a learner to study it as its own unit.`,
+    why_it_matters: `It matters because ${node.name} gives learners and researchers a precise target. Instead of searching the whole field of ${parent}, a learner can look for the main textbooks, survey papers, classic arguments, standard examples, and current research questions attached to this specific topic.`,
+    example: node.summary || (examples.length ? `A practical starting point is to search for ${examples.join(" and ")} together with "${node.name}", then compare an introductory source, a handbook chapter, and a recent review.` : `A learner could start by asking what ${node.name} studies, which examples define it, what methods it uses, and which sources are treated as standard references.`),
+    analogy: "Think of it as a well-labeled course module inside a large curriculum: it is smaller than the whole subject, but large enough to deserve readings, examples, exercises, and expert debates of its own.",
     qa_pairs: [
       {
         question: `What is ${node.name} in plain language?`,
@@ -480,11 +480,21 @@ function fallbackExplanation(node) {
         question: `How should a beginner start learning ${node.name}?`,
         answer: `Start like learning to use a workshop tool: first learn what job the tool is for, then watch it used on a simple project. A real path is to learn the core definition, read one introductory source, and then inspect a concrete example or case study in ${node.name}.`,
       },
+      {
+        question: `What should I look for in a good reading list on ${node.name}?`,
+        answer: `Think of a reading list like a guided trail through unfamiliar terrain: it should start with a clear map, then lead to landmarks, then finally to harder routes. For ${node.name}, that means looking for one beginner-friendly explanation, one authoritative reference source, a few field-defining works, and recent reviews that show what specialists care about now. A real example is comparing a textbook chapter with a survey article: the textbook teaches the vocabulary, while the survey shows how researchers currently organize the topic. If a source only mentions ${node.name} in passing, it is probably too broad for this level.`,
+      },
+      {
+        question: `What mistakes do beginners often make with ${node.name}?`,
+        answer: `A common mistake is treating the topic like a single isolated fact, when it is really more like a small toolkit. For example, a learner might memorize a term connected to ${node.name} without asking what problem it solves, where it appears in real work, or how experts test claims about it. The better approach is to connect the term to examples, methods, and sources. When reading, notice whether the author is defining the topic, applying it, criticizing it, or extending it.`,
+      },
     ],
     study_questions: [
       `What does ${node.name} study?`,
       `What are two examples or problems in ${node.name}?`,
       `How does ${node.name} connect to ${parent}?`,
+      `Which beginner source and which advanced source would you compare first?`,
+      `What would count as evidence, proof, or a good example in ${node.name}?`,
     ],
   };
 }
@@ -541,18 +551,26 @@ function localReadingList(node) {
     categories: {
       pedagogy_texts: [
         { authors: "Start here", title: `Introductory textbook or lecture notes on ${topic}`, year: "current", source: searchNote, why_it_matters: "Builds vocabulary and basic examples before primary literature.", confidence: "high" },
+        { authors: "Course instructors or open education authors", title: `University syllabus and lecture sequence for ${topic}`, year: "current", source: `Search query: ${query} syllabus lecture notes`, why_it_matters: "Shows the order in which the topic is normally taught, including prerequisites, exercises, and standard examples.", confidence: "medium" },
+        { authors: "Specialist educators", title: `Worked examples, problem sets, or casebook material for ${topic}`, year: "various", source: `Search query: ${query} worked examples problems casebook`, why_it_matters: "Turns definitions into usable skill by showing how experts solve typical problems or interpret real cases.", confidence: "medium" },
       ],
       seminal_works: seededWorks.length ? seededWorks : [
         { authors: "Founding authors vary by subfield", title: `Foundational or original papers on ${topic}`, year: "various", source: `Google Scholar / OpenAlex query: ${query} seminal foundational`, why_it_matters: "Identifies the works that created or stabilized the area.", confidence: "medium" },
+        { authors: "Canonical authors vary by subfield", title: `Classic monographs or source papers that established ${topic}`, year: "various", source: `WorldCat / Scholar query: ${query} classic monograph`, why_it_matters: "Helps separate historically important sources from later summaries and classroom simplifications.", confidence: "medium" },
       ],
       breakthrough_works: [
         { authors: "Major contributors vary by subfield", title: `Highly cited breakthrough works in ${topic}`, year: "various", source: `Scholar query: ${query} highly cited breakthrough`, why_it_matters: "Shows how the field changed after its initial formation.", confidence: "medium" },
+        { authors: "Research communities and review authors", title: `Turning-point debates, experiments, proofs, or models in ${topic}`, year: "various", source: `OpenAlex query: ${query} review turning point`, why_it_matters: "Highlights the moments where the topic's methods, assumptions, or accepted examples shifted.", confidence: "medium" },
       ],
       reference_works: [
         { authors: "Specialist editors or societies", title: `Handbook, encyclopedia, or survey chapter on ${topic}`, year: "various", source: `WorldCat query: ${query} handbook encyclopedia survey`, why_it_matters: "Gives stable definitions, neighboring areas, and bibliographic trails.", confidence: "medium" },
+        { authors: "Professional societies or standards bodies", title: `Terminology, standards, or reference guide for ${topic}`, year: "current", source: `Search query: ${query} terminology standard reference`, why_it_matters: "Useful for checking exact vocabulary and avoiding vague or overloaded terms.", confidence: "medium" },
+        { authors: "Specialist editors", title: `Companion or state-of-the-field chapter on ${topic}`, year: "various", source: `WorldCat query: ${query} companion handbook`, why_it_matters: "Connects the topic to neighboring concepts and gives a route into deeper bibliographies.", confidence: "medium" },
       ],
       recent_syntheses: [
         { authors: "Recent survey authors", title: `Recent review or synthesis of ${topic}`, year: "recent", source: `OpenAlex query: ${query} review survey`, why_it_matters: "Connects older foundations to current research questions.", confidence: "medium" },
+        { authors: "Recent specialist reviewers", title: `Current challenges and research directions in ${topic}`, year: "recent", source: `Scholar query: ${query} current challenges research directions`, why_it_matters: "Shows what is unsettled, what is actively studied, and what an advanced reader should watch next.", confidence: "medium" },
+        { authors: "Bibliometric or review authors", title: `Citation map or systematic review of ${topic}`, year: "recent", source: `OpenAlex query: ${query} systematic review bibliometric`, why_it_matters: "Helps identify clusters of literature and the most connected works without relying on one author’s judgment.", confidence: "medium" },
       ],
     },
   };
