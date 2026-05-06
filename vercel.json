@@ -14,6 +14,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "data/*.json",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/*.mjs",
       "use": "@vercel/node"
     }
@@ -30,6 +34,10 @@
     {
       "src": "/styles.css",
       "dest": "/styles.css"
+    },
+    {
+      "src": "/data/(.*)",
+      "dest": "/data/$1"
     },
     {
       "src": "/(.*)",
