@@ -3,147 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Human Scientific Knowledge Taxonomy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet">
+  <title>Complete Taxonomy of Human Knowledge</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
+  <main class="app">
+    <header class="masthead">
       <div>
-        <p class="eyebrow">Encyclopedic Taxonomy Explorer</p>
-        <h1>Human Scientific Knowledge Map</h1>
+        <p class="eyebrow">Browsable source taxonomy</p>
+        <h1>A Complete Taxonomy of Human Knowledge</h1>
       </div>
-      <div class="status-strip">
-        <span id="apiStatus">Checking API...</span>
-        <span id="nodeCount">0 keywords</span>
-      </div>
+      <div class="stats" id="stats"></div>
     </header>
 
-    <main class="layout">
-      <aside class="controls">
-        <section class="panel">
-          <div class="panel-title">
-            <p class="eyebrow">Atlas</p>
-            <h2>Taxonomy and scope</h2>
-          </div>
-          <label class="field">
-            <span>OpenAI API key</span>
-            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-... or use server environment key" />
-          </label>
-          <label class="field">
-            <span>Coverage per expansion</span>
-            <select id="breadthSelect">
-              <option value="maximal" selected>Maximal</option>
-              <option value="broad">Broad</option>
-              <option value="compact">Compact</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Optional focus</span>
-            <input id="focusInput" type="search" placeholder="e.g. include humanities, engineering, medicine" />
-          </label>
-          <div class="button-row">
-            <button id="loadRootsButton" class="primary-button" type="button">Reload Atlas</button>
-            <button id="resetButton" class="ghost-button" type="button">Reset</button>
-          </div>
-          <p class="hint">The app loads a new curated L1-L4 scientific taxonomy. The API can extend branches and improve explanations or bibliographies when a key is available.</p>
-        </section>
+    <section class="toolbar" aria-label="Taxonomy controls">
+      <label class="search-field">
+        <span>Search</span>
+        <input id="searchInput" type="search" placeholder="group theory, ecology, jurisprudence..." />
+      </label>
+      <button id="showImportButton" type="button">Import Source Text</button>
+      <button id="clearImportButton" type="button">Clear Imported Text</button>
+    </section>
 
-        <section class="panel">
-          <div class="panel-title">
-            <p class="eyebrow">Search Tree</p>
-            <h2>Find loaded keywords</h2>
-          </div>
-          <label class="field">
-            <span>Keyword search</span>
-            <input id="searchInput" type="search" placeholder="quantum physics, abstract algebra..." />
-          </label>
-          <div id="searchResults" class="result-list"></div>
-        </section>
+    <section id="importPanel" class="import-panel" hidden>
+      <div class="import-copy">
+        <h2>Import the taxonomy text</h2>
+        <p>Paste the taxonomy exactly as written. The app parses LEVEL 1, L2, L3, and L4 lines and stores the source in this browser.</p>
+      </div>
+      <textarea id="sourceInput" spellcheck="false" placeholder="Paste: A COMPLETE TAXONOMY OF HUMAN KNOWLEDGE..."></textarea>
+      <div class="button-row">
+        <button id="parseSourceButton" type="button">Parse and Browse</button>
+        <button id="hideImportButton" type="button">Close</button>
+      </div>
+      <p id="importStatus" class="status-line"></p>
+    </section>
+
+    <section class="browser">
+      <aside class="tree-panel">
+        <div class="panel-heading">
+          <p class="eyebrow">Hierarchy</p>
+          <h2>Levels 1-4</h2>
+        </div>
+        <div id="tree"></div>
       </aside>
 
-      <section class="workspace">
-        <section class="panel selected-panel">
-          <p id="selectedLevel" class="eyebrow">No Selection</p>
-          <h2 id="selectedName">Load the top-level domains to begin</h2>
-          <p id="selectedSummary" class="selected-summary">Generate a structured four-level taxonomy of human knowledge, then use contextual search buttons to look up precise terms in scholarly catalogs and indexes.</p>
-          <div id="selectedPath" class="path-line"></div>
-          <div id="selectedKeywords" class="keyword-row"></div>
-          <div id="selectedSearchProviders" class="search-row provider-row"></div>
-          <div class="button-row">
-            <button id="expandButton" class="primary-button" type="button" disabled>Generate Next Level</button>
-            <button id="moreButton" class="secondary-button" type="button" disabled>Find More Siblings</button>
-            <button id="exhaustButton" class="secondary-button" type="button" disabled>Expand Until Exhausted</button>
-            <button id="expandBranchButton" class="secondary-button" type="button" disabled>Fill Branch to Level 4</button>
-            <button id="auditLevelButton" class="secondary-button" type="button" disabled>Audit Missing Level Items</button>
-            <button id="explainButton" class="secondary-button" type="button" disabled>Explain</button>
-            <button id="readingButton" class="secondary-button" type="button" disabled>Reading list</button>
-            <button id="auditBibliographyButton" class="secondary-button" type="button" disabled>Audit Bibliography</button>
-            <button id="clearLevelButton" class="ghost-button" type="button" disabled>Clear Next Level</button>
-            <button id="clearAllButton" class="ghost-button" type="button">Clear All Levels</button>
-            <button id="searchAllButton" class="secondary-button" type="button" disabled>Search Selected Context</button>
-          </div>
-          <p id="selectedStatus" class="hint"></p>
-          <div id="explanationPanel" class="explanation-panel" hidden>
-            <h3>Plain-Language Explanation</h3>
-            <div id="explanationContent"></div>
-          </div>
-          <div id="readingPanel" class="explanation-panel reading-panel" hidden>
-            <h3>Reading List</h3>
-            <div id="readingContent"></div>
-          </div>
-        </section>
-
-        <section class="level-grid dropdown-grid" aria-label="Knowledge hierarchy dropdowns">
-        </section>
-
-        <section class="panel data-panel">
-          <div class="panel-title">
-            <p class="eyebrow">Data Points</p>
-            <h2 id="childPanelTitle">Children of selected item</h2>
-          </div>
-          <div id="childDataList" class="node-list data-list"></div>
-        </section>
+      <section class="detail-panel">
+        <div id="emptyState" class="empty-state">
+          <h2>Load the source taxonomy to begin</h2>
+          <p>The browser is built for the exact text format you provided, including foundational works on each Level 4 field.</p>
+        </div>
+        <article id="detail" class="detail" hidden>
+          <p id="detailLevel" class="eyebrow"></p>
+          <h2 id="detailTitle"></h2>
+          <p id="detailPath" class="path"></p>
+          <p id="detailDescription" class="description"></p>
+          <section id="foundationalSection" class="foundational" hidden>
+            <h3>Foundational Work</h3>
+            <p id="foundationalText"></p>
+          </section>
+          <section>
+            <h3 id="childrenTitle">Children</h3>
+            <div id="children"></div>
+          </section>
+        </article>
       </section>
-    </main>
-  </div>
-
-  <template id="levelSelectTemplate">
-    <section class="level-select-card">
-      <label class="field">
-        <span class="select-label"></span>
-        <select class="level-select"></select>
-      </label>
-      <p class="select-summary"></p>
     </section>
-  </template>
-
-  <template id="nodeTemplate">
-    <article class="node-card">
-      <button class="node-main" type="button">
-        <span class="node-level"></span>
-        <strong class="node-name"></strong>
-        <span class="node-summary"></span>
-      </button>
-      <div class="keyword-row node-keywords"></div>
-      <div class="search-row node-search-providers"></div>
-      <div class="node-actions">
-        <button class="expand-inline" type="button">Generate children</button>
-        <button class="explain-inline" type="button">Explain</button>
-        <button class="reading-inline" type="button">Reading list</button>
-      </div>
-    </article>
-  </template>
-
-  <template id="resultTemplate">
-    <button class="result-item" type="button">
-      <span class="result-path"></span>
-      <strong class="result-name"></strong>
-    </button>
-  </template>
+  </main>
 
   <script src="app.js"></script>
 </body>

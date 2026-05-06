@@ -14,19 +14,11 @@
       "use": "@vercel/static"
     },
     {
-      "src": "data/*.json",
+      "src": "data/*.txt",
       "use": "@vercel/static"
-    },
-    {
-      "src": "api/*.mjs",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.mjs"
-    },
     {
       "src": "/app.js",
       "dest": "/app.js"

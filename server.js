@@ -1,14 +1,6 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const {
-  handleBibliographyRequest,
-  handleConceptTreeRequest,
-  handleExplainRequest,
-  handleHealthRequest,
-  handleAuditRequest,
-  handleTaxonomyRequest,
-} = require("./api/shared");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -41,36 +33,6 @@ function serveFile(res, filePath) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
-  if (url.pathname === "/api/health") {
-    handleHealthRequest(req, res);
-    return;
-  }
-
-  if (url.pathname === "/api/taxonomy") {
-    handleTaxonomyRequest(req, res);
-    return;
-  }
-
-  if (url.pathname === "/api/audit") {
-    handleAuditRequest(req, res);
-    return;
-  }
-
-  if (url.pathname === "/api/bibliography") {
-    handleBibliographyRequest(req, res);
-    return;
-  }
-
-  if (url.pathname === "/api/concepts") {
-    handleConceptTreeRequest(req, res);
-    return;
-  }
-
-  if (url.pathname === "/api/explain") {
-    handleExplainRequest(req, res);
-    return;
-  }
-
   if (req.method !== "GET") {
     sendJson(res, 405, { error: "Method not allowed." });
     return;
@@ -88,5 +50,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Knowledge Atlas running at http://localhost:${PORT}`);
+  console.log(`Complete taxonomy browser running at http://localhost:${PORT}`);
 });
