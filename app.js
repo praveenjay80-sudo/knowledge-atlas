@@ -1,5 +1,5 @@
 const STATIC_TAXONOMY_URL = "/data/human_scientific_knowledge_taxonomy.json";
-const MAX_VISIBLE_LEVEL = 5;
+const MAX_VISIBLE_LEVEL = 4;
 
 const ROOT_DEFINITIONS = [
   {
@@ -39,7 +39,6 @@ const LEVEL_LABELS = {
   2: "Level 2 Field",
   3: "Level 3 Subfield",
   4: "Level 4 Specialty",
-  5: "Extra Topic",
 };
 
 const LEVEL_TITLES = {
@@ -47,7 +46,6 @@ const LEVEL_TITLES = {
   2: "Fields",
   3: "Subfields",
   4: "Specialties",
-  5: "Topics",
 };
 
 const READING_CATEGORY_LABELS = {
@@ -103,7 +101,7 @@ const refs = {
   readingPanel: document.querySelector("#readingPanel"),
   readingContent: document.querySelector("#readingContent"),
   levelGrid: document.querySelector(".level-grid"),
-  nodeTemplate: document.querySelector("#nodeTemplate"),
+  levelSelectTemplate: document.querySelector("#levelSelectTemplate"),
   resultTemplate: document.querySelector("#resultTemplate"),
 };
 
@@ -537,79 +535,49 @@ function visibleChildrenForLevel(level) {
   return parent ? parent.children : [];
 }
 
-function renderNodeCard(node) {
-  const fragment = refs.nodeTemplate.content.cloneNode(true);
-  const card = fragment.querySelector(".node-card");
-  const main = fragment.querySelector(".node-main");
-  const inlineExpand = fragment.querySelector(".expand-inline");
-  const explainInline = fragment.querySelector(".explain-inline");
-  const readingInline = fragment.querySelector(".reading-inline");
-  const level = Math.min(node.path.length, MAX_VISIBLE_LEVEL);
-
-  card.classList.toggle("selected", node.id === state.selectedId);
-  card.classList.toggle("in-path", state.activePathIds.includes(node.id));
-  fragment.querySelector(".node-level").textContent = LEVEL_LABELS[level];
-  fragment.querySelector(".node-name").textContent = node.name;
-  fragment.querySelector(".node-summary").textContent = node.summary;
-  createKeywordChips(node, fragment.querySelector(".node-keywords"));
-
-  main.addEventListener("click", () => setSelected(node));
-  for (const button of fragment.querySelectorAll(".search-button")) {
-    const query = preciseSearchQuery(node);
-    button.title = `${SEARCH_PROVIDERS[button.dataset.provider]?.label || "Library"} search: ${query}`;
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openProvider(button.dataset.provider, node);
-    });
-  }
-
-  inlineExpand.hidden = node.path.length >= MAX_VISIBLE_LEVEL;
-  inlineExpand.disabled = state.loadingIds.has(node.id);
-  inlineExpand.textContent = state.loadingIds.has(node.id) ? "Generating..." : `Generate Level ${node.path.length + 1}`;
-  inlineExpand.addEventListener("click", () => expandNode(node));
-
-  explainInline.disabled = node.explanationStatus === "loading";
-  explainInline.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
-  explainInline.addEventListener("click", () => explainNode(node));
-
-  readingInline.disabled = node.bibliographyStatus === "loading";
-  readingInline.textContent = node.bibliographyStatus === "loading" ? "Reading..." : "Reading list";
-  readingInline.addEventListener("click", () => readingListForNode(node));
-
-  return fragment;
-}
-
 function renderLevels() {
   clear(refs.levelGrid);
   for (let level = 1; level <= MAX_VISIBLE_LEVEL; level += 1) {
-    const column = document.createElement("section");
-    column.className = "level-column";
-    column.dataset.level = String(level);
-
-    const head = document.createElement("div");
-    head.className = "level-head";
-    const eyebrow = document.createElement("p");
-    eyebrow.className = "eyebrow";
-    eyebrow.textContent = level === 5 ? "Extra Depth" : `Level ${level}`;
-    const title = document.createElement("h2");
-    title.textContent = LEVEL_TITLES[level];
-    head.append(eyebrow, title);
-
-    const list = document.createElement("div");
-    list.className = "node-list";
+    const fragment = refs.levelSelectTemplate.content.cloneNode(true);
+    const card = fragment.querySelector(".level-select-card");
+    const label = fragment.querySelector(".select-label");
+    const select = fragment.querySelector(".level-select");
+    const summary = fragment.querySelector(".select-summary");
     const nodes = visibleChildrenForLevel(level);
+
+    card.dataset.level = String(level);
+    label.textContent = `${LEVEL_LABELS[level]} - ${LEVEL_TITLES[level]}`;
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = level === 1 ? "Choose a domain..." : `Choose ${LEVEL_TITLES[level].toLowerCase()}...`;
+    select.appendChild(placeholder);
+
     if (!nodes.length) {
-      const empty = document.createElement("p");
-      empty.className = "empty-note";
-      empty.textContent = level === 1 ? "Loading the atlas..." : "Select a parent item to view this level.";
-      list.appendChild(empty);
+      select.disabled = true;
+      summary.textContent = level === 1 ? "Loading the atlas..." : "Select the previous level first.";
     } else {
-      for (const node of nodes) list.appendChild(renderNodeCard(node));
+      for (const node of nodes) {
+        const option = document.createElement("option");
+        option.value = node.id;
+        option.textContent = node.name;
+        select.appendChild(option);
+      }
+
+      const selectedId = state.activePathIds[level - 1] || "";
+      select.value = selectedId;
+      const selected = selectedId ? findNode(selectedId) : null;
+      summary.textContent = selected
+        ? selected.summary
+        : `${nodes.length.toLocaleString()} ${LEVEL_TITLES[level].toLowerCase()} available.`;
     }
 
-    column.append(head, list);
-    refs.levelGrid.appendChild(column);
+    select.addEventListener("change", (event) => {
+      const node = event.target.value ? findNode(event.target.value) : null;
+      if (node) setSelected(node);
+    });
+
+    refs.levelGrid.appendChild(fragment);
   }
 }
 

@@ -94,31 +94,20 @@
           </div>
         </section>
 
-        <section class="level-grid" aria-label="Knowledge hierarchy">
+        <section class="level-grid dropdown-grid" aria-label="Knowledge hierarchy dropdowns">
         </section>
       </section>
     </main>
   </div>
 
-  <template id="nodeTemplate">
-    <article class="node-card">
-      <button class="node-main" type="button">
-        <span class="node-level"></span>
-        <strong class="node-name"></strong>
-        <span class="node-summary"></span>
-      </button>
-      <div class="keyword-row node-keywords"></div>
-      <div class="search-row">
-        <button class="search-button" data-provider="worldcat" type="button">WorldCat</button>
-        <button class="search-button" data-provider="scholar" type="button">Scholar</button>
-        <button class="search-button" data-provider="openalex" type="button">OpenAlex</button>
-      </div>
-      <div class="node-actions">
-        <button class="expand-inline" type="button">Generate children</button>
-        <button class="explain-inline" type="button">Explain</button>
-        <button class="reading-inline" type="button">Reading list</button>
-      </div>
-    </article>
+  <template id="levelSelectTemplate">
+    <section class="level-select-card">
+      <label class="field">
+        <span class="select-label"></span>
+        <select class="level-select"></select>
+      </label>
+      <p class="select-summary"></p>
+    </section>
   </template>
 
   <template id="resultTemplate">
