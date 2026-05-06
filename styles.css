@@ -170,6 +170,10 @@ select:focus {
   gap: 8px;
 }
 
+.provider-row {
+  padding-top: 2px;
+}
+
 .primary-button,
 .secondary-button,
 .ghost-button,
@@ -314,6 +318,19 @@ button:disabled {
   border-radius: 8px;
   padding: 14px;
   background: #fff;
+}
+
+.data-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.data-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.data-list .node-card {
+  align-content: start;
 }
 
 .level-select-card .field {

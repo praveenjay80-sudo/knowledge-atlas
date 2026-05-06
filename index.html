@@ -72,6 +72,7 @@
           <p id="selectedSummary" class="selected-summary">Generate a structured four-level taxonomy of human knowledge, then use contextual search buttons to look up precise terms in scholarly catalogs and indexes.</p>
           <div id="selectedPath" class="path-line"></div>
           <div id="selectedKeywords" class="keyword-row"></div>
+          <div id="selectedSearchProviders" class="search-row provider-row"></div>
           <div class="button-row">
             <button id="expandButton" class="primary-button" type="button" disabled>Generate Next Level</button>
             <button id="moreButton" class="secondary-button" type="button" disabled>Find More Siblings</button>
@@ -96,6 +97,14 @@
 
         <section class="level-grid dropdown-grid" aria-label="Knowledge hierarchy dropdowns">
         </section>
+
+        <section class="panel data-panel">
+          <div class="panel-title">
+            <p class="eyebrow">Data Points</p>
+            <h2 id="childPanelTitle">Children of selected item</h2>
+          </div>
+          <div id="childDataList" class="node-list data-list"></div>
+        </section>
       </section>
     </main>
   </div>
@@ -108,6 +117,23 @@
       </label>
       <p class="select-summary"></p>
     </section>
+  </template>
+
+  <template id="nodeTemplate">
+    <article class="node-card">
+      <button class="node-main" type="button">
+        <span class="node-level"></span>
+        <strong class="node-name"></strong>
+        <span class="node-summary"></span>
+      </button>
+      <div class="keyword-row node-keywords"></div>
+      <div class="search-row node-search-providers"></div>
+      <div class="node-actions">
+        <button class="expand-inline" type="button">Generate children</button>
+        <button class="explain-inline" type="button">Explain</button>
+        <button class="reading-inline" type="button">Reading list</button>
+      </div>
+    </article>
   </template>
 
   <template id="resultTemplate">

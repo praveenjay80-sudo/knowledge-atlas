@@ -86,6 +86,7 @@ const refs = {
   selectedSummary: document.querySelector("#selectedSummary"),
   selectedPath: document.querySelector("#selectedPath"),
   selectedKeywords: document.querySelector("#selectedKeywords"),
+  selectedSearchProviders: document.querySelector("#selectedSearchProviders"),
   expandButton: document.querySelector("#expandButton"),
   moreButton: document.querySelector("#moreButton"),
   exhaustButton: document.querySelector("#exhaustButton"),
@@ -102,6 +103,9 @@ const refs = {
   readingContent: document.querySelector("#readingContent"),
   levelGrid: document.querySelector(".level-grid"),
   levelSelectTemplate: document.querySelector("#levelSelectTemplate"),
+  nodeTemplate: document.querySelector("#nodeTemplate"),
+  childPanelTitle: document.querySelector("#childPanelTitle"),
+  childDataList: document.querySelector("#childDataList"),
   resultTemplate: document.querySelector("#resultTemplate"),
 };
 
@@ -380,6 +384,12 @@ async function explainNode(node) {
   if (!node) return;
   node.explanationStatus = "loading";
   render();
+  if (!apiKey() && !state.serverKeyReady) {
+    node.explanation = fallbackExplanation(node);
+    node.explanationStatus = "success";
+    setSelected(node);
+    return;
+  }
   try {
     const payload = await fetchJson("/api/explain", {
       method: "POST",
@@ -528,6 +538,24 @@ function createKeywordChips(node, target) {
   }
 }
 
+function renderProviderButtons(target, node) {
+  clear(target);
+  if (!node) return;
+  for (const [providerKey, provider] of Object.entries(SEARCH_PROVIDERS)) {
+    const button = document.createElement("button");
+    button.className = "search-button";
+    button.type = "button";
+    button.textContent = provider.label;
+    button.title = `${provider.label}: ${preciseSearchQuery(node)}`;
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openProvider(providerKey, node);
+    });
+    target.appendChild(button);
+  }
+}
+
 function visibleChildrenForLevel(level) {
   if (level === 1) return state.roots;
   const parentId = state.activePathIds[level - 2];
@@ -581,6 +609,72 @@ function renderLevels() {
   }
 }
 
+function renderNodeCard(node) {
+  const fragment = refs.nodeTemplate.content.cloneNode(true);
+  const card = fragment.querySelector(".node-card");
+  const main = fragment.querySelector(".node-main");
+  const inlineExpand = fragment.querySelector(".expand-inline");
+  const explainInline = fragment.querySelector(".explain-inline");
+  const readingInline = fragment.querySelector(".reading-inline");
+  const level = Math.min(node.path.length, MAX_VISIBLE_LEVEL);
+
+  card.classList.toggle("selected", node.id === state.selectedId);
+  fragment.querySelector(".node-level").textContent = LEVEL_LABELS[level];
+  fragment.querySelector(".node-name").textContent = node.name;
+  fragment.querySelector(".node-summary").textContent = node.summary;
+  createKeywordChips(node, fragment.querySelector(".node-keywords"));
+  renderProviderButtons(fragment.querySelector(".node-search-providers"), node);
+
+  main.addEventListener("click", () => setSelected(node));
+
+  inlineExpand.hidden = node.path.length >= MAX_VISIBLE_LEVEL;
+  inlineExpand.disabled = state.loadingIds.has(node.id);
+  inlineExpand.textContent = state.loadingIds.has(node.id) ? "Generating..." : `Generate Level ${node.path.length + 1}`;
+  inlineExpand.addEventListener("click", () => expandNode(node));
+
+  explainInline.disabled = node.explanationStatus === "loading";
+  explainInline.textContent = node.explanationStatus === "loading" ? "Explaining..." : "Explain";
+  explainInline.addEventListener("click", () => explainNode(node));
+
+  readingInline.disabled = node.bibliographyStatus === "loading";
+  readingInline.textContent = node.bibliographyStatus === "loading" ? "Reading..." : "Reading list";
+  readingInline.addEventListener("click", () => readingListForNode(node));
+
+  return fragment;
+}
+
+function renderChildDataPanel() {
+  clear(refs.childDataList);
+  const node = selectedNode();
+  if (!node) {
+    refs.childPanelTitle.textContent = "Children of selected item";
+    const empty = document.createElement("p");
+    empty.className = "empty-note";
+    empty.textContent = "Select a taxonomy item to see its data points.";
+    refs.childDataList.appendChild(empty);
+    return;
+  }
+
+  const nextLevel = node.path.length + 1;
+  refs.childPanelTitle.textContent = node.children.length
+    ? `${node.children.length.toLocaleString()} ${LEVEL_TITLES[nextLevel] || "data points"} under ${node.name}`
+    : `No loaded children under ${node.name}`;
+
+  if (!node.children.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-note";
+    empty.textContent = node.path.length >= MAX_VISIBLE_LEVEL
+      ? "This is a Level 4 item. Use Explain, Reading list, and library searches above."
+      : "No children are loaded yet. Use Generate Next Level to add more items.";
+    refs.childDataList.appendChild(empty);
+    return;
+  }
+
+  for (const child of node.children) {
+    refs.childDataList.appendChild(renderNodeCard(child));
+  }
+}
+
 function renderSelected() {
   const node = selectedNode();
   if (!node) {
@@ -589,6 +683,7 @@ function renderSelected() {
     refs.selectedSummary.textContent = "The app loads a large static taxonomy first, then lets you generate, explain, search, and build reading lists for any item.";
     refs.selectedPath.textContent = "";
     clear(refs.selectedKeywords);
+    clear(refs.selectedSearchProviders);
     refs.expandButton.disabled = true;
     refs.moreButton.disabled = true;
     refs.exhaustButton.disabled = true;
@@ -630,6 +725,7 @@ function renderSelected() {
     node.cautionNote,
   ].filter(Boolean).join(" ");
   createKeywordChips(node, refs.selectedKeywords);
+  renderProviderButtons(refs.selectedSearchProviders, node);
   renderExplanation(node);
   renderBibliography(node);
 }
@@ -767,6 +863,7 @@ function render() {
   renderCounts();
   renderSelected();
   renderLevels();
+  renderChildDataPanel();
   renderSearch();
 }
 
