@@ -249,6 +249,7 @@ button:disabled {
 
 .explanation-panel h3,
 .explanation-panel h4,
+.explanation-panel h5,
 .explanation-panel p,
 .explanation-panel ul,
 .explanation-panel ol {
@@ -264,6 +265,25 @@ button:disabled {
   margin-bottom: 4px;
   font-size: 0.86rem;
   color: var(--accent-strong);
+}
+
+.explanation-panel h5 {
+  font-size: 0.96rem;
+  color: var(--ink);
+}
+
+.qa-block {
+  display: grid;
+  gap: 10px;
+}
+
+.qa-item {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
 }
 
 .explanation-panel p,

@@ -1028,6 +1028,20 @@ function explanationSchema() {
           why_it_matters: { type: "string" },
           example: { type: "string" },
           analogy: { type: "string" },
+          qa_pairs: {
+            type: "array",
+            minItems: 4,
+            maxItems: 7,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                question: { type: "string" },
+                answer: { type: "string" },
+              },
+              required: ["question", "answer"],
+            },
+          },
           study_questions: {
             type: "array",
             minItems: 3,
@@ -1035,7 +1049,7 @@ function explanationSchema() {
             items: { type: "string" },
           },
         },
-        required: ["simple_definition", "why_it_matters", "example", "analogy", "study_questions"],
+        required: ["simple_definition", "why_it_matters", "example", "analogy", "qa_pairs", "study_questions"],
       },
     },
     required: ["explanation"],
@@ -1749,6 +1763,24 @@ function fallbackExplanation(pathSegments, summary, keywords) {
         ? `Example: ${summary}`
         : `Example: when you search for ${keywordText}, you are trying to find sources about this specific idea rather than a broad surrounding subject.`,
       analogy: `Think of ${topic} like a labeled folder in a school binder. The label tells you what belongs in that folder and helps you avoid mixing it with nearby topics.`,
+      qa_pairs: [
+        {
+          question: `What is ${topic} in plain language?`,
+          answer: `It is like a labeled folder inside the larger subject of ${parent}: it gathers related questions, tools, and examples in one place. A real example is searching a library for "${topic}" so you find sources about this exact area instead of the whole parent field.`,
+        },
+        {
+          question: `Why would someone study ${topic}?`,
+          answer: `Studying it is like zooming a map from a whole city down to one neighborhood. The real benefit is that a learner can stop guessing broadly and start asking precise questions about ${topic}.`,
+        },
+        {
+          question: `What does ${topic} connect to?`,
+          answer: `It connects to ${parent} the way one department connects to a larger university. The department has its own focus, but it still shares buildings, methods, and problems with the wider institution.`,
+        },
+        {
+          question: `How should a beginner approach ${topic}?`,
+          answer: `Start like learning a new sport: first learn the field markings, basic rules, and common plays. In practice, that means learning the key terms, one or two standard examples, and the main problem the topic tries to solve.`,
+        },
+      ],
       study_questions: [
         `What does ${topic} mean in one sentence?`,
         `What is one concrete example of ${topic}?`,
@@ -1763,17 +1795,19 @@ function explanationPrompt({ pathSegments, summary, keywords }) {
   const keywordLine = Array.isArray(keywords) && keywords.length ? keywords.join(", ") : "none provided";
 
   return [
-    "Explain the selected taxonomy item for a school student.",
+    "Explain the selected taxonomy item for a school student using a question-and-answer format.",
     "Use clear language, but include enough detail to be genuinely useful.",
     "Do not talk down to the reader.",
-    "Give concrete examples tied to the actual field, not vague generic examples.",
+    "Every answer in the Q&A section must use an analogy and at least one concrete real-world example tied to the actual field, not vague generic examples.",
+    "Prefer analogies such as maps, tools, kitchens, bridges, medical diagnosis, courts, factories, teams, weather forecasts, libraries, or engineering systems when they genuinely fit the topic.",
     "Avoid fabricated facts. If the item is broad, explain it broadly and carefully.",
     "",
     `Selected path: ${target}`,
     `Summary: ${summary || "No summary supplied."}`,
     `Keywords: ${keywordLine}`,
     "",
-    "Return a simple definition, why it matters, one concrete example, one analogy, and three to five study questions.",
+    "Return a simple definition, why it matters, one concrete example, one analogy, four to seven Q&A pairs, and three to five study questions.",
+    "For each Q&A pair: the question should be something a curious beginner would ask; the answer should explain by analogy and then ground the analogy with a real example.",
   ].join("\n");
 }
 

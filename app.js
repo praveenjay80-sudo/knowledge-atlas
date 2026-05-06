@@ -367,11 +367,30 @@ async function expandUntilExhausted(node) {
 function fallbackExplanation(node) {
   const parent = node.path.length > 1 ? node.path[node.path.length - 2] : "human knowledge";
   const examples = contextualTerms(node).slice(0, 3);
+  const exampleText = examples.length ? examples.join(", ") : node.name;
   return {
     simple_definition: `${node.name} is a topic in ${parent}. In plain language, it is a named area of study that groups related questions, methods, evidence, and examples.`,
     why_it_matters: `It matters because ${node.name} gives learners and researchers a precise label for finding sources and understanding where this topic sits in the wider map of science.`,
     example: node.summary || (examples.length ? `Search for ${examples.join(" and ")} to find sources about this exact area.` : `A learner could start by asking what ${node.name} studies and what problems it tries to solve.`),
     analogy: "Think of it as a shelf label in a very large research library: it does not contain every book, but it tells you which books belong together.",
+    qa_pairs: [
+      {
+        question: `What is ${node.name} in plain language?`,
+        answer: `${node.name} is like a labeled shelf in a research library: it groups related ideas so you know where to look. A real example is using the search phrase "${exampleText}" to find sources about this exact topic instead of searching the whole field of ${parent}.`,
+      },
+      {
+        question: `Why does ${node.name} matter?`,
+        answer: `It matters like a street address matters: without it, you only know the city, not the exact building. In real study, the label "${node.name}" helps you find textbooks, papers, experiments, datasets, or applications that belong to this specific area.`,
+      },
+      {
+        question: `How does ${node.name} connect to ${parent}?`,
+        answer: `Think of ${parent} as a university and ${node.name} as one department inside it. The department has its own focus, but it shares tools and problems with the rest of the university; for example, a paper on ${node.name} may still use methods or vocabulary from nearby parts of ${parent}.`,
+      },
+      {
+        question: `How should a beginner start learning ${node.name}?`,
+        answer: `Start like learning to use a workshop tool: first learn what job the tool is for, then watch it used on a simple project. A real path is to learn the core definition, read one introductory source, and then inspect a concrete example or case study in ${node.name}.`,
+      },
+    ],
     study_questions: [
       `What does ${node.name} study?`,
       `What are two examples or problems in ${node.name}?`,
@@ -768,6 +787,27 @@ function renderExplanation(node) {
     return;
   }
   if (!node.explanation) return;
+
+  if (Array.isArray(node.explanation.qa_pairs) && node.explanation.qa_pairs.length) {
+    const block = document.createElement("section");
+    block.className = "qa-block";
+    const heading = document.createElement("h4");
+    heading.textContent = "Questions and answers";
+    block.appendChild(heading);
+
+    for (const pair of node.explanation.qa_pairs) {
+      const item = document.createElement("article");
+      item.className = "qa-item";
+      const question = document.createElement("h5");
+      const answer = document.createElement("p");
+      question.textContent = pair.question || "Question";
+      answer.textContent = pair.answer || "";
+      item.append(question, answer);
+      block.appendChild(item);
+    }
+
+    refs.explanationContent.appendChild(block);
+  }
 
   const sections = [
     ["What it means", node.explanation.simple_definition],
