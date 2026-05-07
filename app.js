@@ -388,7 +388,7 @@ function datasetRoot() {
     id: DATASET_ROOT_ID,
     level: 0,
     name: DATASET_ROOT_ID,
-    description: "Level 0 dataset root above all L1 domains. Use this level to audit the whole taxonomy dataset.",
+    description: "Level 0 dataset root above all L1 domains. Use this level only to audit missing L1 domains.",
     note: `${state.roots.length} L1 domains loaded.`,
     path: [DATASET_ROOT_ID],
     bibliography: [],
@@ -762,7 +762,7 @@ function renderDetail() {
   }
   refs.detailDescription.textContent = node.description || (
     node.level === 0
-      ? "Dataset root above all L1 domains. This is the level for auditing coverage across the entire taxonomy."
+      ? "Dataset root above all L1 domains. Audit here only for missing L1 domains, not for deeper L2-L4 branch coverage."
       : node.level === 5
       ? "Specific concept or object of study from the supplied taxonomy."
       : node.level === 4
@@ -781,10 +781,10 @@ function renderDetail() {
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
   refs.auditCoverageButton.textContent = state.auditLoading && state.auditMode === "coverage" ? "Auditing coverage..." : "Deep L2-L4 Coverage Audit";
   refs.auditAllDomainsButton.textContent = state.auditLoading && state.auditMode === "all-coverage"
-    ? "Auditing L0 dataset..."
+    ? "Auditing missing L1..."
     : node.level === 0
-    ? "Audit L0 Whole Tree"
-    : "Audit Whole Tree";
+    ? "Audit L0 Missing L1"
+    : "Audit L0 Missing L1";
   refs.auditBibliographyButton.textContent = state.auditLoading && state.auditMode === "bibliography" ? "Auditing bibliography..." : "Audit Bibliography Gaps";
   renderAuditResults();
   renderBibliography(node);
@@ -1015,6 +1015,16 @@ function addTaxonomyCandidate(item) {
   if (!parent || parent.level >= 5) return false;
   if (parent.children.some((child) => normalizeKey(child.name) === normalizeKey(item.name))) return false;
 
+  if (parent.level === 0) {
+    const root = createNode(1, item.name, "", item.note);
+    state.roots.push(root);
+    state.roots.sort((left, right) => left.name.localeCompare(right.name));
+    state.flat = displayFlat();
+    applySavedBibliography();
+    persistTaxonomy();
+    return true;
+  }
+
   const child = createNode(parent.level + 1, item.name, "", item.note, parent);
   parent.children.push(child);
   parent.children.sort((left, right) => left.name.localeCompare(right.name));
@@ -1151,52 +1161,41 @@ async function auditCoverage() {
   }
 }
 
-async function auditWholeDataset() {
+async function auditL0Domains() {
   if (!state.roots.length) return;
 
   state.auditLoading = true;
   state.auditMode = "all-coverage";
   state.auditTargetId = "";
   state.auditItems = [];
-  let added = 0;
-  let found = 0;
-  let failed = 0;
+  refs.auditStatus.textContent = "Searching for missing top-level L1 domains only...";
   render();
 
-  for (const [index, root] of state.roots.entries()) {
-    refs.auditStatus.textContent =
-      `Auditing whole-tree coverage, branch ${index + 1} of ${state.roots.length}: ${root.name}. Added ${added} missing items so far.`;
+  try {
+    const root = datasetRoot();
+    const payload = await fetchJson("/api/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "taxonomy",
+        apiKey: apiKey(),
+        selectedPath: root.path,
+        auditParentPath: root.path,
+        auditLevel: 1,
+        existingNames: state.roots.map((item) => item.name),
+      }),
+    });
+    const accepted = dedupeTaxonomyItems(root, payload.items);
+    state.auditItems = accepted.map((item) => ({ ...item, parentId: DATASET_ROOT_ID }));
+    refs.auditStatus.textContent = accepted.length
+      ? `${payload.overview || "L0 audit complete."} Found ${accepted.length} missing L1 candidate${accepted.length === 1 ? "" : "s"} to review and add.`
+      : payload.overview || "L0 audit complete. No missing top-level L1 domains were returned.";
+  } catch (error) {
+    refs.auditStatus.textContent = error.message || "L0 audit failed.";
+  } finally {
+    state.auditLoading = false;
     render();
-
-    try {
-      const payload = await fetchJson("/api/audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "coverage",
-          apiKey: apiKey(),
-          selectedPath: root.path,
-          selectedLevel: root.level,
-          wholeDataset: true,
-          subtree: compactSubtreeForAudit(root),
-        }),
-      });
-      const accepted = dedupeCoverageItems(payload.items);
-      found += accepted.length;
-      for (const item of accepted) {
-        if (addTaxonomyCandidate(item)) added += 1;
-      }
-    } catch {
-      failed += 1;
-    }
   }
-
-  refs.auditStatus.textContent =
-    `L0 whole-tree audit complete across all loaded branches. Found ${found} candidate item${found === 1 ? "" : "s"} and added ${added}. ${failed ? `${failed} branch audit${failed === 1 ? "" : "s"} failed and were skipped. ` : ""}Saved for refresh.`;
-  state.auditLoading = false;
-  state.auditMode = "";
-  state.auditItems = [];
-  render();
 }
 
 async function auditBibliography() {
@@ -1359,7 +1358,7 @@ refs.clearImportButton.addEventListener("click", () => {
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
 refs.auditCoverageButton.addEventListener("click", auditCoverage);
-refs.auditAllDomainsButton.addEventListener("click", auditWholeDataset);
+refs.auditAllDomainsButton.addEventListener("click", auditL0Domains);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
 refs.explainButton.addEventListener("click", explainSelectedItem);
 

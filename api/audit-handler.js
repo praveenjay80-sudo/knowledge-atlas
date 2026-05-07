@@ -206,6 +206,7 @@ function taxonomyPrompt(body) {
     "Do not duplicate existing names, aliases, spelling variants, singular/plural variants, or near-synonyms.",
     "Do not add trendy buzzwords, administrative units, departments, courses, websites, or generic buckets.",
     "For Level 4 items, include a concise foundational_work string in the same style as the source text.",
+    "If the requested level is Level 1, return only genuinely missing top-level theoretical science domains. Do not return L2, L3, or L4 branches.",
     "If there are no high-confidence omissions, return an empty items array.",
     "",
     `Selected path: ${selectedPath}`,
