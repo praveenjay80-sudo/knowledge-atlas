@@ -77,6 +77,12 @@ const EXTERNAL_SEARCH_PROVIDERS = [
     buildUrl: (query) =>
       `https://eth.swisscovery.slsp.ch/discovery/search?query=any,contains,${encodeURIComponent(query)}&tab=discovery_network&search_scope=DiscoveryNetwork&vid=41SLSP_ETH:ETH&lang=en`,
   },
+  {
+    id: "gnod",
+    icon: "GN",
+    label: "Gnod Search",
+    buildUrl: (query) => `https://www.gnod.com/search/?q=${encodeURIComponent(query)}`,
+  },
 ];
 
 function normalize(value) {
@@ -389,7 +395,7 @@ function selectedNode() {
 }
 
 function externalSearchEnabled(node) {
-  return node && node.level >= 2 && node.level <= 4;
+  return node && node.level >= 1 && node.level <= 4;
 }
 
 function externalSearchQuery(node) {

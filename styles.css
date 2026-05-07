@@ -347,6 +347,11 @@ textarea:focus {
   color: #1f1f1f;
 }
 
+.search-icon-gnod {
+  width: 36px;
+  color: #0f766e;
+}
+
 .detail {
   display: grid;
   gap: 18px;
