@@ -69,6 +69,51 @@ function auditSchema(mode) {
   };
 }
 
+function explanationSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      title: { type: "string" },
+      plain_language: { type: "string" },
+      analogy: { type: "string" },
+      examples: {
+        type: "array",
+        minItems: 3,
+        maxItems: 6,
+        items: { type: "string" },
+      },
+      why_it_matters: { type: "string" },
+      key_terms: {
+        type: "array",
+        minItems: 4,
+        maxItems: 10,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            term: { type: "string" },
+            explanation: { type: "string" },
+          },
+          required: ["term", "explanation"],
+        },
+      },
+      common_misconception: { type: "string" },
+      how_to_learn_next: { type: "string" },
+    },
+    required: [
+      "title",
+      "plain_language",
+      "analogy",
+      "examples",
+      "why_it_matters",
+      "key_terms",
+      "common_misconception",
+      "how_to_learn_next",
+    ],
+  };
+}
+
 function responseFormat(name, schema) {
   return {
     type: "json_schema",
@@ -94,7 +139,7 @@ function extractResponseText(data) {
 async function callOpenAI({ apiKey, prompt, schemaName, schema }) {
   const resolvedKey = apiKey || process.env.OPENAI_API_KEY;
   if (!resolvedKey) {
-    const error = new Error("Add an OpenAI API key or configure OPENAI_API_KEY to run audits.");
+    const error = new Error("Add an OpenAI API key or configure OPENAI_API_KEY to use this feature.");
     error.statusCode = 400;
     throw error;
   }
@@ -123,7 +168,7 @@ async function callOpenAI({ apiKey, prompt, schemaName, schema }) {
   }
 
   const text = extractResponseText(data);
-  if (!text) throw new Error("OpenAI returned no audit output.");
+  if (!text) throw new Error("OpenAI returned no output.");
   return JSON.parse(text);
 }
 
@@ -167,6 +212,27 @@ function bibliographyPrompt(body) {
   ].join("\n");
 }
 
+function explanationPrompt(body) {
+  const selectedPath = (body.selectedPath || []).join(" > ");
+  const childNames = (body.childNames || []).slice(0, 80).join("; ") || "none";
+  const bibliography = JSON.stringify(body.bibliography || []).slice(0, 10000);
+
+  return [
+    "Explain one selected item from a user-supplied theoretical-sciences taxonomy.",
+    "Use the selected path as the exact context. Do not wander into unrelated fields.",
+    "Write for an intelligent beginner: detailed, concrete, and rigorous without becoming opaque.",
+    "Include a strong analogy, multiple examples, why the item matters, key terms, one common misconception, and what to learn next.",
+    "Do not invent fake citations. If bibliography is present, use it only as context.",
+    "Avoid generic filler. Make the explanation specific to the selected item.",
+    "",
+    `Selected path: ${selectedPath}`,
+    `Level: L${body.level || ""}`,
+    `Notes/cross-references/foundational text: ${body.note || "none"}`,
+    `Direct child items: ${childNames}`,
+    `Bibliography additions: ${bibliography}`,
+  ].join("\n");
+}
+
 async function handleAuditRequest(req, res) {
   try {
     if (req.method !== "POST") {
@@ -188,4 +254,29 @@ async function handleAuditRequest(req, res) {
   }
 }
 
-module.exports = { handleAuditRequest };
+async function handleExplainRequest(req, res) {
+  try {
+    if (req.method !== "POST") {
+      sendJson(res, 405, { error: "Method not allowed." });
+      return;
+    }
+
+    const body = await readJsonBody(req);
+    if (!Array.isArray(body.selectedPath) || !body.selectedPath.length) {
+      sendJson(res, 400, { error: "Select a taxonomy item before requesting an explanation." });
+      return;
+    }
+
+    const payload = await callOpenAI({
+      apiKey: typeof body.apiKey === "string" ? body.apiKey.trim() : "",
+      prompt: explanationPrompt(body),
+      schemaName: "taxonomy_item_explanation",
+      schema: explanationSchema(),
+    });
+    sendJson(res, 200, payload);
+  } catch (error) {
+    sendJson(res, error.statusCode || 502, { error: error.message || "Explanation failed." });
+  }
+}
+
+module.exports = { handleAuditRequest, handleExplainRequest };

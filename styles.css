@@ -315,6 +315,7 @@ textarea:focus {
 }
 
 .foundational,
+.explain-panel,
 .audit-panel,
 .bibliography {
   padding: 14px;
@@ -329,6 +330,81 @@ textarea:focus {
 #foundationalText {
   color: var(--muted);
   line-height: 1.55;
+}
+
+.explain-panel {
+  display: grid;
+  gap: 12px;
+  background: #fff;
+}
+
+.explain-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.explain-heading p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.explanation-output {
+  display: grid;
+  gap: 10px;
+}
+
+.explanation-card {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf8;
+}
+
+.explanation-card h3 {
+  margin-bottom: 0;
+  font-size: 1.2rem;
+}
+
+.explanation-section {
+  display: grid;
+  gap: 6px;
+}
+
+.explanation-section h4 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+.explanation-section p,
+.explanation-section li,
+.explanation-section dd {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.explanation-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.explanation-section dl {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.explanation-section dt {
+  font-weight: 800;
+}
+
+.explanation-section dd {
+  margin: 0 0 8px;
 }
 
 .audit-panel {
@@ -402,6 +478,10 @@ textarea:focus {
   .toolbar,
   .browser {
     grid-template-columns: 1fr;
+  }
+
+  .explain-heading {
+    display: grid;
   }
 
   .masthead {

@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { handleAuditRequest } = require("./api/audit-handler");
+const { handleAuditRequest, handleExplainRequest } = require("./api/audit-handler");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -37,6 +37,11 @@ const server = http.createServer((req, res) => {
 
   if (url.pathname === "/api/audit") {
     handleAuditRequest(req, res);
+    return;
+  }
+
+  if (url.pathname === "/api/explain") {
+    handleExplainRequest(req, res);
     return;
   }
 

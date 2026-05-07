@@ -22,6 +22,9 @@ const refs = {
   detailDescription: document.querySelector("#detailDescription"),
   foundationalSection: document.querySelector("#foundationalSection"),
   foundationalText: document.querySelector("#foundationalText"),
+  explainButton: document.querySelector("#explainButton"),
+  explainStatus: document.querySelector("#explainStatus"),
+  explanation: document.querySelector("#explanation"),
   auditTaxonomyButton: document.querySelector("#auditTaxonomyButton"),
   auditBibliographyButton: document.querySelector("#auditBibliographyButton"),
   auditStatus: document.querySelector("#auditStatus"),
@@ -43,6 +46,9 @@ const state = {
   auditMode: "",
   auditTargetId: "",
   auditLoading: false,
+  explanation: null,
+  explainTargetId: "",
+  explainLoading: false,
 };
 
 function normalize(value) {
@@ -287,6 +293,9 @@ function selectNode(node) {
   state.auditItems = [];
   state.auditMode = "";
   state.auditTargetId = "";
+  state.explanation = null;
+  state.explainTargetId = "";
+  refs.explainStatus.textContent = "";
   render();
 }
 
@@ -508,6 +517,9 @@ function renderDetail() {
   );
   refs.foundationalSection.hidden = !node.note;
   refs.foundationalText.textContent = node.note;
+  refs.explainButton.disabled = state.explainLoading || !state.flat.length;
+  refs.explainButton.textContent = state.explainLoading ? "Explaining..." : "Explain Selected Item";
+  renderExplanation(node);
   refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || (node.level >= 5 && !parentNode(node));
   refs.auditBibliographyButton.disabled = state.auditLoading;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
@@ -515,6 +527,71 @@ function renderDetail() {
   renderAuditResults();
   renderBibliography(node);
   renderChildren(node);
+}
+
+function addExplanationSection(parent, title, body) {
+  if (!body) return;
+  const section = document.createElement("section");
+  section.className = "explanation-section";
+  const heading = document.createElement("h4");
+  heading.textContent = title;
+  const paragraph = document.createElement("p");
+  paragraph.textContent = body;
+  section.append(heading, paragraph);
+  parent.appendChild(section);
+}
+
+function renderExplanation(node) {
+  clear(refs.explanation);
+  if (!state.explanation || state.explainTargetId !== node.id) return;
+
+  const data = state.explanation;
+  const article = document.createElement("article");
+  article.className = "explanation-card";
+  const title = document.createElement("h3");
+  title.textContent = data.title || node.name;
+  article.appendChild(title);
+
+  addExplanationSection(article, "Plain Language", data.plain_language);
+  addExplanationSection(article, "Analogy", data.analogy);
+
+  if (Array.isArray(data.examples) && data.examples.length) {
+    const section = document.createElement("section");
+    section.className = "explanation-section";
+    const heading = document.createElement("h4");
+    heading.textContent = "Examples";
+    const list = document.createElement("ul");
+    for (const example of data.examples) {
+      const item = document.createElement("li");
+      item.textContent = example;
+      list.appendChild(item);
+    }
+    section.append(heading, list);
+    article.appendChild(section);
+  }
+
+  addExplanationSection(article, "Why It Matters", data.why_it_matters);
+
+  if (Array.isArray(data.key_terms) && data.key_terms.length) {
+    const section = document.createElement("section");
+    section.className = "explanation-section";
+    const heading = document.createElement("h4");
+    heading.textContent = "Key Terms";
+    const list = document.createElement("dl");
+    for (const term of data.key_terms) {
+      const dt = document.createElement("dt");
+      dt.textContent = term.term;
+      const dd = document.createElement("dd");
+      dd.textContent = term.explanation;
+      list.append(dt, dd);
+    }
+    section.append(heading, list);
+    article.appendChild(section);
+  }
+
+  addExplanationSection(article, "Common Misconception", data.common_misconception);
+  addExplanationSection(article, "What To Learn Next", data.how_to_learn_next);
+  refs.explanation.appendChild(article);
 }
 
 function render() {
@@ -768,6 +845,39 @@ async function auditBibliography() {
   }
 }
 
+async function explainSelectedItem() {
+  const node = selectedNode();
+  if (!node) return;
+
+  state.explainLoading = true;
+  state.explanation = null;
+  state.explainTargetId = node.id;
+  refs.explainStatus.textContent = "Building a detailed explanation with analogy and examples...";
+  render();
+
+  try {
+    const payload = await fetchJson("/api/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        apiKey: apiKey(),
+        selectedPath: node.path,
+        level: node.level,
+        note: node.note,
+        childNames: node.children.map((child) => child.name),
+        bibliography: node.bibliography,
+      }),
+    });
+    state.explanation = payload;
+    refs.explainStatus.textContent = "Explanation ready.";
+  } catch (error) {
+    refs.explainStatus.textContent = error.message || "Explanation failed.";
+  } finally {
+    state.explainLoading = false;
+    render();
+  }
+}
+
 async function loadInitialSource() {
   const imported = localStorage.getItem(STORAGE_KEY);
   if (imported) {
@@ -839,6 +949,7 @@ refs.clearImportButton.addEventListener("click", () => {
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
+refs.explainButton.addEventListener("click", explainSelectedItem);
 
 loadBibliographyStore();
 loadInitialSource();
