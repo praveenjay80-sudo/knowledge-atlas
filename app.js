@@ -34,6 +34,7 @@ const refs = {
   explainStatus: document.querySelector("#explainStatus"),
   explanation: document.querySelector("#explanation"),
   auditTaxonomyButton: document.querySelector("#auditTaxonomyButton"),
+  coverageL0Select: document.querySelector("#coverageL0Select"),
   coverageL2Select: document.querySelector("#coverageL2Select"),
   coverageL3Select: document.querySelector("#coverageL3Select"),
   coverageL4Select: document.querySelector("#coverageL4Select"),
@@ -128,7 +129,7 @@ function splitDelimitedItems(value) {
 
 function extractTaggedSegments(line) {
   const text = String(line || "");
-  const matches = [...text.matchAll(/\[L([1-5])\]/g)];
+  const matches = [...text.matchAll(/\[L([0-5])\]/g)];
   if (!matches.length) {
     return [];
   }
@@ -145,12 +146,12 @@ function extractTaggedSegments(line) {
 }
 
 function extractLegacySegment(line) {
-  const match = String(line || "").match(/^(LEVEL\s+1|L[1-5]):\s*(.+)$/i);
+  const match = String(line || "").match(/^(LEVEL\s+0|LEVEL\s+1|L[0-5]):\s*(.+)$/i);
   if (!match) {
     return null;
   }
 
-  const level = match[1].toUpperCase().startsWith("LEVEL") ? 1 : Number(match[1].slice(1));
+  const level = match[1].toUpperCase().startsWith("LEVEL") ? Number(match[1].match(/\d+/)?.[0] || 1) : Number(match[1].slice(1));
   return [{ level, raw: match[2] }];
 }
 
@@ -254,8 +255,8 @@ function makeParseReport() {
     parsedSegments: 0,
     parsedConceptNodes: 0,
     ignoredLines: 0,
-    rawTagsByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-    createdByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    rawTagsByLevel: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    createdByLevel: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
     skippedUntaggedLines: [],
     skippedTaggedLines: [],
     parentMissingLines: [],
@@ -281,14 +282,22 @@ function isIgnoredSourceLine(line) {
     /^END OF COMPLETE/i.test(line) ||
     /^---+$/.test(line) ||
     /^=+$/.test(line) ||
-    /^[A-K]\.\s+/.test(line) ||
     /^\*End of taxonomy/i.test(line)
   );
 }
 
+function majorCategoryFromLine(line) {
+  const match = String(line || "").match(/^([A-K])\.\s+(?!\d)(.+)$/);
+  if (!match) return null;
+  const name = normalize(match[2])
+    .toLowerCase()
+    .replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+  return { name, note: `Major category ${match[1]}` };
+}
+
 function parseTaxonomyWithReport(text) {
   const roots = [];
-  let current = { 1: null, 2: null, 3: null, 4: null, 5: null };
+  let current = { 0: null, 1: null, 2: null, 3: null, 4: null, 5: null };
   const report = makeParseReport();
 
   for (const [lineIndex, rawLine] of String(text || "").split(/\r?\n/).entries()) {
@@ -300,7 +309,7 @@ function parseTaxonomyWithReport(text) {
     }
     report.nonEmptyLines += 1;
 
-    const tagMatches = [...line.matchAll(/\[L([1-5])\]/g)];
+    const tagMatches = [...line.matchAll(/\[L([0-5])\]/g)];
     for (const match of tagMatches) {
       report.rawTagsByLevel[Number(match[1])] += 1;
     }
@@ -308,6 +317,18 @@ function parseTaxonomyWithReport(text) {
     if (/^\|/.test(line)) {
       report.ignoredLines += 1;
       pushSample(report.tableLines, lineNumber, line, "Markdown table row");
+      continue;
+    }
+
+    const majorCategory = majorCategoryFromLine(line);
+    if (majorCategory) {
+      const node = createNode(0, majorCategory.name, "", majorCategory.note);
+      roots.push(node);
+      current = { 0: node, 1: null, 2: null, 3: null, 4: null, 5: null };
+      report.rawTagsByLevel[0] += 1;
+      report.createdByLevel[0] += 1;
+      report.parsedSegments += 1;
+      report.parsedLines += 1;
       continue;
     }
 
@@ -340,10 +361,20 @@ function parseTaxonomyWithReport(text) {
       for (const entry of entries) {
         if (!entry.name) continue;
 
-        if (segment.level === 1) {
+        if (segment.level === 0) {
+          const node = createNode(0, entry.name, "", entry.note);
+          roots.push(node);
+          current = { 0: node, 1: null, 2: null, 3: null, 4: null, 5: null };
+          report.createdByLevel[0] += 1;
+          report.parsedSegments += 1;
+          lineCreatedNodes += 1;
+          continue;
+        }
+
+        if (segment.level === 1 && !current[0]) {
           const node = createNode(1, entry.name, "", entry.note);
           roots.push(node);
-          current = { 1: node, 2: null, 3: null, 4: null, 5: null };
+          current = { 0: null, 1: node, 2: null, 3: null, 4: null, 5: null };
           report.createdByLevel[1] += 1;
           report.parsedSegments += 1;
           lineCreatedNodes += 1;
@@ -391,10 +422,10 @@ function flatten(nodes) {
 function datasetRoot() {
   return {
     id: DATASET_ROOT_ID,
-    level: 0,
+    level: -1,
     name: DATASET_ROOT_ID,
-    description: "Level 0 dataset root above all L1 domains. Use this level only to audit missing L1 domains.",
-    note: `${state.roots.length} L1 domains loaded.`,
+    description: "Dataset root above all L0 categories.",
+    note: `${state.roots.length} L0 categories loaded.`,
     path: [DATASET_ROOT_ID],
     bibliography: [],
     children: state.roots,
@@ -410,7 +441,7 @@ function childCount(node, level) {
 }
 
 function countByLevel(flat) {
-  return [1, 2, 3, 4, 5].map((level) => flat.filter((node) => node.level === level).length);
+  return [0, 1, 2, 3, 4, 5].map((level) => flat.filter((node) => node.level === level).length);
 }
 
 function clear(element) {
@@ -423,7 +454,7 @@ function setTaxonomy(text, sourceLabel) {
   state.parseReport = parsed.report;
   state.flat = displayFlat();
   applySavedBibliography();
-  state.selectedId = DATASET_ROOT_ID;
+  state.selectedId = state.roots[0]?.id || DATASET_ROOT_ID;
   state.sourceLabel = sourceLabel;
   state.auditItems = [];
   state.auditMode = "";
@@ -441,26 +472,24 @@ function l1RootFor(node) {
   return state.roots.find((root) => node.path[0] === root.name) || null;
 }
 
-const COVERAGE_SELECTS = {
+const COVERAGE_PARENT_SELECTS = {
+  1: "coverageL0Select",
   2: "coverageL2Select",
   3: "coverageL3Select",
   4: "coverageL4Select",
 };
 
 const COVERAGE_BUTTONS = {
+  1: "auditAllDomainsButton",
   2: "auditCoverageL2Button",
   3: "auditCoverageL3Button",
   4: "auditCoverageL4Button",
 };
 
-function selectedCoverageNode(level) {
-  const select = refs[COVERAGE_SELECTS[level]];
+function selectedCoverageParent(targetLevel) {
+  const select = refs[COVERAGE_PARENT_SELECTS[targetLevel]];
   if (!select) return null;
-  return state.flat.find((node) => node.id === select.value && node.level === level) || null;
-}
-
-function coverageAuditParentFor(node) {
-  return parentNode(node) || null;
+  return state.flat.find((node) => node.id === select.value && node.level === targetLevel - 1) || null;
 }
 
 function externalSearchEnabled(node) {
@@ -586,9 +615,10 @@ function nodeMatchesQuery(node, query) {
 
 function renderStats() {
   clear(refs.stats);
-  const [l1, l2, l3, l4, l5] = countByLevel(state.flat);
+  const [l0, l1, l2, l3, l4, l5] = countByLevel(state.flat);
   const items = [
     `${state.sourceLabel}`,
+    `L0 ${l0}`,
     `L1 ${l1}`,
     `L2 ${l2}`,
     `L3 ${l3}`,
@@ -604,17 +634,18 @@ function renderStats() {
   }
 }
 
-function renderCoverageLevelSelect(level) {
-  const select = refs[COVERAGE_SELECTS[level]];
+function renderCoverageParentSelect(targetLevel) {
+  const select = refs[COVERAGE_PARENT_SELECTS[targetLevel]];
   if (!select) return;
 
+  const parentLevel = targetLevel - 1;
   const previousValue = select.value;
   const selected = selectedNode();
-  const selectedSameLevel = selected?.level === level ? selected : null;
-  const selectedAncestor = selected?.path?.length >= level
-    ? state.flat.find((node) => node.level === level && node.id === makeId(selected.path.slice(0, level)))
+  const selectedSameLevel = selected?.level === parentLevel ? selected : null;
+  const selectedAncestor = selected?.path?.length >= parentLevel + 1
+    ? state.flat.find((node) => node.level === parentLevel && node.id === makeId(selected.path.slice(0, parentLevel + 1)))
     : null;
-  const nodes = state.flat.filter((node) => node.level === level);
+  const nodes = state.flat.filter((node) => node.level === parentLevel);
   const targetValue = selectedSameLevel?.id || selectedAncestor?.id || previousValue || nodes[0]?.id || "";
 
   select.replaceChildren();
@@ -630,7 +661,7 @@ function renderCoverageLevelSelect(level) {
 }
 
 function renderCoverageLevelSelects() {
-  [2, 3, 4].forEach(renderCoverageLevelSelect);
+  [1, 2, 3, 4].forEach(renderCoverageParentSelect);
 }
 
 function renderParseAudit() {
@@ -649,10 +680,10 @@ function renderParseAudit() {
 
   refs.parseAuditSummary.textContent =
     `Created ${createdTotal.toLocaleString()} nodes from ${report.parsedLines.toLocaleString()} tagged source lines. ` +
-    `Raw source contained ${rawTagTotal.toLocaleString()} explicit L1-L5 markers. ` +
+    `Raw source contained ${rawTagTotal.toLocaleString()} explicit L0-L5 markers. ` +
     `${issueCount ? `${issueCount} sampled parser issue${issueCount === 1 ? "" : "s"} need review.` : "No tagged taxonomy lines were sampled as failed."}`;
 
-  for (const level of [1, 2, 3, 4, 5]) {
+  for (const level of [0, 1, 2, 3, 4, 5]) {
     const chip = document.createElement("span");
     chip.className = "parse-level-chip";
     chip.textContent = `L${level}: ${report.createdByLevel[level].toLocaleString()} nodes / ${report.rawTagsByLevel[level].toLocaleString()} tags`;
@@ -694,7 +725,7 @@ function renderParseAudit() {
 function renderTree() {
   clear(refs.tree);
   const query = state.query.toLowerCase().trim();
-  const nodes = query ? visibleNodes() : state.roots.length ? [datasetRoot()] : [];
+  const nodes = query ? visibleNodes().filter((node) => node.level >= 0) : state.roots;
   if (!state.flat.length || !nodes.length) {
     const empty = document.createElement("p");
     empty.className = "no-results";
@@ -822,8 +853,10 @@ function renderDetail() {
     refs.externalSearchLinks.append(...createExternalSearchLinks(node).childNodes);
   }
   refs.detailDescription.textContent = node.description || (
-    node.level === 0
-      ? "Dataset root above all L1 domains. Audit here only for missing L1 domains, not for deeper L2-L4 branch coverage."
+    node.level === -1
+      ? "Dataset root above all L0 categories."
+      : node.level === 0
+      ? "Level 0 major category. Use Audit L1 to find missing L1 domains under this category."
       : node.level === 5
       ? "Specific concept or object of study from the supplied taxonomy."
       : node.level === 4
@@ -836,22 +869,16 @@ function renderDetail() {
   refs.explainButton.textContent = state.explainLoading ? "Teaching..." : "Teach This Item";
   renderExplanation(node);
   refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || node.level === 0 || (node.level >= 5 && !parentNode(node));
-  for (const level of [2, 3, 4]) {
-    refs[COVERAGE_BUTTONS[level]].disabled = state.auditLoading || !selectedCoverageNode(level);
+  for (const level of [1, 2, 3, 4]) {
+    refs[COVERAGE_BUTTONS[level]].disabled = state.auditLoading || !selectedCoverageParent(level);
   }
-  refs.auditAllDomainsButton.disabled = state.auditLoading || !state.roots.length;
   refs.auditBibliographyButton.disabled = state.auditLoading || node.level === 0;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
-  for (const level of [2, 3, 4]) {
+  for (const level of [1, 2, 3, 4]) {
     refs[COVERAGE_BUTTONS[level]].textContent = state.auditLoading && state.auditMode === `coverage-l${level}`
       ? `Auditing L${level}...`
       : `Audit L${level}`;
   }
-  refs.auditAllDomainsButton.textContent = state.auditLoading && state.auditMode === "all-coverage"
-    ? "Auditing missing L1..."
-    : node.level === 0
-    ? "Audit L0 Missing L1"
-    : "Audit L0 Missing L1";
   refs.auditBibliographyButton.textContent = state.auditLoading && state.auditMode === "bibliography" ? "Auditing bibliography..." : "Audit Bibliography Gaps";
   renderAuditResults();
   renderBibliography(node);
@@ -1114,8 +1141,8 @@ function addTaxonomyCandidate(item) {
   if (!parent || parent.level >= 5) return false;
   if (parent.children.some((child) => normalizeKey(child.name) === normalizeKey(item.name))) return false;
 
-  if (parent.level === 0) {
-    const root = createNode(1, item.name, "", item.note);
+  if (parent.id === DATASET_ROOT_ID) {
+    const root = createNode(0, item.name, "", item.note);
     state.roots.push(root);
     state.roots.sort((left, right) => left.name.localeCompare(right.name));
     state.flat = displayFlat();
@@ -1225,34 +1252,43 @@ function compactSubtreeForAudit(root) {
 }
 
 async function auditCoverageLevel(level) {
-  const selected = selectedCoverageNode(level);
-  const parent = coverageAuditParentFor(selected);
-  if (!selected || !parent) return;
+  const parent = selectedCoverageParent(level);
+  if (!parent) return;
 
   state.auditLoading = true;
   state.auditMode = `coverage-l${level}`;
   state.auditTargetId = parent.id;
   state.auditItems = [];
-  state.selectedId = selected.id;
-  refs.auditStatus.textContent = `Strictly checking for high-confidence missing L${level} items beside: ${selected.name}...`;
+  state.selectedId = parent.id;
+  refs.auditStatus.textContent = `Strictly checking for high-confidence missing L${level} children under: ${parent.name}...`;
   render();
 
   try {
+    const requestBody = level === 1
+      ? {
+          mode: "taxonomy",
+          apiKey: apiKey(),
+          selectedPath: parent.path,
+          auditParentPath: parent.path,
+          auditLevel: 1,
+          existingNames: parent.children.filter((child) => child.level === 1).map((child) => child.name),
+        }
+      : {
+          mode: "coverage",
+          apiKey: apiKey(),
+          selectedPath: parent.path,
+          selectedLevel: parent.level,
+          auditParentPath: parent.path,
+          targetLevel: level,
+          existingNames: parent.children.filter((child) => child.level === level).map((child) => child.name),
+          subtree: compactSubtreeForAudit(parent),
+        };
     const payload = await fetchJson("/api/audit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: "coverage",
-        apiKey: apiKey(),
-        selectedPath: selected.path,
-        selectedLevel: selected.level,
-        auditParentPath: parent.path,
-        targetLevel: level,
-        existingNames: parent.children.filter((child) => child.level === level).map((child) => child.name),
-        subtree: compactSubtreeForAudit(parent),
-      }),
+      body: JSON.stringify(requestBody),
     });
-    const accepted = dedupeCoverageItems(payload.items, level, parent);
+    const accepted = level === 1 ? dedupeTaxonomyItems(parent, payload.items) : dedupeCoverageItems(payload.items, level, parent);
     state.auditItems = accepted;
     refs.auditStatus.textContent = accepted.length
       ? `${payload.overview || `Strict L${level} audit complete.`} Kept ${accepted.length} high-confidence L${level} candidate${accepted.length === 1 ? "" : "s"} to review and add.`
@@ -1461,14 +1497,13 @@ refs.clearImportButton.addEventListener("click", () => {
 });
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
-for (const level of [2, 3, 4]) {
-  refs[COVERAGE_SELECTS[level]].addEventListener("change", () => {
-    const node = selectedCoverageNode(level);
+for (const level of [1, 2, 3, 4]) {
+  refs[COVERAGE_PARENT_SELECTS[level]].addEventListener("change", () => {
+    const node = selectedCoverageParent(level);
     if (node) selectNode(node);
   });
   refs[COVERAGE_BUTTONS[level]].addEventListener("click", () => auditCoverageLevel(level));
 }
-refs.auditAllDomainsButton.addEventListener("click", auditL0Domains);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
 refs.explainButton.addEventListener("click", explainSelectedItem);
 
