@@ -25,6 +25,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -139,6 +140,7 @@ h3 {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -153,6 +155,12 @@ input {
   padding: 10px 12px;
 }
 
+select {
+  min-height: 40px;
+  padding: 8px 10px;
+  font-weight: 700;
+}
+
 textarea {
   min-height: 280px;
   padding: 12px;
@@ -163,6 +171,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--active);
@@ -529,6 +538,17 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.audit-scope-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.audit-scope-control select {
+  width: min(420px, 100%);
 }
 
 .audit-result-toolbar {

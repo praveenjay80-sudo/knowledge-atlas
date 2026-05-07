@@ -34,6 +34,7 @@ const refs = {
   explainStatus: document.querySelector("#explainStatus"),
   explanation: document.querySelector("#explanation"),
   auditTaxonomyButton: document.querySelector("#auditTaxonomyButton"),
+  coverageDomainSelect: document.querySelector("#coverageDomainSelect"),
   auditCoverageButton: document.querySelector("#auditCoverageButton"),
   auditAllDomainsButton: document.querySelector("#auditAllDomainsButton"),
   auditBibliographyButton: document.querySelector("#auditBibliographyButton"),
@@ -431,6 +432,16 @@ function selectedNode() {
   return state.flat.find((node) => node.id === state.selectedId) || null;
 }
 
+function l1RootFor(node) {
+  if (!node || node.level === 0) return null;
+  return state.roots.find((root) => node.path[0] === root.name) || null;
+}
+
+function selectedCoverageRoot() {
+  const selectedId = refs.coverageDomainSelect.value;
+  return state.roots.find((root) => root.id === selectedId) || l1RootFor(selectedNode()) || state.roots[0] || null;
+}
+
 function externalSearchEnabled(node) {
   return node && node.level >= 1 && node.level <= 4;
 }
@@ -570,6 +581,25 @@ function renderStats() {
     chip.textContent = item;
     refs.stats.appendChild(chip);
   }
+}
+
+function renderCoverageDomainSelect() {
+  const previousValue = refs.coverageDomainSelect.value;
+  const selectedRoot = l1RootFor(selectedNode());
+  const targetValue = selectedRoot?.id || previousValue || state.roots[0]?.id || "";
+  refs.coverageDomainSelect.replaceChildren();
+
+  for (const root of state.roots) {
+    const option = document.createElement("option");
+    option.value = root.id;
+    option.textContent = root.name;
+    refs.coverageDomainSelect.appendChild(option);
+  }
+
+  refs.coverageDomainSelect.value = state.roots.some((root) => root.id === targetValue)
+    ? targetValue
+    : state.roots[0]?.id || "";
+  refs.coverageDomainSelect.disabled = state.auditLoading || !state.roots.length;
 }
 
 function renderParseAudit() {
@@ -775,7 +805,7 @@ function renderDetail() {
   refs.explainButton.textContent = state.explainLoading ? "Teaching..." : "Teach This Item";
   renderExplanation(node);
   refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || node.level === 0 || (node.level >= 5 && !parentNode(node));
-  refs.auditCoverageButton.disabled = state.auditLoading || !state.flat.length || node.level === 0 || node.level >= 4;
+  refs.auditCoverageButton.disabled = state.auditLoading || !state.roots.length || !selectedCoverageRoot();
   refs.auditAllDomainsButton.disabled = state.auditLoading || !state.roots.length;
   refs.auditBibliographyButton.disabled = state.auditLoading || node.level === 0;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
@@ -858,6 +888,7 @@ function renderExplanation(node) {
 
 function render() {
   renderStats();
+  renderCoverageDomainSelect();
   renderParseAudit();
   renderTree();
   renderDetail();
@@ -1126,14 +1157,15 @@ function compactSubtreeForAudit(root) {
 }
 
 async function auditCoverage() {
-  const node = selectedNode();
-  if (!node || node.level >= 4) return;
+  const node = selectedCoverageRoot();
+  if (!node) return;
 
   state.auditLoading = true;
   state.auditMode = "coverage";
   state.auditTargetId = node.id;
   state.auditItems = [];
-  refs.auditStatus.textContent = "Searching for missing established L2-L4 areas across this branch...";
+  state.selectedId = node.id;
+  refs.auditStatus.textContent = `Searching for missing established L2-L4 areas under selected L1: ${node.name}...`;
   render();
 
   try {
@@ -1357,6 +1389,10 @@ refs.clearImportButton.addEventListener("click", () => {
 });
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
+refs.coverageDomainSelect.addEventListener("change", () => {
+  const root = selectedCoverageRoot();
+  if (root) selectNode(root);
+});
 refs.auditCoverageButton.addEventListener("click", auditCoverage);
 refs.auditAllDomainsButton.addEventListener("click", auditL0Domains);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
