@@ -224,6 +224,22 @@ textarea:focus {
   gap: 6px;
 }
 
+.structured-tree,
+.tree-children {
+  display: grid;
+  gap: 6px;
+}
+
+.tree-children {
+  margin-left: 14px;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+}
+
+.tree-branch.level-1 {
+  margin-bottom: 10px;
+}
+
 .tree-item,
 .child-item {
   display: grid;
@@ -251,17 +267,12 @@ textarea:focus {
   border-left: 5px solid var(--accent);
 }
 
-.tree-item.level-2 {
-  margin-left: 12px;
-}
-
-.tree-item.level-3 {
-  margin-left: 24px;
-}
-
 .tree-item.level-4 {
-  margin-left: 36px;
   border-left: 3px solid var(--accent-2);
+}
+
+.tree-item.level-5 {
+  background: #fbfbf8;
 }
 
 .item-meta {
@@ -279,6 +290,13 @@ textarea:focus {
   color: var(--muted);
   font-size: 0.86rem;
   line-height: 1.42;
+}
+
+.item-path {
+  color: var(--accent-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .detail {

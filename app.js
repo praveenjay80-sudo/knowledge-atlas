@@ -141,24 +141,35 @@ function parseNameAndNote(raw) {
   };
 }
 
+function parseNumberedNameAndConcepts(raw) {
+  const cleaned = trimSegmentDecorations(raw);
+  const conceptSafe =
+    cleaned.includes(";") &&
+    !/Foundational work:/i.test(cleaned) &&
+    !cleaned.includes("||") &&
+    !cleaned.includes("↔");
+  if (!conceptSafe) {
+    return { entry: parseNameAndNote(cleaned), concepts: [] };
+  }
+
+  const pieces = cleaned.split(/\s*;\s*/).filter(Boolean);
+  const entry = parseNameAndNote(pieces.shift() || "");
+  const concepts = pieces
+    .map((piece) => stripLeadingEnumeration(stripMarkdown(piece)))
+    .filter(Boolean);
+  return { entry, concepts };
+}
+
 function parseLevelEntries(level, raw) {
   const cleaned = trimSegmentDecorations(raw);
   if (!cleaned) return [];
 
   if (level === 5) {
-    return splitDelimitedItems(cleaned).map((name) => ({ name, note: "" }));
+    return splitDelimitedItems(cleaned).map((name) => ({ name, note: "", concepts: [] }));
   }
 
-  const normalized = stripLeadingEnumeration(stripMarkdown(cleaned));
-  const shouldSplit =
-    normalized.includes(";") &&
-    !/[()]/.test(cleaned) &&
-    !cleaned.includes("||") &&
-    !cleaned.includes("↔");
-  const parts = shouldSplit ? splitDelimitedItems(normalized) : [normalized];
-  return parts
-    .map((part) => parseNameAndNote(part))
-    .filter((item) => item.name);
+  const { entry, concepts } = parseNumberedNameAndConcepts(cleaned);
+  return entry.name ? [{ ...entry, concepts }] : [];
 }
 
 function makeId(path) {
@@ -224,6 +235,9 @@ function parseTaxonomy(text) {
 
         const node = createNode(segment.level, entry.name, "", entry.note, parent);
         parent.children.push(node);
+        for (const concept of entry.concepts || []) {
+          node.children.push(createNode(Math.min(segment.level + 1, 5), concept, "", "", node));
+        }
 
         for (let level = segment.level; level <= 5; level += 1) {
           current[level] = level === segment.level ? node : null;
@@ -349,6 +363,13 @@ function visibleNodes() {
   );
 }
 
+function nodeMatchesQuery(node, query) {
+  return [node.name, node.description, node.note, node.path.join(" ")]
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
+}
+
 function renderStats() {
   clear(refs.stats);
   const [l1, l2, l3, l4, l5] = countByLevel(state.flat);
@@ -371,16 +392,32 @@ function renderStats() {
 
 function renderTree() {
   clear(refs.tree);
-  const nodes = visibleNodes();
-  if (!nodes.length) {
+  const query = state.query.toLowerCase().trim();
+  const nodes = query ? visibleNodes() : state.roots;
+  if (!state.flat.length || !nodes.length) {
     const empty = document.createElement("p");
     empty.className = "no-results";
-    empty.textContent = "No matching fields found.";
+    empty.textContent = state.flat.length ? "No matching fields found." : "Import the taxonomy source to build the hierarchy.";
     refs.tree.appendChild(empty);
     return;
   }
 
-  for (const node of nodes.slice(0, 900)) {
+  if (query) {
+    for (const node of nodes.slice(0, 900)) {
+      refs.tree.appendChild(renderTreeButton(node, true));
+    }
+    return;
+  }
+
+  const list = document.createElement("div");
+  list.className = "structured-tree";
+  for (const root of state.roots) {
+    list.appendChild(renderTreeBranch(root));
+  }
+  refs.tree.appendChild(list);
+}
+
+function renderTreeButton(node, showPath = false) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `tree-item level-${node.level}`;
@@ -388,14 +425,35 @@ function renderTree() {
     button.innerHTML = `
       <span class="item-meta">L${node.level}</span>
       <span class="item-title"></span>
+      ${showPath ? '<span class="item-path"></span>' : ""}
       ${node.note ? '<span class="item-foundation"></span>' : ""}
     `;
     button.querySelector(".item-title").textContent = node.name;
+    const path = button.querySelector(".item-path");
+    if (path) path.textContent = node.path.join(" > ");
     const foundation = button.querySelector(".item-foundation");
     if (foundation) foundation.textContent = node.note;
     button.addEventListener("click", () => selectNode(node));
-    refs.tree.appendChild(button);
+    return button;
+}
+
+function renderTreeBranch(node) {
+  const branch = document.createElement("div");
+  branch.className = `tree-branch level-${node.level}`;
+  const selected = selectedNode();
+  const isSelectedPath = Boolean(selected) && node.path.every((part, index) => selected.path[index] === part);
+  branch.appendChild(renderTreeButton(node));
+
+  if (node.children.length && (node.level === 1 || isSelectedPath)) {
+    const children = document.createElement("div");
+    children.className = "tree-children";
+    for (const child of node.children) {
+      if (node.level >= 4 && !isSelectedPath) continue;
+      children.appendChild(renderTreeBranch(child));
+    }
+    branch.appendChild(children);
   }
+  return branch;
 }
 
 function renderChildren(node) {
