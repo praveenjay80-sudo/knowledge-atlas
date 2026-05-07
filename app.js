@@ -983,6 +983,29 @@ function dedupeTaxonomyItems(parent, items) {
   return accepted;
 }
 
+const JUNK_COVERAGE_TERMS = [
+  "advanced topics",
+  "modern trends",
+  "emerging areas",
+  "integrated approaches",
+  "special topics",
+  "selected topics",
+  "case studies",
+  "miscellaneous",
+  "various",
+  "future directions",
+];
+
+function isJunkCoverageName(name) {
+  const value = normalize(name);
+  const key = normalizeKey(value);
+  if (!key || value.length > 80) return true;
+  if (/^(introduction to|overview of|topics in|selected topics|advanced topics|applications of|future of)\b/i.test(value)) return true;
+  if (/\b(and related|and other|etc|miscellaneous|various)\b/i.test(value)) return true;
+  if (/\b(theoretical aspects of|perspectives on|approaches to|case studies in)\b/i.test(value)) return true;
+  return JUNK_COVERAGE_TERMS.some((term) => key === normalizeKey(term) || key.includes(normalizeKey(term)));
+}
+
 function dedupeCoverageItems(items) {
   const accepted = [];
   const seen = new Set();
@@ -992,15 +1015,21 @@ function dedupeCoverageItems(items) {
     const parent = state.flat.find((node) => makeId(node.path) === makeId(parentPath));
     const level = Number(item.level);
     if (!name || !parent || parent.level >= 4 || level !== parent.level + 1 || level < 2 || level > 4) continue;
+    if (item.confidence !== "high" || isJunkCoverageName(name)) continue;
 
     const key = `${parent.id}|${normalizeKey(name)}`;
     if (seen.has(key) || parent.children.some((child) => normalizeKey(child.name) === normalizeKey(name))) continue;
+    const note = normalize(item.foundational_work);
+    const whyMissing = normalize(item.why_missing);
+    if (level === 4 && note.length < 8) continue;
+    if (whyMissing.length < 20) continue;
+
     seen.add(key);
     accepted.push({
       name,
-      note: normalize(item.foundational_work),
-      why_missing: normalize(item.why_missing),
-      confidence: item.confidence || "medium",
+      note,
+      why_missing: whyMissing,
+      confidence: "high",
       parentId: parent.id,
       suggestedLevel: level,
     });
@@ -1165,7 +1194,7 @@ async function auditCoverage() {
   state.auditTargetId = node.id;
   state.auditItems = [];
   state.selectedId = node.id;
-  refs.auditStatus.textContent = `Searching for missing established L2-L4 areas under selected L1: ${node.name}...`;
+  refs.auditStatus.textContent = `Strictly checking for high-confidence missing L2-L4 areas under selected L1: ${node.name}...`;
   render();
 
   try {
@@ -1183,8 +1212,8 @@ async function auditCoverage() {
     const accepted = dedupeCoverageItems(payload.items);
     state.auditItems = accepted;
     refs.auditStatus.textContent = accepted.length
-      ? `${payload.overview || "Coverage audit complete."} Found ${accepted.length} missing L2-L4 candidate${accepted.length === 1 ? "" : "s"} to review and add.`
-      : payload.overview || "Coverage audit complete. No high-confidence L2-L4 omissions were returned for this branch.";
+      ? `${payload.overview || "Strict coverage audit complete."} Kept ${accepted.length} high-confidence L2-L4 candidate${accepted.length === 1 ? "" : "s"} to review and add.`
+      : payload.overview || "Strict coverage audit complete. No high-confidence L2-L4 omissions survived the quality filter for this branch.";
   } catch (error) {
     refs.auditStatus.textContent = error.message || "Coverage audit failed.";
   } finally {
