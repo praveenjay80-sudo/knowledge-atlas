@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Complete Taxonomy of Human Knowledge</title>
+  <title>Theoretical Sciences Taxonomy Browser</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
     <header class="masthead">
       <div>
         <p class="eyebrow">Browsable source taxonomy</p>
-        <h1>A Complete Taxonomy of Human Knowledge</h1>
+        <h1>Exhaustive Taxonomy of the Theoretical Sciences</h1>
       </div>
       <div class="stats" id="stats"></div>
     </header>
@@ -32,9 +32,9 @@
     <section id="importPanel" class="import-panel" hidden>
       <div class="import-copy">
         <h2>Import the taxonomy text</h2>
-        <p>Paste the taxonomy exactly as written. The app parses LEVEL 1, L2, L3, and L4 lines and stores the source in this browser.</p>
+        <p>Paste the taxonomy exactly as written. The app parses tagged markdown hierarchies from [L1] through [L5] and stores the source in this browser.</p>
       </div>
-      <textarea id="sourceInput" spellcheck="false" placeholder="Paste: A COMPLETE TAXONOMY OF HUMAN KNOWLEDGE..."></textarea>
+      <textarea id="sourceInput" spellcheck="false" placeholder="Paste: ## [L1] Pure Mathematics ..."></textarea>
       <div class="button-row">
         <button id="parseSourceButton" type="button">Parse and Browse</button>
         <button id="hideImportButton" type="button">Close</button>
@@ -46,7 +46,7 @@
       <aside class="tree-panel">
         <div class="panel-heading">
           <p class="eyebrow">Hierarchy</p>
-          <h2>Levels 1-4</h2>
+          <h2>Levels 1-5</h2>
         </div>
         <div id="tree"></div>
       </aside>
@@ -54,7 +54,7 @@
       <section class="detail-panel">
         <div id="emptyState" class="empty-state">
           <h2>Load the source taxonomy to begin</h2>
-          <p>The browser is built for the exact text format you provided, including foundational works on each Level 4 field.</p>
+          <p>The browser is built for the tagged hierarchy you provided, including L1-L5 branches, inline notes, and cross-domain links.</p>
         </div>
         <article id="detail" class="detail" hidden>
           <p id="detailLevel" class="eyebrow"></p>
@@ -62,7 +62,7 @@
           <p id="detailPath" class="path"></p>
           <p id="detailDescription" class="description"></p>
           <section id="foundationalSection" class="foundational" hidden>
-            <h3>Foundational Work</h3>
+            <h3>Notes and Cross-References</h3>
             <p id="foundationalText"></p>
           </section>
           <section class="audit-panel">

@@ -1,5 +1,5 @@
-const STORAGE_KEY = "complete-human-knowledge-taxonomy-source";
-const BIBLIOGRAPHY_KEY = "complete-human-knowledge-taxonomy-bibliography";
+const STORAGE_KEY = "theoretical-sciences-taxonomy-source-v2";
+const BIBLIOGRAPHY_KEY = "theoretical-sciences-taxonomy-bibliography-v2";
 const SOURCE_URL = "/data/user_taxonomy_source.txt";
 
 const refs = {
@@ -49,29 +49,130 @@ function normalize(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
-function splitFoundational(line) {
-  const compact = normalize(line);
-  const marker = compact.match(/\s*Foundational work:\s*/i);
-  if (!marker) return { name: compact, foundational: "" };
-  const index = marker.index;
+function stripMarkdown(value) {
+  return normalize(
+    String(value || "")
+      .replace(/[*`#_]/g, " ")
+      .replace(/\s+/g, " "),
+  );
+}
+
+function stripLeadingEnumeration(value) {
+  return normalize(String(value || "").replace(/^\d+(?:\.\d+)*(?:\.)?\s*/, ""));
+}
+
+function trimSegmentDecorations(value) {
+  return normalize(
+    String(value || "")
+      .replace(/^[\s\-–—:;|]+/, "")
+      .replace(/[\s\-–—:;|]+$/, ""),
+  );
+}
+
+function splitDelimitedItems(value) {
+  return String(value || "")
+    .split(/\s*;\s*/)
+    .map((item) => stripLeadingEnumeration(stripMarkdown(item)))
+    .filter(Boolean);
+}
+
+function extractTaggedSegments(line) {
+  const text = String(line || "");
+  const matches = [...text.matchAll(/\[L([1-5])\]/g)];
+  if (!matches.length) {
+    return [];
+  }
+
+  return matches.map((match, index) => {
+    const next = matches[index + 1];
+    const start = match.index + match[0].length;
+    const end = next ? next.index : text.length;
+    return {
+      level: Number(match[1]),
+      raw: text.slice(start, end),
+    };
+  });
+}
+
+function extractLegacySegment(line) {
+  const match = String(line || "").match(/^(LEVEL\s+1|L[2-5]):\s*(.+)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const level = match[1].toUpperCase().startsWith("LEVEL") ? 1 : Number(match[1].slice(1));
+  return [{ level, raw: match[2] }];
+}
+
+function parseNameAndNote(raw) {
+  let text = stripLeadingEnumeration(stripMarkdown(trimSegmentDecorations(raw)));
+  let noteParts = [];
+
+  const crossReference = text.match(/\s*↔\s*(.+)$/);
+  if (crossReference) {
+    noteParts.push(`Cross-reference: ${normalize(crossReference[1])}`);
+    text = normalize(text.slice(0, crossReference.index));
+  }
+
+  const parentheticalNotes = [...text.matchAll(/\(([^()]*)\)/g)]
+    .map((match) => normalize(match[1]))
+    .filter(Boolean);
+  if (parentheticalNotes.length) {
+    noteParts = [...noteParts, ...parentheticalNotes];
+    text = normalize(text.replace(/\([^()]*\)/g, " "));
+  }
+
+  const legacySeparator = text.match(/\s+Foundational work:\s+/i);
+  if (legacySeparator) {
+    const index = legacySeparator.index;
+    noteParts.unshift(`Foundational work: ${normalize(text.slice(index + legacySeparator[0].length))}`);
+    text = normalize(text.slice(0, index));
+  }
+
+  const simpleNote = text.match(/\s*\|\|\s*(.+)$/);
+  if (simpleNote) {
+    noteParts.unshift(normalize(simpleNote[1]));
+    text = normalize(text.slice(0, simpleNote.index));
+  }
+
   return {
-    name: normalize(compact.slice(0, index)),
-    foundational: normalize(compact.slice(index + marker[0].length)),
+    name: text,
+    note: normalize(noteParts.join(" | ")),
   };
+}
+
+function parseLevelEntries(level, raw) {
+  const cleaned = trimSegmentDecorations(raw);
+  if (!cleaned) return [];
+
+  if (level === 5) {
+    return splitDelimitedItems(cleaned).map((name) => ({ name, note: "" }));
+  }
+
+  const normalized = stripLeadingEnumeration(stripMarkdown(cleaned));
+  const shouldSplit =
+    normalized.includes(";") &&
+    !/[()]/.test(cleaned) &&
+    !cleaned.includes("||") &&
+    !cleaned.includes("↔");
+  const parts = shouldSplit ? splitDelimitedItems(normalized) : [normalized];
+  return parts
+    .map((part) => parseNameAndNote(part))
+    .filter((item) => item.name);
 }
 
 function makeId(path) {
   return path.join(" > ");
 }
 
-function createNode(level, name, description = "", foundational = "", parent = null) {
+function createNode(level, name, description = "", note = "", parent = null) {
   const path = parent ? [...parent.path, name] : [name];
   return {
     id: makeId(path),
     level,
     name,
     description,
-    foundational,
+    note,
     path,
     bibliography: [],
     children: [],
@@ -80,52 +181,54 @@ function createNode(level, name, description = "", foundational = "", parent = n
 
 function parseTaxonomy(text) {
   const roots = [];
-  let current = { 1: null, 2: null, 3: null };
-  let pendingLevelOneDescription = null;
+  let current = { 1: null, 2: null, 3: null, 4: null, 5: null };
 
   for (const rawLine of String(text || "").split(/\r?\n/)) {
     const line = rawLine.trim();
-    if (!line || /^A COMPLETE TAXONOMY/i.test(line)) continue;
-
-    const levelOne = line.match(/^LEVEL\s+1:\s*(.+)$/i);
-    if (levelOne) {
-      const node = createNode(1, normalize(levelOne[1]));
-      roots.push(node);
-      current = { 1: node, 2: null, 3: null };
-      pendingLevelOneDescription = node;
+    if (
+      !line ||
+      /^A COMPLETE TAXONOMY/i.test(line) ||
+      /^#\s*Exhaustive Hierarchical Taxonomy/i.test(line) ||
+      /^##\s*Level Convention/i.test(line) ||
+      /^##\s*Cross-Domain Connection Map/i.test(line) ||
+      /^\|/.test(line) ||
+      /^---+$/.test(line) ||
+      /^\*End of taxonomy/i.test(line)
+    ) {
       continue;
     }
 
-    const l2 = line.match(/^L2:\s*(.+)$/i);
-    if (l2 && current[1]) {
-      const node = createNode(2, normalize(l2[1]), "", "", current[1]);
-      current[1].children.push(node);
-      current[2] = node;
-      current[3] = null;
-      pendingLevelOneDescription = null;
+    const taggedSegments = extractTaggedSegments(line);
+    const legacySegments = extractLegacySegment(line);
+    const segments = taggedSegments.length ? taggedSegments : legacySegments || [];
+    if (!segments.length) {
       continue;
     }
 
-    const l3 = line.match(/^L3:\s*(.+)$/i);
-    if (l3 && current[2]) {
-      const node = createNode(3, normalize(l3[1]), "", "", current[2]);
-      current[2].children.push(node);
-      current[3] = node;
-      pendingLevelOneDescription = null;
-      continue;
-    }
+    for (const segment of segments) {
+      const entries = parseLevelEntries(segment.level, segment.raw);
+      for (const entry of entries) {
+        if (!entry.name) continue;
 
-    const l4 = line.match(/^L4:\s*(.+)$/i);
-    if (l4 && current[3]) {
-      const parsed = splitFoundational(l4[1]);
-      const node = createNode(4, parsed.name, "", parsed.foundational, current[3]);
-      current[3].children.push(node);
-      pendingLevelOneDescription = null;
-      continue;
-    }
+        if (segment.level === 1) {
+          const node = createNode(1, entry.name, "", entry.note);
+          roots.push(node);
+          current = { 1: node, 2: null, 3: null, 4: null, 5: null };
+          continue;
+        }
 
-    if (pendingLevelOneDescription && !pendingLevelOneDescription.description) {
-      pendingLevelOneDescription.description = normalize(line);
+        const parent = current[segment.level - 1];
+        if (!parent) {
+          continue;
+        }
+
+        const node = createNode(segment.level, entry.name, "", entry.note, parent);
+        parent.children.push(node);
+
+        for (let level = segment.level; level <= 5; level += 1) {
+          current[level] = level === segment.level ? node : null;
+        }
+      }
     }
   }
 
@@ -141,7 +244,7 @@ function childCount(node, level) {
 }
 
 function countByLevel(flat) {
-  return [1, 2, 3, 4].map((level) => flat.filter((node) => node.level === level).length);
+  return [1, 2, 3, 4, 5].map((level) => flat.filter((node) => node.level === level).length);
 }
 
 function clear(element) {
@@ -204,7 +307,7 @@ function parentNode(node) {
 }
 
 function auditParentFor(node) {
-  return node?.level === 4 ? parentNode(node) : node;
+  return node?.level === 5 ? parentNode(node) : node;
 }
 
 function normalizeKey(value) {
@@ -216,24 +319,15 @@ function bibliographyKey(item) {
 }
 
 function serializeTaxonomy() {
-  const lines = ["A COMPLETE TAXONOMY OF HUMAN KNOWLEDGE", ""];
-  for (const root of state.roots) {
-    lines.push(`LEVEL 1: ${root.name}`, "");
-    if (root.description) lines.push(root.description, "");
-    for (const l2 of root.children) {
-      lines.push(`L2: ${l2.name}`);
-      for (const l3 of l2.children) {
-        lines.push(`L3: ${l3.name}`);
-        for (const l4 of l3.children) {
-          lines.push(`L4: ${l4.name}${l4.foundational ? `Foundational work: ${l4.foundational}` : ""}`);
-        }
-        lines.push("");
-      }
-      lines.push("");
-    }
-    lines.push("");
+  const lines = [];
+
+  function walk(node) {
+    lines.push(`L${node.level}: ${node.name}${node.note ? ` || ${node.note}` : ""}`);
+    node.children.forEach(walk);
   }
-  return lines.join("\n").replace(/\n{4,}/g, "\n\n\n").trim() + "\n";
+
+  state.roots.forEach(walk);
+  return `${lines.join("\n").trim()}\n`;
 }
 
 async function fetchJson(url, options) {
@@ -248,7 +342,7 @@ function visibleNodes() {
   const query = state.query.toLowerCase();
   if (!query) return state.flat;
   return state.flat.filter((node) =>
-    [node.name, node.description, node.foundational, node.path.join(" ")]
+    [node.name, node.description, node.note, node.path.join(" ")]
       .join(" ")
       .toLowerCase()
       .includes(query),
@@ -257,13 +351,14 @@ function visibleNodes() {
 
 function renderStats() {
   clear(refs.stats);
-  const [l1, l2, l3, l4] = countByLevel(state.flat);
+  const [l1, l2, l3, l4, l5] = countByLevel(state.flat);
   const items = [
     `${state.sourceLabel}`,
     `L1 ${l1}`,
     `L2 ${l2}`,
     `L3 ${l3}`,
     `L4 ${l4}`,
+    `L5 ${l5}`,
     `${state.flat.length.toLocaleString()} total`,
   ];
   for (const item of items) {
@@ -291,13 +386,13 @@ function renderTree() {
     button.className = `tree-item level-${node.level}`;
     button.classList.toggle("active", node.id === state.selectedId);
     button.innerHTML = `
-      <span class="item-meta">Level ${node.level}</span>
+      <span class="item-meta">L${node.level}</span>
       <span class="item-title"></span>
-      ${node.foundational ? '<span class="item-foundation"></span>' : ""}
+      ${node.note ? '<span class="item-foundation"></span>' : ""}
     `;
     button.querySelector(".item-title").textContent = node.name;
     const foundation = button.querySelector(".item-foundation");
-    if (foundation) foundation.textContent = node.foundational;
+    if (foundation) foundation.textContent = node.note;
     button.addEventListener("click", () => selectNode(node));
     refs.tree.appendChild(button);
   }
@@ -309,7 +404,7 @@ function renderChildren(node) {
   if (!node.children.length) {
     const empty = document.createElement("p");
     empty.className = "no-results";
-    empty.textContent = node.level === 4 ? "This is a Level 4 field in the supplied taxonomy." : "No children are loaded under this item.";
+    empty.textContent = node.level === 5 ? "This is a Level 5 concept or object of study in the supplied taxonomy." : "No children are loaded under this item.";
     refs.children.appendChild(empty);
     return;
   }
@@ -320,17 +415,17 @@ function renderChildren(node) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "child-item";
-    const lowerCounts = child.level < 4
+    const lowerCounts = child.level < 5
       ? ` | ${childCount(child, child.level + 1)} direct or lower items`
       : "";
     button.innerHTML = `
-      <span class="item-meta">Level ${child.level}${lowerCounts}</span>
+      <span class="item-meta">L${child.level}${lowerCounts}</span>
       <span class="item-title"></span>
-      ${child.foundational ? '<span class="item-foundation"></span>' : ""}
+      ${child.note ? '<span class="item-foundation"></span>' : ""}
     `;
     button.querySelector(".item-title").textContent = child.name;
     const foundation = button.querySelector(".item-foundation");
-    if (foundation) foundation.textContent = child.foundational;
+    if (foundation) foundation.textContent = child.note;
     button.addEventListener("click", () => selectNode(child));
     list.appendChild(button);
   }
@@ -343,17 +438,19 @@ function renderDetail() {
   refs.detail.hidden = !node;
   if (!node) return;
 
-  refs.detailLevel.textContent = `Level ${node.level}`;
+  refs.detailLevel.textContent = `L${node.level}`;
   refs.detailTitle.textContent = node.name;
   refs.detailPath.textContent = node.path.join(" > ");
   refs.detailDescription.textContent = node.description || (
-    node.level === 4
-      ? "Specialized field from the supplied taxonomy."
+    node.level === 5
+      ? "Specific concept or object of study from the supplied taxonomy."
+      : node.level === 4
+      ? "Topic area from the supplied taxonomy."
       : "Taxonomy branch from the supplied source text."
   );
-  refs.foundationalSection.hidden = !node.foundational;
-  refs.foundationalText.textContent = node.foundational;
-  refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || node.level >= 4 && !parentNode(node);
+  refs.foundationalSection.hidden = !node.note;
+  refs.foundationalText.textContent = node.note;
+  refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || (node.level >= 5 && !parentNode(node));
   refs.auditBibliographyButton.disabled = state.auditLoading;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
   refs.auditBibliographyButton.textContent = state.auditLoading && state.auditMode === "bibliography" ? "Auditing bibliography..." : "Audit Bibliography Gaps";
@@ -391,7 +488,7 @@ function renderAuditResults() {
       : item.name;
     const meta = state.auditMode === "bibliography"
       ? item.category || "bibliography"
-      : item.foundational_work || "taxonomy item";
+      : item.note || "taxonomy item";
     card.innerHTML = `
       <strong></strong>
       <p class="item-meta"></p>
@@ -444,12 +541,12 @@ function dedupeTaxonomyItems(parent, items) {
     const key = normalizeKey(name);
     if (!name || seen.has(key)) continue;
     seen.add(key);
-    accepted.push({
-      name,
-      foundational: normalize(item.foundational_work),
-      why_missing: normalize(item.why_missing),
-      confidence: item.confidence || "medium",
-      parentId: parent.id,
+      accepted.push({
+        name,
+        note: normalize(item.foundational_work),
+        why_missing: normalize(item.why_missing),
+        confidence: item.confidence || "medium",
+        parentId: parent.id,
     });
   }
   return accepted;
@@ -458,7 +555,7 @@ function dedupeTaxonomyItems(parent, items) {
 function dedupeBibliographyItems(node, items) {
   const seen = new Set([
     ...node.bibliography.map(bibliographyKey),
-    bibliographyKey({ title: node.foundational, authors: "", year: "" }),
+    bibliographyKey({ title: node.note, authors: "", year: "" }),
   ]);
   const accepted = [];
   for (const item of items || []) {
@@ -490,10 +587,10 @@ function persistTaxonomy() {
 
 function addTaxonomyCandidate(item) {
   const parent = state.flat.find((node) => node.id === item.parentId);
-  if (!parent || parent.level >= 4) return false;
+  if (!parent || parent.level >= 5) return false;
   if (parent.children.some((child) => normalizeKey(child.name) === normalizeKey(item.name))) return false;
 
-  const child = createNode(parent.level + 1, item.name, "", item.foundational, parent);
+  const child = createNode(parent.level + 1, item.name, "", item.note, parent);
   parent.children.push(child);
   parent.children.sort((left, right) => left.name.localeCompare(right.name));
   state.flat = flatten(state.roots);
@@ -560,7 +657,7 @@ async function auditTaxonomy() {
         apiKey: apiKey(),
         selectedPath: node.path,
         auditParentPath: parent.path,
-        auditLevel: Math.min(parent.level + 1, 4),
+        auditLevel: Math.min(parent.level + 1, 5),
         existingNames: parent.children.map((child) => child.name),
       }),
     });
@@ -596,7 +693,7 @@ async function auditBibliography() {
         mode: "bibliography",
         apiKey: apiKey(),
         selectedPath: node.path,
-        foundational: node.foundational,
+        foundational: node.note,
         existingBibliography: node.bibliography,
       }),
     });
@@ -639,7 +736,7 @@ async function loadInitialSource() {
   state.sourceLabel = "No source loaded";
   refs.sourceInput.value = "";
   refs.importPanel.hidden = false;
-  refs.importStatus.textContent = "No checked-in taxonomy source found. Paste the exact taxonomy text to browse it.";
+  refs.importStatus.textContent = "No checked-in taxonomy source found. Paste the exact [L1]-[L5] taxonomy text to browse it.";
   render();
 }
 
@@ -665,8 +762,8 @@ refs.parseSourceButton.addEventListener("click", () => {
   }
   const roots = parseTaxonomy(text);
   const flat = flatten(roots);
-  if (!roots.length || !flat.some((node) => node.level === 4)) {
-    refs.importStatus.textContent = "I could not find LEVEL 1 and L4 entries in that text.";
+  if (!roots.length || !flat.some((node) => node.level >= 4)) {
+    refs.importStatus.textContent = "I could not find usable [L1]-[L5] taxonomy entries in that text.";
     return;
   }
   localStorage.setItem(STORAGE_KEY, text);
