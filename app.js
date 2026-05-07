@@ -34,8 +34,12 @@ const refs = {
   explainStatus: document.querySelector("#explainStatus"),
   explanation: document.querySelector("#explanation"),
   auditTaxonomyButton: document.querySelector("#auditTaxonomyButton"),
-  coverageDomainSelect: document.querySelector("#coverageDomainSelect"),
-  auditCoverageButton: document.querySelector("#auditCoverageButton"),
+  coverageL2Select: document.querySelector("#coverageL2Select"),
+  coverageL3Select: document.querySelector("#coverageL3Select"),
+  coverageL4Select: document.querySelector("#coverageL4Select"),
+  auditCoverageL2Button: document.querySelector("#auditCoverageL2Button"),
+  auditCoverageL3Button: document.querySelector("#auditCoverageL3Button"),
+  auditCoverageL4Button: document.querySelector("#auditCoverageL4Button"),
   auditAllDomainsButton: document.querySelector("#auditAllDomainsButton"),
   auditBibliographyButton: document.querySelector("#auditBibliographyButton"),
   auditStatus: document.querySelector("#auditStatus"),
@@ -437,9 +441,26 @@ function l1RootFor(node) {
   return state.roots.find((root) => node.path[0] === root.name) || null;
 }
 
-function selectedCoverageRoot() {
-  const selectedId = refs.coverageDomainSelect.value;
-  return state.roots.find((root) => root.id === selectedId) || l1RootFor(selectedNode()) || state.roots[0] || null;
+const COVERAGE_SELECTS = {
+  2: "coverageL2Select",
+  3: "coverageL3Select",
+  4: "coverageL4Select",
+};
+
+const COVERAGE_BUTTONS = {
+  2: "auditCoverageL2Button",
+  3: "auditCoverageL3Button",
+  4: "auditCoverageL4Button",
+};
+
+function selectedCoverageNode(level) {
+  const select = refs[COVERAGE_SELECTS[level]];
+  if (!select) return null;
+  return state.flat.find((node) => node.id === select.value && node.level === level) || null;
+}
+
+function coverageAuditParentFor(node) {
+  return parentNode(node) || null;
 }
 
 function externalSearchEnabled(node) {
@@ -583,23 +604,33 @@ function renderStats() {
   }
 }
 
-function renderCoverageDomainSelect() {
-  const previousValue = refs.coverageDomainSelect.value;
-  const selectedRoot = l1RootFor(selectedNode());
-  const targetValue = selectedRoot?.id || previousValue || state.roots[0]?.id || "";
-  refs.coverageDomainSelect.replaceChildren();
+function renderCoverageLevelSelect(level) {
+  const select = refs[COVERAGE_SELECTS[level]];
+  if (!select) return;
 
-  for (const root of state.roots) {
+  const previousValue = select.value;
+  const selected = selectedNode();
+  const selectedSameLevel = selected?.level === level ? selected : null;
+  const selectedAncestor = selected?.path?.length >= level
+    ? state.flat.find((node) => node.level === level && node.id === makeId(selected.path.slice(0, level)))
+    : null;
+  const nodes = state.flat.filter((node) => node.level === level);
+  const targetValue = selectedSameLevel?.id || selectedAncestor?.id || previousValue || nodes[0]?.id || "";
+
+  select.replaceChildren();
+  for (const node of nodes) {
     const option = document.createElement("option");
-    option.value = root.id;
-    option.textContent = root.name;
-    refs.coverageDomainSelect.appendChild(option);
+    option.value = node.id;
+    option.textContent = node.path.join(" > ");
+    select.appendChild(option);
   }
 
-  refs.coverageDomainSelect.value = state.roots.some((root) => root.id === targetValue)
-    ? targetValue
-    : state.roots[0]?.id || "";
-  refs.coverageDomainSelect.disabled = state.auditLoading || !state.roots.length;
+  select.value = nodes.some((node) => node.id === targetValue) ? targetValue : nodes[0]?.id || "";
+  select.disabled = state.auditLoading || !nodes.length;
+}
+
+function renderCoverageLevelSelects() {
+  [2, 3, 4].forEach(renderCoverageLevelSelect);
 }
 
 function renderParseAudit() {
@@ -805,11 +836,17 @@ function renderDetail() {
   refs.explainButton.textContent = state.explainLoading ? "Teaching..." : "Teach This Item";
   renderExplanation(node);
   refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || node.level === 0 || (node.level >= 5 && !parentNode(node));
-  refs.auditCoverageButton.disabled = state.auditLoading || !state.roots.length || !selectedCoverageRoot();
+  for (const level of [2, 3, 4]) {
+    refs[COVERAGE_BUTTONS[level]].disabled = state.auditLoading || !selectedCoverageNode(level);
+  }
   refs.auditAllDomainsButton.disabled = state.auditLoading || !state.roots.length;
   refs.auditBibliographyButton.disabled = state.auditLoading || node.level === 0;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
-  refs.auditCoverageButton.textContent = state.auditLoading && state.auditMode === "coverage" ? "Auditing coverage..." : "Deep L2-L4 Coverage Audit";
+  for (const level of [2, 3, 4]) {
+    refs[COVERAGE_BUTTONS[level]].textContent = state.auditLoading && state.auditMode === `coverage-l${level}`
+      ? `Auditing L${level}...`
+      : `Audit L${level}`;
+  }
   refs.auditAllDomainsButton.textContent = state.auditLoading && state.auditMode === "all-coverage"
     ? "Auditing missing L1..."
     : node.level === 0
@@ -888,7 +925,7 @@ function renderExplanation(node) {
 
 function render() {
   renderStats();
-  renderCoverageDomainSelect();
+  renderCoverageLevelSelects();
   renderParseAudit();
   renderTree();
   renderDetail();
@@ -917,7 +954,7 @@ function renderAuditResults() {
       : item.name;
     const meta = state.auditMode === "bibliography"
       ? item.category || "bibliography"
-      : state.auditMode === "coverage"
+      : state.auditMode.startsWith("coverage")
       ? `L${item.suggestedLevel} under ${state.flat.find((node) => node.id === item.parentId)?.path.join(" > ") || "selected branch"}`
       : item.note || "taxonomy item";
     card.innerHTML = `
@@ -1006,7 +1043,7 @@ function isJunkCoverageName(name) {
   return JUNK_COVERAGE_TERMS.some((term) => key === normalizeKey(term) || key.includes(normalizeKey(term)));
 }
 
-function dedupeCoverageItems(items) {
+function dedupeCoverageItems(items, targetLevel = null, targetParent = null) {
   const accepted = [];
   const seen = new Set();
   for (const item of items || []) {
@@ -1015,6 +1052,8 @@ function dedupeCoverageItems(items) {
     const parent = state.flat.find((node) => makeId(node.path) === makeId(parentPath));
     const level = Number(item.level);
     if (!name || !parent || parent.level >= 4 || level !== parent.level + 1 || level < 2 || level > 4) continue;
+    if (targetLevel && level !== targetLevel) continue;
+    if (targetParent && parent.id !== targetParent.id) continue;
     if (item.confidence !== "high" || isJunkCoverageName(name)) continue;
 
     const key = `${parent.id}|${normalizeKey(name)}`;
@@ -1185,16 +1224,17 @@ function compactSubtreeForAudit(root) {
     }));
 }
 
-async function auditCoverage() {
-  const node = selectedCoverageRoot();
-  if (!node) return;
+async function auditCoverageLevel(level) {
+  const selected = selectedCoverageNode(level);
+  const parent = coverageAuditParentFor(selected);
+  if (!selected || !parent) return;
 
   state.auditLoading = true;
-  state.auditMode = "coverage";
-  state.auditTargetId = node.id;
+  state.auditMode = `coverage-l${level}`;
+  state.auditTargetId = parent.id;
   state.auditItems = [];
-  state.selectedId = node.id;
-  refs.auditStatus.textContent = `Strictly checking for high-confidence missing L2-L4 areas under selected L1: ${node.name}...`;
+  state.selectedId = selected.id;
+  refs.auditStatus.textContent = `Strictly checking for high-confidence missing L${level} items beside: ${selected.name}...`;
   render();
 
   try {
@@ -1204,18 +1244,21 @@ async function auditCoverage() {
       body: JSON.stringify({
         mode: "coverage",
         apiKey: apiKey(),
-        selectedPath: node.path,
-        selectedLevel: node.level,
-        subtree: compactSubtreeForAudit(node),
+        selectedPath: selected.path,
+        selectedLevel: selected.level,
+        auditParentPath: parent.path,
+        targetLevel: level,
+        existingNames: parent.children.filter((child) => child.level === level).map((child) => child.name),
+        subtree: compactSubtreeForAudit(parent),
       }),
     });
-    const accepted = dedupeCoverageItems(payload.items);
+    const accepted = dedupeCoverageItems(payload.items, level, parent);
     state.auditItems = accepted;
     refs.auditStatus.textContent = accepted.length
-      ? `${payload.overview || "Strict coverage audit complete."} Kept ${accepted.length} high-confidence L2-L4 candidate${accepted.length === 1 ? "" : "s"} to review and add.`
-      : payload.overview || "Strict coverage audit complete. No high-confidence L2-L4 omissions survived the quality filter for this branch.";
+      ? `${payload.overview || `Strict L${level} audit complete.`} Kept ${accepted.length} high-confidence L${level} candidate${accepted.length === 1 ? "" : "s"} to review and add.`
+      : payload.overview || `Strict L${level} audit complete. No high-confidence L${level} omissions survived the quality filter for this branch.`;
   } catch (error) {
-    refs.auditStatus.textContent = error.message || "Coverage audit failed.";
+    refs.auditStatus.textContent = error.message || `L${level} coverage audit failed.`;
   } finally {
     state.auditLoading = false;
     render();
@@ -1418,11 +1461,13 @@ refs.clearImportButton.addEventListener("click", () => {
 });
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
-refs.coverageDomainSelect.addEventListener("change", () => {
-  const root = selectedCoverageRoot();
-  if (root) selectNode(root);
-});
-refs.auditCoverageButton.addEventListener("click", auditCoverage);
+for (const level of [2, 3, 4]) {
+  refs[COVERAGE_SELECTS[level]].addEventListener("change", () => {
+    const node = selectedCoverageNode(level);
+    if (node) selectNode(node);
+  });
+  refs[COVERAGE_BUTTONS[level]].addEventListener("click", () => auditCoverageLevel(level));
+}
 refs.auditAllDomainsButton.addEventListener("click", auditL0Domains);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
 refs.explainButton.addEventListener("click", explainSelectedItem);

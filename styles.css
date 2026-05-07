@@ -540,15 +540,23 @@ textarea:focus {
   gap: 8px;
 }
 
+.audit-level-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
 .audit-scope-control {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
 
 .audit-scope-control select {
-  width: min(420px, 100%);
+  width: 100%;
+  min-width: 0;
 }
 
 .audit-result-toolbar {
@@ -618,6 +626,11 @@ textarea:focus {
 
   .masthead {
     display: grid;
+  }
+
+  .audit-level-controls,
+  .audit-scope-control {
+    grid-template-columns: 1fr;
   }
 
   .stats {

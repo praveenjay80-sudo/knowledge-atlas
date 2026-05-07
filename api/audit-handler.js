@@ -218,6 +218,9 @@ function taxonomyPrompt(body) {
 
 function coveragePrompt(body) {
   const selectedPath = (body.selectedPath || []).join(" > ");
+  const auditParentPath = (body.auditParentPath || []).join(" > ");
+  const targetLevel = Number(body.targetLevel || 0);
+  const existing = (body.existingNames || []).join("; ") || "none";
   const subtree = JSON.stringify(body.subtree || []).slice(0, 65000);
   const isWholeDataset = body.wholeDataset === true;
 
@@ -237,6 +240,9 @@ function coveragePrompt(body) {
     "Every returned item must be a direct child of an existing parent_path from the supplied subtree.",
     "Do not use a missing proposed item as the parent of another proposed item. Parent paths must already exist in the subtree.",
     "Use level 2 only for major direct subdomains under an L1 domain, level 3 for subfields under L2, and level 4 for specific theories/models/concepts under L3.",
+    targetLevel
+      ? `Return only missing direct L${targetLevel} siblings under this exact existing parent_path: ${auditParentPath}. Do not return L2-L4 mixed coverage.`
+      : "Return only direct missing items at the appropriate level for the supplied parent branch.",
     "When the selected branch is an L1 domain, prioritize missing L2 pillars first. Return L3 or L4 only when the parent branch already exists and the omission is canonical and glaring.",
     "Inspect all relevant existing branches, not only L1 domain names. Thin L2 or L3 branches should be audited for missing lower-level structure.",
     "Prioritise omissions that a rigorous university curriculum, handbook, encyclopedia, or standard field taxonomy would consider core.",
@@ -245,6 +251,9 @@ function coveragePrompt(body) {
     "If the supplied branch is already adequately covered at this pass, return an empty items array.",
     "",
     `Selected branch: ${selectedPath}`,
+    `Audit parent path: ${auditParentPath || "not supplied"}`,
+    `Target level: ${targetLevel ? `L${targetLevel}` : "L2-L4"}`,
+    `Existing direct children at target level: ${existing}`,
     `Existing subtree JSON: ${subtree}`,
   ].join("\n");
 }

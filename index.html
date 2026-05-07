@@ -92,9 +92,19 @@
           <section class="audit-panel">
             <div class="audit-actions">
               <button id="auditTaxonomyButton" type="button">Audit Taxonomy Gaps</button>
-              <div class="audit-scope-control">
-                <select id="coverageDomainSelect" aria-label="L1 domain for deep coverage audit"></select>
-                <button id="auditCoverageButton" type="button">Deep L2-L4 Coverage Audit</button>
+              <div class="audit-level-controls" aria-label="Deep coverage audit by level">
+                <div class="audit-scope-control">
+                  <select id="coverageL2Select" aria-label="Existing L2 item for L2 audit"></select>
+                  <button id="auditCoverageL2Button" type="button">Audit L2</button>
+                </div>
+                <div class="audit-scope-control">
+                  <select id="coverageL3Select" aria-label="Existing L3 item for L3 audit"></select>
+                  <button id="auditCoverageL3Button" type="button">Audit L3</button>
+                </div>
+                <div class="audit-scope-control">
+                  <select id="coverageL4Select" aria-label="Existing L4 item for L4 audit"></select>
+                  <button id="auditCoverageL4Button" type="button">Audit L4</button>
+                </div>
               </div>
               <button id="auditAllDomainsButton" type="button">Audit L0 Missing L1</button>
               <button id="auditBibliographyButton" type="button">Audit Bibliography Gaps</button>
