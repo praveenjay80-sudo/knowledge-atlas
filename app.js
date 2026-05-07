@@ -124,7 +124,7 @@ function extractTaggedSegments(line) {
 }
 
 function extractLegacySegment(line) {
-  const match = String(line || "").match(/^(LEVEL\s+1|L[2-5]):\s*(.+)$/i);
+  const match = String(line || "").match(/^(LEVEL\s+1|L[1-5]):\s*(.+)$/i);
   if (!match) {
     return null;
   }
@@ -791,7 +791,7 @@ function persistTaxonomy() {
   const source = serializeTaxonomy();
   localStorage.setItem(STORAGE_KEY, source);
   refs.sourceInput.value = source;
-  state.sourceLabel = "Imported source + audit additions";
+  state.sourceLabel = "Saved source + audit additions";
 }
 
 function addTaxonomyCandidate(item) {
@@ -826,7 +826,7 @@ function addAuditItem(index) {
     : addTaxonomyCandidate(item);
   state.auditItems.splice(index, 1);
   refs.auditStatus.textContent = added
-    ? `Added "${state.auditMode === "bibliography" ? item.title : item.name}".`
+    ? `Added "${state.auditMode === "bibliography" ? item.title : item.name}" and saved it for refresh.`
     : "That item was already present or could not be added.";
   render();
 }
@@ -842,6 +842,7 @@ function addAllAuditItems() {
   const attempted = state.auditItems.length;
   state.auditItems = [];
   refs.auditStatus.textContent = `Added ${added} of ${attempted} audit item${attempted === 1 ? "" : "s"}.`;
+  if (added) refs.auditStatus.textContent += " Saved for refresh.";
   render();
 }
 
@@ -955,8 +956,13 @@ async function explainSelectedItem() {
 async function loadInitialSource() {
   const imported = localStorage.getItem(STORAGE_KEY);
   if (imported) {
-    setTaxonomy(imported, "Imported source");
-    return;
+    const roots = parseTaxonomy(imported);
+    if (roots.length) {
+      setTaxonomy(imported, "Saved source");
+      refs.importStatus.textContent = "Loaded saved taxonomy and bibliography additions from this browser.";
+      return;
+    }
+    refs.importStatus.textContent = "Saved taxonomy could not be read. Paste or import the source again.";
   }
 
   try {
