@@ -518,7 +518,7 @@ function renderDetail() {
   refs.foundationalSection.hidden = !node.note;
   refs.foundationalText.textContent = node.note;
   refs.explainButton.disabled = state.explainLoading || !state.flat.length;
-  refs.explainButton.textContent = state.explainLoading ? "Explaining..." : "Explain Selected Item";
+  refs.explainButton.textContent = state.explainLoading ? "Teaching..." : "Teach This Item";
   renderExplanation(node);
   refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || (node.level >= 5 && !parentNode(node));
   refs.auditBibliographyButton.disabled = state.auditLoading;
@@ -852,7 +852,7 @@ async function explainSelectedItem() {
   state.explainLoading = true;
   state.explanation = null;
   state.explainTargetId = node.id;
-  refs.explainStatus.textContent = "Building a detailed explanation with analogy and examples...";
+  refs.explainStatus.textContent = "Building a school-level lesson with analogy and examples...";
   render();
 
   try {
