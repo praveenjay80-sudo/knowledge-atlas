@@ -1,0 +1,3213 @@
+COMPLETE FOUR-LEVEL TAXONOMY OF THE THEORETICAL SCIENCES
+Version: 128-domain L1-L4 source taxonomy
+Scope: Pure formal sciences through interdisciplinary applied theoretical domains
+Format: L1 domain headings, L2 subdomains, L3 subfields, L4 theories/models/concepts
+
+=====================================================================
+A. PURE FORMAL SCIENCES
+=====================================================================
+
+### A.1 Pure Mathematics
+
+#### [L2] Foundations, Logic, and Structures
+- [L3] Set-theoretic foundations
+  - [L4] Zermelo-Fraenkel set theory with choice
+  - [L4] Large cardinal axioms
+  - [L4] Forcing and independence theory
+- [L3] Category-theoretic foundations
+  - [L4] Yoneda lemma
+  - [L4] Adjunction theory
+  - [L4] Topos theory
+- [L3] Type-theoretic foundations
+  - [L4] Martin-Lof dependent type theory
+  - [L4] Calculus of constructions
+  - [L4] Homotopy type theory
+
+#### [L2] Algebra, Number, Geometry, and Analysis
+- [L3] Algebra
+  - [L4] Group theory
+  - [L4] Ring and module theory
+  - [L4] Galois theory
+  - [L4] Representation theory
+- [L3] Number theory
+  - [L4] Algebraic number theory
+  - [L4] Analytic number theory
+  - [L4] Arithmetic geometry
+  - [L4] Langlands program
+- [L3] Geometry and topology
+  - [L4] Differential geometry
+  - [L4] Algebraic geometry
+  - [L4] Algebraic topology
+  - [L4] Geometric topology
+- [L3] Analysis
+  - [L4] Real and complex analysis
+  - [L4] Functional analysis
+  - [L4] Harmonic analysis
+  - [L4] Partial differential equations
+
+### A.2 Applied Mathematics
+
+#### [L2] Modelling and Continuous Applied Mathematics
+- [L3] Differential equation modelling
+  - [L4] Ordinary differential equation models
+  - [L4] Partial differential equation models
+  - [L4] Reaction-diffusion models
+- [L3] Continuum and field modelling
+  - [L4] Continuum mechanics
+  - [L4] Fluid-dynamical models
+  - [L4] Elasticity theory
+- [L3] Asymptotic methods
+  - [L4] Regular perturbation theory
+  - [L4] Singular perturbation theory
+  - [L4] WKB approximation
+
+#### [L2] Computational and Discrete Applied Mathematics
+- [L3] Numerical analysis
+  - [L4] Finite difference methods
+  - [L4] Finite element methods
+  - [L4] Spectral methods
+  - [L4] Krylov subspace methods
+- [L3] Inverse problems and imaging
+  - [L4] Tikhonov regularisation
+  - [L4] Compressed sensing
+  - [L4] Tomographic reconstruction theory
+- [L3] Applied discrete mathematics
+  - [L4] Queueing theory
+  - [L4] Scheduling theory
+  - [L4] Combinatorial optimisation
+
+### A.3 Logic and Foundations
+
+#### [L2] Mathematical Logic
+- [L3] Classical logic
+  - [L4] Propositional logic
+  - [L4] First-order logic
+  - [L4] Higher-order logic
+- [L3] Model theory
+  - [L4] Compactness theorem
+  - [L4] Lowenheim-Skolem theorems
+  - [L4] Stability theory
+- [L3] Proof theory
+  - [L4] Sequent calculus
+  - [L4] Cut elimination
+  - [L4] Ordinal analysis
+- [L3] Computability theory
+  - [L4] Turing computability
+  - [L4] Recursive function theory
+  - [L4] Turing degrees
+
+#### [L2] Foundational Programs and Non-Classical Logics
+- [L3] Foundations programs
+  - [L4] Logicism
+  - [L4] Formalism
+  - [L4] Intuitionism
+  - [L4] Structuralism
+- [L3] Non-classical logic
+  - [L4] Modal logic
+  - [L4] Intuitionistic logic
+  - [L4] Linear logic
+  - [L4] Paraconsistent logic
+
+### A.4 Theoretical Computer Science
+
+#### [L2] Computation, Complexity, and Algorithms
+- [L3] Automata and formal languages
+  - [L4] Finite automata
+  - [L4] Pushdown automata
+  - [L4] Turing machines
+  - [L4] Chomsky hierarchy
+- [L3] Computational complexity
+  - [L4] P versus NP theory
+  - [L4] NP-completeness
+  - [L4] PSPACE theory
+  - [L4] Circuit complexity
+- [L3] Algorithm theory
+  - [L4] Divide-and-conquer analysis
+  - [L4] Dynamic programming
+  - [L4] Randomised algorithms
+  - [L4] Approximation algorithms
+
+#### [L2] Formal Methods, Cryptography, and Learning Theory
+- [L3] Programming language theory
+  - [L4] Operational semantics
+  - [L4] Denotational semantics
+  - [L4] Type systems
+  - [L4] Lambda calculus
+- [L3] Cryptographic theory
+  - [L4] Public-key cryptography
+  - [L4] Zero-knowledge proofs
+  - [L4] Secure multiparty computation
+  - [L4] Post-quantum cryptography
+- [L3] Learning theory
+  - [L4] PAC learning
+  - [L4] VC dimension theory
+  - [L4] Online learning regret bounds
+
+### A.5 Information Theory
+
+#### [L2] Shannon Information Theory
+- [L3] Information measures
+  - [L4] Shannon entropy
+  - [L4] Mutual information
+  - [L4] Kullback-Leibler divergence
+- [L3] Source coding
+  - [L4] Huffman coding
+  - [L4] Arithmetic coding
+  - [L4] Rate-distortion theory
+- [L3] Channel coding
+  - [L4] Noisy-channel coding theorem
+  - [L4] Reed-Solomon codes
+  - [L4] Low-density parity-check codes
+  - [L4] Polar codes
+
+#### [L2] Generalised and Applied Information Theory
+- [L3] Network information theory
+  - [L4] Multiple-access channel theory
+  - [L4] Broadcast channel theory
+  - [L4] Network coding theorem
+- [L3] Quantum information theory
+  - [L4] Von Neumann entropy
+  - [L4] Holevo bound
+  - [L4] Quantum channel capacity
+- [L3] Algorithmic information theory
+  - [L4] Kolmogorov complexity
+  - [L4] Solomonoff induction
+  - [L4] Martin-Lof randomness
+
+### A.6 Probability Theory and Stochastic Processes
+
+#### [L2] Probability Foundations
+- [L3] Measure-theoretic probability
+  - [L4] Probability spaces
+  - [L4] Conditional expectation
+  - [L4] Modes of convergence
+- [L3] Limit theory
+  - [L4] Laws of large numbers
+  - [L4] Central limit theorem
+  - [L4] Functional central limit theorem
+- [L3] Large-deviation theory
+  - [L4] Cramer theorem
+  - [L4] Sanov theorem
+  - [L4] Gartner-Ellis theorem
+
+#### [L2] Stochastic Processes
+- [L3] Markov processes
+  - [L4] Markov chains
+  - [L4] Continuous-time Markov processes
+  - [L4] Mixing time theory
+- [L3] Martingales and stochastic calculus
+  - [L4] Doob martingale inequalities
+  - [L4] Ito calculus
+  - [L4] Stochastic differential equations
+- [L3] Spatial and interacting processes
+  - [L4] Percolation theory
+  - [L4] Interacting particle systems
+  - [L4] Random fields
+
+### A.7 Statistics and Statistical Theory
+
+#### [L2] Inference and Estimation
+- [L3] Estimation theory
+  - [L4] Maximum likelihood estimation
+  - [L4] Cramer-Rao lower bound
+  - [L4] Minimax estimation
+  - [L4] Robust M-estimation
+- [L3] Hypothesis testing
+  - [L4] Neyman-Pearson lemma
+  - [L4] Likelihood-ratio testing
+  - [L4] Multiple-testing theory
+  - [L4] Sequential probability ratio test
+- [L3] Bayesian statistics
+  - [L4] Bayesian posterior inference
+  - [L4] Hierarchical Bayes models
+  - [L4] Bayesian nonparametrics
+
+#### [L2] Statistical Models and Learning
+- [L3] Regression and multivariate theory
+  - [L4] Linear model theory
+  - [L4] Generalised linear models
+  - [L4] Principal component analysis
+- [L3] Time series and spatial statistics
+  - [L4] ARMA models
+  - [L4] Spectral analysis
+  - [L4] Gaussian random fields
+- [L3] Causal and nonparametric statistics
+  - [L4] Potential outcomes framework
+  - [L4] Directed acyclic graph models
+  - [L4] Kernel density estimation
+
+=====================================================================
+B. SYSTEMS AND STRUCTURAL SCIENCES
+=====================================================================
+
+### B.1 Systems Theory
+
+#### [L2] General Systems Theory
+- [L3] System ontology
+  - [L4] Open systems theory
+  - [L4] Closed systems theory
+  - [L4] Hierarchy theory
+- [L3] Emergence and organisation
+  - [L4] Emergent properties
+  - [L4] Near-decomposability
+  - [L4] Self-organisation
+
+#### [L2] Formal Systems Modelling
+- [L3] Dynamic system representation
+  - [L4] State-space models
+  - [L4] Feedback loops
+  - [L4] Stock-flow models
+- [L3] System boundaries and environments
+  - [L4] Input-output systems
+  - [L4] Environment coupling
+  - [L4] System-of-systems theory
+
+### B.2 Control Theory
+
+#### [L2] Linear and Classical Control
+- [L3] Classical control
+  - [L4] Root-locus method
+  - [L4] Nyquist stability criterion
+  - [L4] Bode plot analysis
+- [L3] State-space control
+  - [L4] Controllability
+  - [L4] Observability
+  - [L4] Pole placement
+  - [L4] Linear quadratic regulator
+
+#### [L2] Nonlinear, Robust, and Optimal Control
+- [L3] Nonlinear control
+  - [L4] Lyapunov stability theory
+  - [L4] Feedback linearisation
+  - [L4] Sliding-mode control
+- [L3] Robust and stochastic control
+  - [L4] H-infinity control
+  - [L4] Structured singular value theory
+  - [L4] Stochastic optimal control
+- [L3] Optimal control
+  - [L4] Pontryagin maximum principle
+  - [L4] Hamilton-Jacobi-Bellman equation
+  - [L4] Model predictive control
+
+### B.3 Optimisation Theory
+
+#### [L2] Mathematical Programming
+- [L3] Linear and convex optimisation
+  - [L4] Simplex method
+  - [L4] Interior-point methods
+  - [L4] Karush-Kuhn-Tucker conditions
+  - [L4] Semidefinite programming
+- [L3] Nonlinear optimisation
+  - [L4] Newton method
+  - [L4] Quasi-Newton methods
+  - [L4] Trust-region methods
+
+#### [L2] Discrete, Stochastic, and Global Optimisation
+- [L3] Integer and combinatorial optimisation
+  - [L4] Branch-and-bound
+  - [L4] Cutting-plane methods
+  - [L4] Matroid optimisation
+- [L3] Uncertain optimisation
+  - [L4] Stochastic programming
+  - [L4] Robust optimisation
+  - [L4] Distributionally robust optimisation
+- [L3] Global optimisation
+  - [L4] Simulated annealing
+  - [L4] Genetic algorithms
+  - [L4] Bayesian optimisation
+
+### B.4 Decision Theory
+
+#### [L2] Normative Decision Theory
+- [L3] Utility theory
+  - [L4] Expected utility theory
+  - [L4] Subjective expected utility
+  - [L4] Von Neumann-Morgenstern axioms
+- [L3] Decision under ambiguity
+  - [L4] Maxmin expected utility
+  - [L4] Choquet expected utility
+  - [L4] Imprecise probability decision models
+
+#### [L2] Sequential and Behavioural Decision Theory
+- [L3] Dynamic decisions
+  - [L4] Markov decision processes
+  - [L4] Partially observable Markov decision processes
+  - [L4] Dynamic programming
+- [L3] Behavioural decision models
+  - [L4] Prospect theory
+  - [L4] Regret theory
+  - [L4] Bounded rationality
+
+### B.5 Game Theory
+
+#### [L2] Non-Cooperative Game Theory
+- [L3] Static and dynamic games
+  - [L4] Nash equilibrium
+  - [L4] Mixed strategies
+  - [L4] Subgame-perfect equilibrium
+  - [L4] Sequential equilibrium
+- [L3] Games with information structure
+  - [L4] Bayesian games
+  - [L4] Perfect Bayesian equilibrium
+  - [L4] Signalling games
+
+#### [L2] Cooperative, Evolutionary, and Mechanism Theory
+- [L3] Cooperative game theory
+  - [L4] Core
+  - [L4] Shapley value
+  - [L4] Nucleolus
+- [L3] Evolutionary games
+  - [L4] Evolutionarily stable strategy
+  - [L4] Replicator dynamics
+  - [L4] Hawk-dove model
+- [L3] Mechanism design
+  - [L4] Revelation principle
+  - [L4] Vickrey-Clarke-Groves mechanism
+  - [L4] Myerson optimal auction
+
+### B.6 Network Theory
+
+#### [L2] Graph and Network Structure
+- [L3] Graph-theoretic foundations
+  - [L4] Connectivity
+  - [L4] Centrality measures
+  - [L4] Graph spectra
+- [L3] Random network models
+  - [L4] Erdos-Renyi random graph
+  - [L4] Configuration model
+  - [L4] Preferential attachment model
+  - [L4] Small-world network model
+
+#### [L2] Network Dynamics and Inference
+- [L3] Dynamics on networks
+  - [L4] Diffusion on networks
+  - [L4] Epidemic network models
+  - [L4] Synchronisation on networks
+- [L3] Network detection and communities
+  - [L4] Modularity maximisation
+  - [L4] Stochastic block model
+  - [L4] Graph clustering theory
+
+### B.7 Complexity Theory and Complex Systems
+
+#### [L2] Complex Adaptive Systems
+- [L3] Emergence and adaptation
+  - [L4] Agent-based modelling
+  - [L4] Adaptive landscapes
+  - [L4] Coevolutionary dynamics
+- [L3] Self-organised criticality
+  - [L4] Sandpile model
+  - [L4] Power-law scaling
+  - [L4] Critical transitions
+
+#### [L2] Nonlinear Complexity
+- [L3] Chaos and nonlinear dynamics
+  - [L4] Strange attractors
+  - [L4] Lyapunov exponents
+  - [L4] Bifurcation cascades
+- [L3] Cellular and computational complexity
+  - [L4] Cellular automata
+  - [L4] Wolfram classes
+  - [L4] Edge-of-chaos hypothesis
+
+### B.8 Cybernetics and General Systems Science
+
+#### [L2] Cybernetic Theory
+- [L3] First-order cybernetics
+  - [L4] Negative feedback
+  - [L4] Homeostasis
+  - [L4] Law of requisite variety
+- [L3] Second-order cybernetics
+  - [L4] Observer-included systems
+  - [L4] Autopoiesis
+  - [L4] Constructivist cybernetics
+
+#### [L2] General Systems Science
+- [L3] Organisational cybernetics
+  - [L4] Viable system model
+  - [L4] Recursive systems theory
+  - [L4] Management cybernetics
+- [L3] Information and control
+  - [L4] Communication and control theory
+  - [L4] Feedback information loops
+  - [L4] Ashby regulator model
+
+=====================================================================
+C. PHYSICAL SCIENCES
+=====================================================================
+
+### C.1 Theoretical Physics
+
+#### [L2] Classical and Quantum Foundations
+- [L3] Classical mechanics
+  - [L4] Newtonian mechanics
+  - [L4] Lagrangian mechanics
+  - [L4] Hamiltonian mechanics
+  - [L4] Hamilton-Jacobi theory
+- [L3] Quantum mechanics
+  - [L4] Schrodinger equation
+  - [L4] Heisenberg picture
+  - [L4] Angular momentum theory
+  - [L4] Scattering theory
+
+#### [L2] Fields, Relativity, and Matter
+- [L3] Relativistic physics
+  - [L4] Special relativity
+  - [L4] General relativity
+  - [L4] Einstein field equations
+- [L3] Quantum field theory
+  - [L4] Canonical quantisation
+  - [L4] Path integral formulation
+  - [L4] Renormalisation group
+  - [L4] Gauge theory
+- [L3] Statistical and condensed matter physics
+  - [L4] Ensemble theory
+  - [L4] Ising model
+  - [L4] Landau theory of phase transitions
+
+### C.2 Mathematical Physics
+
+#### [L2] Rigorous Structures in Physics
+- [L3] Operator methods
+  - [L4] Spectral theory of Hamiltonians
+  - [L4] Self-adjoint operators
+  - [L4] C-star algebraic methods
+- [L3] Geometry in physics
+  - [L4] Symplectic geometry in mechanics
+  - [L4] Fibre bundles in gauge theory
+  - [L4] Spin geometry
+
+#### [L2] Exactly Solvable and Axiomatic Theories
+- [L3] Integrable systems
+  - [L4] Lax pairs
+  - [L4] Inverse scattering transform
+  - [L4] Yang-Baxter equation
+- [L3] Axiomatic field theory
+  - [L4] Wightman axioms
+  - [L4] Osterwalder-Schrader axioms
+  - [L4] Haag-Kastler algebraic QFT
+
+### C.3 Theoretical Astronomy and Astrophysics
+
+#### [L2] Stellar and Galactic Theory
+- [L3] Stellar structure and evolution
+  - [L4] Hydrostatic equilibrium
+  - [L4] Polytropic stellar models
+  - [L4] Stellar nucleosynthesis theory
+- [L3] Galactic dynamics
+  - [L4] Jeans equations
+  - [L4] Spiral density wave theory
+  - [L4] Dark matter halo models
+
+#### [L2] Compact Objects and High-Energy Astrophysics
+- [L3] Compact object theory
+  - [L4] White dwarf structure
+  - [L4] Neutron star equation of state
+  - [L4] Black hole accretion theory
+- [L3] High-energy processes
+  - [L4] Relativistic jet models
+  - [L4] Synchrotron radiation theory
+  - [L4] Cosmic ray acceleration theory
+
+### C.4 Theoretical Cosmology
+
+#### [L2] Relativistic Cosmology
+- [L3] Homogeneous cosmology
+  - [L4] Friedmann-Lemaitre-Robertson-Walker models
+  - [L4] Cosmological constant models
+  - [L4] Big bang nucleosynthesis theory
+- [L3] Early-universe theory
+  - [L4] Inflationary cosmology
+  - [L4] Reheating models
+  - [L4] Primordial perturbation theory
+
+#### [L2] Structure and Dark Sector Theory
+- [L3] Large-scale structure
+  - [L4] Linear perturbation theory
+  - [L4] Halo model
+  - [L4] Baryon acoustic oscillation theory
+- [L3] Dark matter and dark energy
+  - [L4] Cold dark matter model
+  - [L4] Axion dark matter theory
+  - [L4] Quintessence models
+
+### C.5 Theoretical Chemistry
+
+#### [L2] Chemical Bonding and Reactivity
+- [L3] Bonding theory
+  - [L4] Valence bond theory
+  - [L4] Molecular orbital theory
+  - [L4] Ligand field theory
+- [L3] Reactivity theory
+  - [L4] Frontier molecular orbital theory
+  - [L4] Hard-soft acid-base theory
+  - [L4] Hammond postulate
+
+#### [L2] Thermodynamics, Kinetics, and Statistical Chemistry
+- [L3] Chemical thermodynamics
+  - [L4] Gibbs free energy
+  - [L4] Chemical potential
+  - [L4] Phase equilibrium theory
+- [L3] Chemical kinetics
+  - [L4] Transition state theory
+  - [L4] Marcus electron-transfer theory
+  - [L4] Kramers reaction-rate theory
+
+### C.6 Quantum Chemistry and Molecular Theory
+
+#### [L2] Electronic Structure Theory
+- [L3] Wavefunction methods
+  - [L4] Hartree-Fock method
+  - [L4] Configuration interaction
+  - [L4] Coupled-cluster theory
+  - [L4] Moller-Plesset perturbation theory
+- [L3] Density methods
+  - [L4] Hohenberg-Kohn theorems
+  - [L4] Kohn-Sham density functional theory
+  - [L4] Time-dependent density functional theory
+
+#### [L2] Molecular Dynamics and Spectroscopy
+- [L3] Molecular motion theory
+  - [L4] Born-Oppenheimer approximation
+  - [L4] Potential energy surfaces
+  - [L4] Nonadiabatic coupling theory
+- [L3] Spectroscopic theory
+  - [L4] Rotational spectroscopy theory
+  - [L4] Vibrational normal mode theory
+  - [L4] Franck-Condon principle
+
+### C.7 Materials Theory and Condensed-Matter Modelling
+
+#### [L2] Electronic and Structural Materials Theory
+- [L3] Electronic structure
+  - [L4] Band theory
+  - [L4] Tight-binding model
+  - [L4] Kohn-Sham materials modelling
+- [L3] Defects and microstructure
+  - [L4] Dislocation theory
+  - [L4] Grain boundary theory
+  - [L4] Phase-field modelling
+
+#### [L2] Condensed-Matter Models
+- [L3] Correlated systems
+  - [L4] Hubbard model
+  - [L4] Anderson impurity model
+  - [L4] Dynamical mean-field theory
+- [L3] Ordered phases
+  - [L4] BCS superconductivity
+  - [L4] Landau-Ginzburg theory
+  - [L4] Topological insulator theory
+
+### C.8 Earth-System Theory and Geophysical Theory
+
+#### [L2] Solid Earth Theory
+- [L3] Geodynamics
+  - [L4] Plate tectonic theory
+  - [L4] Mantle convection models
+  - [L4] Isostasy
+- [L3] Seismological theory
+  - [L4] Elastic wave propagation
+  - [L4] Normal mode theory
+  - [L4] Seismic tomography theory
+
+#### [L2] Coupled Earth Systems
+- [L3] Earth-system coupling
+  - [L4] Carbon cycle feedbacks
+  - [L4] Land-atmosphere coupling
+  - [L4] Ocean-atmosphere coupling
+- [L3] Geophysical fluids
+  - [L4] Rotating stratified flow
+  - [L4] Quasi-geostrophic theory
+  - [L4] Boundary layer theory
+
+### C.9 Climate Dynamics and Theoretical Meteorology
+
+#### [L2] Atmospheric Dynamics
+- [L3] Large-scale atmospheric theory
+  - [L4] Primitive equations
+  - [L4] Geostrophic balance
+  - [L4] Rossby wave theory
+- [L3] Weather-system theory
+  - [L4] Baroclinic instability
+  - [L4] Convective available potential energy
+  - [L4] Frontogenesis theory
+
+#### [L2] Climate System Theory
+- [L3] Climate dynamics
+  - [L4] Energy balance models
+  - [L4] General circulation models
+  - [L4] Climate feedback theory
+- [L3] Variability and change
+  - [L4] El Nino-Southern Oscillation theory
+  - [L4] Milankovitch forcing theory
+  - [L4] Climate sensitivity theory
+
+### C.10 Planetary Science Theory
+
+#### [L2] Planet Formation and Interiors
+- [L3] Formation theory
+  - [L4] Nebular hypothesis
+  - [L4] Core accretion theory
+  - [L4] Planetary migration theory
+- [L3] Interior theory
+  - [L4] Planetary differentiation
+  - [L4] Dynamo theory
+  - [L4] Tidal heating models
+
+#### [L2] Planetary Atmospheres and Surfaces
+- [L3] Atmosphere theory
+  - [L4] Radiative-convective equilibrium
+  - [L4] Atmospheric escape theory
+  - [L4] Greenhouse climate models
+- [L3] Surface and impact processes
+  - [L4] Cratering scaling laws
+  - [L4] Regolith evolution models
+  - [L4] Planetary resurfacing theory
+
+### C.11 Theoretical Plasma Physics
+
+#### [L2] Plasma Kinetic and Fluid Theory
+- [L3] Kinetic theory
+  - [L4] Vlasov equation
+  - [L4] Landau damping
+  - [L4] Boltzmann collision operator
+- [L3] Fluid plasma theory
+  - [L4] Magnetohydrodynamics
+  - [L4] Two-fluid plasma models
+  - [L4] Hall MHD
+
+#### [L2] Waves, Instabilities, and Confinement
+- [L3] Plasma waves
+  - [L4] Alfven waves
+  - [L4] Langmuir waves
+  - [L4] Ion acoustic waves
+- [L3] Confinement theory
+  - [L4] Tokamak equilibrium theory
+  - [L4] Magnetic reconnection
+  - [L4] Drift-wave turbulence
+
+### C.12 Theoretical Nuclear Physics
+
+#### [L2] Nuclear Structure
+- [L3] Nuclear models
+  - [L4] Liquid drop model
+  - [L4] Nuclear shell model
+  - [L4] Collective model of nuclei
+- [L3] Many-body nuclear theory
+  - [L4] Hartree-Fock-Bogoliubov theory
+  - [L4] Random phase approximation
+  - [L4] Chiral effective field theory
+
+#### [L2] Nuclear Reactions and Fundamental Interactions
+- [L3] Reaction theory
+  - [L4] Optical model
+  - [L4] R-matrix theory
+  - [L4] Compound nucleus theory
+- [L3] Hadronic and QCD nuclear theory
+  - [L4] Quark model
+  - [L4] Lattice QCD for nuclei
+  - [L4] Nuclear equation of state
+
+### C.13 Theoretical Optics and Photonics
+
+#### [L2] Classical and Wave Optics
+- [L3] Wave optics
+  - [L4] Huygens-Fresnel principle
+  - [L4] Fraunhofer diffraction
+  - [L4] Fresnel diffraction
+- [L3] Electromagnetic optics
+  - [L4] Maxwell optics
+  - [L4] Polarisation theory
+  - [L4] Optical waveguide theory
+
+#### [L2] Quantum and Nonlinear Optics
+- [L3] Quantum optics
+  - [L4] Coherent states
+  - [L4] Jaynes-Cummings model
+  - [L4] Quantum noise theory
+- [L3] Nonlinear photonics
+  - [L4] Second-harmonic generation
+  - [L4] Kerr nonlinearity
+  - [L4] Soliton optics
+
+### C.14 Theoretical Acoustics
+
+#### [L2] Linear and Physical Acoustics
+- [L3] Wave propagation
+  - [L4] Acoustic wave equation
+  - [L4] Helmholtz equation
+  - [L4] Normal mode theory
+- [L3] Radiation and scattering
+  - [L4] Rayleigh scattering
+  - [L4] Acoustic impedance theory
+  - [L4] Green function acoustics
+
+#### [L2] Nonlinear, Structural, and Psychoacoustic Theory
+- [L3] Nonlinear acoustics
+  - [L4] Burgers equation acoustics
+  - [L4] Shock wave acoustics
+  - [L4] Parametric acoustic arrays
+- [L3] Vibrations and perception
+  - [L4] Modal analysis
+  - [L4] Room acoustics theory
+  - [L4] Critical band theory
+
+=====================================================================
+D. LIFE SCIENCES
+=====================================================================
+
+### D.1 Theoretical Biology
+
+#### [L2] General Biological Theory
+- [L3] Organismal and systems principles
+  - [L4] Homeostasis
+  - [L4] Biological organisation theory
+  - [L4] Autopoiesis
+- [L3] Biological information theory
+  - [L4] Genetic information concept
+  - [L4] Biological coding theory
+  - [L4] Signalling information models
+
+#### [L2] Mathematical Biological Models
+- [L3] Growth and form
+  - [L4] Allometric scaling
+  - [L4] Turing morphogenesis
+  - [L4] Reaction-diffusion pattern formation
+- [L3] Biological dynamics
+  - [L4] Lotka-Volterra dynamics
+  - [L4] Replicator dynamics
+  - [L4] Adaptive dynamics
+
+### D.2 Evolutionary Theory
+
+#### [L2] Evolutionary Mechanisms
+- [L3] Selection theory
+  - [L4] Natural selection
+  - [L4] Sexual selection
+  - [L4] Kin selection
+  - [L4] Multilevel selection
+- [L3] Variation and inheritance
+  - [L4] Mutation-selection balance
+  - [L4] Genetic drift
+  - [L4] Gene flow theory
+
+#### [L2] Macroevolution and Speciation
+- [L3] Speciation theory
+  - [L4] Allopatric speciation
+  - [L4] Sympatric speciation
+  - [L4] Reinforcement
+- [L3] Macroevolutionary theory
+  - [L4] Punctuated equilibrium
+  - [L4] Adaptive radiation
+  - [L4] Major evolutionary transitions
+
+### D.3 Theoretical Ecology
+
+#### [L2] Population and Community Ecology
+- [L3] Population dynamics
+  - [L4] Logistic growth model
+  - [L4] Allee effect
+  - [L4] Metapopulation theory
+- [L3] Community theory
+  - [L4] Competitive exclusion principle
+  - [L4] Niche theory
+  - [L4] Neutral theory of biodiversity
+  - [L4] Modern coexistence theory
+
+#### [L2] Ecosystems and Spatial Ecology
+- [L3] Ecosystem theory
+  - [L4] Food web theory
+  - [L4] Trophic cascade theory
+  - [L4] Ecological stoichiometry
+- [L3] Spatial ecology
+  - [L4] Island biogeography theory
+  - [L4] Species-area relationship
+  - [L4] Fisher-KPP invasion model
+
+### D.4 Population Genetics and Mathematical Evolution
+
+#### [L2] Population Genetic Models
+- [L3] Allele-frequency dynamics
+  - [L4] Hardy-Weinberg equilibrium
+  - [L4] Wright-Fisher model
+  - [L4] Moran model
+- [L3] Selection and drift
+  - [L4] Fixation probability
+  - [L4] Effective population size
+  - [L4] Diffusion approximation
+
+#### [L2] Evolutionary Genomics Theory
+- [L3] Coalescent theory
+  - [L4] Kingman coalescent
+  - [L4] Structured coalescent
+  - [L4] Multiple-merger coalescent
+- [L3] Molecular evolution
+  - [L4] Neutral theory
+  - [L4] Nearly neutral theory
+  - [L4] Molecular clock theory
+
+### D.5 Systems Biology
+
+#### [L2] Network and Pathway Theory
+- [L3] Regulatory networks
+  - [L4] Boolean gene network models
+  - [L4] Feedback motifs
+  - [L4] Feed-forward loop motifs
+- [L3] Metabolic networks
+  - [L4] Flux balance analysis
+  - [L4] Elementary flux modes
+  - [L4] Metabolic control analysis
+
+#### [L2] Dynamical Systems Biology
+- [L3] Biochemical systems theory
+  - [L4] Chemical reaction network theory
+  - [L4] Deficiency zero theorem
+  - [L4] Michaelis-Menten systems models
+- [L3] Multiscale biological modelling
+  - [L4] Hybrid discrete-continuous models
+  - [L4] Agent-based cellular models
+  - [L4] Physiome modelling
+
+### D.6 Theoretical Neuroscience
+
+#### [L2] Neural Coding and Computation
+- [L3] Coding theories
+  - [L4] Rate coding
+  - [L4] Temporal coding
+  - [L4] Population coding
+  - [L4] Predictive coding
+- [L3] Neural information theory
+  - [L4] Efficient coding hypothesis
+  - [L4] Sparse coding
+  - [L4] Infomax principle
+
+#### [L2] Network and Cognitive Neural Theory
+- [L3] Neural dynamics
+  - [L4] Attractor network theory
+  - [L4] Wilson-Cowan equations
+  - [L4] Balanced excitation-inhibition networks
+- [L3] Learning and plasticity
+  - [L4] Hebbian learning
+  - [L4] Spike-timing-dependent plasticity
+  - [L4] Reinforcement learning in the brain
+
+### D.7 Computational Neuroscience
+
+#### [L2] Neuron and Circuit Modelling
+- [L3] Single-neuron models
+  - [L4] Hodgkin-Huxley model
+  - [L4] FitzHugh-Nagumo model
+  - [L4] Leaky integrate-and-fire model
+- [L3] Synaptic models
+  - [L4] Tsodyks-Markram synapse model
+  - [L4] Conductance-based synapse models
+  - [L4] Short-term plasticity models
+
+#### [L2] Computational Brain Models
+- [L3] Network simulation theory
+  - [L4] Spiking neural network models
+  - [L4] Neural field models
+  - [L4] Mean-field neural mass models
+- [L3] Cognitive computation
+  - [L4] Drift-diffusion decision model
+  - [L4] Bayesian brain models
+  - [L4] Active inference
+
+### D.8 Theoretical Medicine and Disease Modelling
+
+#### [L2] Disease Dynamics
+- [L3] Pathogenesis models
+  - [L4] Natural history of disease model
+  - [L4] Multi-stage carcinogenesis model
+  - [L4] Host-pathogen interaction models
+- [L3] Disease progression
+  - [L4] Markov disease progression models
+  - [L4] Compartmental disease models
+  - [L4] Survival models
+
+#### [L2] Medical Decision and Intervention Theory
+- [L3] Diagnostic theory
+  - [L4] Signal detection model of diagnosis
+  - [L4] Bayesian diagnosis
+  - [L4] Receiver operating characteristic theory
+- [L3] Treatment modelling
+  - [L4] Dose-response theory
+  - [L4] Cost-effectiveness models
+  - [L4] Clinical decision analysis
+
+### D.9 Epidemiological Theory
+
+#### [L2] Transmission Models
+- [L3] Compartmental epidemiology
+  - [L4] SIR model
+  - [L4] SEIR model
+  - [L4] SIS model
+  - [L4] SIRS model
+- [L3] Reproduction and thresholds
+  - [L4] Basic reproduction number
+  - [L4] Herd immunity threshold
+  - [L4] Next-generation matrix method
+
+#### [L2] Stochastic and Network Epidemiology
+- [L3] Stochastic epidemic theory
+  - [L4] Branching-process epidemic approximation
+  - [L4] Final-size distribution
+  - [L4] Epidemic fade-out theory
+- [L3] Network and spatial epidemics
+  - [L4] Epidemics on networks
+  - [L4] Metapopulation epidemic models
+  - [L4] Spatial wave-of-advance models
+
+### D.10 Theoretical Immunology
+
+#### [L2] Immune Recognition and Selection
+- [L3] Adaptive immunity theory
+  - [L4] Clonal selection theory
+  - [L4] Affinity maturation models
+  - [L4] Germinal centre models
+- [L3] Receptor repertoire theory
+  - [L4] V(D)J recombination models
+  - [L4] T-cell receptor diversity models
+  - [L4] Negative selection theory
+
+#### [L2] Immune Dynamics and Regulation
+- [L3] Host defence dynamics
+  - [L4] Within-host infection models
+  - [L4] Immune memory models
+  - [L4] Antigenic variation models
+- [L3] Regulation and tolerance
+  - [L4] Immune network theory
+  - [L4] Peripheral tolerance models
+  - [L4] Autoimmunity threshold models
+
+### D.11 Theoretical Physiology and Biomechanics
+
+#### [L2] Physiological Systems Theory
+- [L3] Cardiovascular modelling
+  - [L4] Windkessel model
+  - [L4] Womersley flow
+  - [L4] Cardiac electrophysiology models
+- [L3] Respiratory and renal modelling
+  - [L4] Gas exchange models
+  - [L4] Ventilation-perfusion theory
+  - [L4] Glomerular filtration models
+
+#### [L2] Biomechanics
+- [L3] Tissue and organ mechanics
+  - [L4] Finite-strain tissue mechanics
+  - [L4] Fung-type soft tissue models
+  - [L4] Bone remodelling theory
+- [L3] Movement biomechanics
+  - [L4] Inverse dynamics
+  - [L4] Hill muscle model
+  - [L4] Optimal motor control models
+
+### D.12 Theoretical Pharmacology and Pharmacokinetics
+
+#### [L2] Pharmacokinetic Theory
+- [L3] Compartmental pharmacokinetics
+  - [L4] One-compartment model
+  - [L4] Two-compartment model
+  - [L4] Physiologically based pharmacokinetic models
+- [L3] Absorption, distribution, metabolism, excretion
+  - [L4] Clearance theory
+  - [L4] Volume of distribution
+  - [L4] Michaelis-Menten elimination
+
+#### [L2] Pharmacodynamic and Systems Pharmacology
+- [L3] Drug effect models
+  - [L4] Emax model
+  - [L4] Hill dose-response model
+  - [L4] Receptor occupancy theory
+- [L3] Population and systems models
+  - [L4] Population pharmacokinetics
+  - [L4] PK-PD linked models
+  - [L4] Quantitative systems pharmacology
+
+### D.13 Synthetic Biology Theory
+
+#### [L2] Genetic Circuit Theory
+- [L3] Circuit motifs
+  - [L4] Toggle switch
+  - [L4] Repressilator
+  - [L4] Feed-forward genetic circuit
+- [L3] Modularity and composition
+  - [L4] Standard biological parts concept
+  - [L4] Retroactivity theory
+  - [L4] Insulation in genetic circuits
+
+#### [L2] Design and Control of Living Systems
+- [L3] Metabolic engineering theory
+  - [L4] Pathway optimisation
+  - [L4] Flux redirection models
+  - [L4] Dynamic metabolic control
+- [L3] Synthetic morphogenesis
+  - [L4] Synthetic pattern formation
+  - [L4] Cell-cell communication circuits
+  - [L4] Minimal cell models
+
+### D.14 Theoretical Genetics and Epigenetics
+
+#### [L2] Genetic Architecture
+- [L3] Gene interaction theory
+  - [L4] Epistasis
+  - [L4] Pleiotropy
+  - [L4] Quantitative trait loci models
+- [L3] Genome organisation
+  - [L4] Linkage disequilibrium
+  - [L4] Recombination theory
+  - [L4] Chromosome conformation models
+
+#### [L2] Epigenetic Theory
+- [L3] Epigenetic regulation
+  - [L4] DNA methylation models
+  - [L4] Histone modification code hypothesis
+  - [L4] Chromatin state models
+- [L3] Heritable regulation
+  - [L4] Genomic imprinting theory
+  - [L4] Epigenetic landscape
+  - [L4] Transgenerational epigenetic inheritance models
+
+=====================================================================
+E. MIND, LANGUAGE, AND COGNITION SCIENCES
+=====================================================================
+
+### E.1 Cognitive Science Theory
+
+#### [L2] Representation and Computation
+- [L3] Symbolic cognition
+  - [L4] Physical symbol system hypothesis
+  - [L4] Production system models
+  - [L4] Mental model theory
+- [L3] Connectionist cognition
+  - [L4] Parallel distributed processing
+  - [L4] Spreading activation models
+  - [L4] Neural network cognitive models
+
+#### [L2] Learning, Reasoning, and Embodiment
+- [L3] Probabilistic cognition
+  - [L4] Bayesian cognition
+  - [L4] Probabilistic generative models
+  - [L4] Predictive processing
+- [L3] Embodied cognition
+  - [L4] Enactive cognition
+  - [L4] Situated cognition
+  - [L4] Conceptual metaphor theory
+
+### E.2 Theoretical Psychology
+
+#### [L2] Perception, Attention, and Learning
+- [L3] Psychophysics
+  - [L4] Weber-Fechner law
+  - [L4] Stevens power law
+  - [L4] Signal detection theory
+- [L3] Learning theory
+  - [L4] Classical conditioning
+  - [L4] Operant conditioning
+  - [L4] Rescorla-Wagner model
+
+#### [L2] Memory, Decision, and Personality Theory
+- [L3] Memory models
+  - [L4] Atkinson-Shiffrin model
+  - [L4] Baddeley working memory model
+  - [L4] Temporal context model
+- [L3] Choice and judgement
+  - [L4] Drift-diffusion model
+  - [L4] Heuristics and biases theory
+  - [L4] Dual-process theory
+
+### E.3 Formal Linguistics
+
+#### [L2] Grammar Theory
+- [L3] Syntax
+  - [L4] Transformational grammar
+  - [L4] Government and binding theory
+  - [L4] Minimalist program
+  - [L4] Head-driven phrase structure grammar
+- [L3] Morphology
+  - [L4] Distributed morphology
+  - [L4] Word-and-paradigm morphology
+  - [L4] Lexical morphology
+
+#### [L2] Sound, Meaning, and Use
+- [L3] Phonology
+  - [L4] Distinctive feature theory
+  - [L4] Autosegmental phonology
+  - [L4] Optimality theory
+- [L3] Semantics and pragmatics
+  - [L4] Montague grammar
+  - [L4] Dynamic semantics
+  - [L4] Gricean implicature theory
+
+### E.4 Computational Linguistics Theory
+
+#### [L2] Formal Language and Parsing Theory
+- [L3] Grammar formalisms
+  - [L4] Context-free grammars
+  - [L4] Tree-adjoining grammars
+  - [L4] Combinatory categorial grammar
+- [L3] Parsing theory
+  - [L4] Chart parsing
+  - [L4] CYK algorithm
+  - [L4] Earley parsing
+
+#### [L2] Probabilistic and Neural Language Theory
+- [L3] Statistical language models
+  - [L4] N-gram language models
+  - [L4] Probabilistic context-free grammars
+  - [L4] Hidden Markov models for language
+- [L3] Neural NLP foundations
+  - [L4] Word embedding models
+  - [L4] Sequence-to-sequence models
+  - [L4] Transformer attention models
+
+### E.5 Semiotics and Communication Theory
+
+#### [L2] Semiotic Theory
+- [L3] Sign systems
+  - [L4] Saussurean sign theory
+  - [L4] Peircean triadic semiotics
+  - [L4] Icon-index-symbol typology
+- [L3] Meaning and codes
+  - [L4] Semiotic code theory
+  - [L4] Mythologies framework
+  - [L4] Biosemiotics
+
+#### [L2] Communication Models
+- [L3] Information communication
+  - [L4] Shannon-Weaver model
+  - [L4] Noise and redundancy theory
+  - [L4] Channel capacity in communication
+- [L3] Social communication
+  - [L4] Speech act theory
+  - [L4] Encoding-decoding model
+  - [L4] Medium theory
+
+### E.6 Philosophy of Mind and Cognitive Architecture
+
+#### [L2] Theories of Mind
+- [L3] Mind-body theories
+  - [L4] Functionalism
+  - [L4] Identity theory
+  - [L4] Property dualism
+- [L3] Consciousness theories
+  - [L4] Global workspace theory
+  - [L4] Higher-order thought theory
+  - [L4] Integrated information theory
+
+#### [L2] Cognitive Architectures
+- [L3] Symbolic architectures
+  - [L4] ACT-R
+  - [L4] SOAR
+  - [L4] EPIC architecture
+- [L3] Hybrid and embodied architectures
+  - [L4] CLARION
+  - [L4] Predictive processing architecture
+  - [L4] Embodied cognitive architecture
+
+### E.7 Theoretical Ethology and Animal Cognition
+
+#### [L2] Behavioural Theory
+- [L3] Ethological models
+  - [L4] Fixed action pattern
+  - [L4] Sign stimulus theory
+  - [L4] Tinbergen's four questions
+- [L3] Behavioural ecology
+  - [L4] Optimal foraging theory
+  - [L4] Game-theoretic animal behaviour
+  - [L4] Kin selection in behaviour
+
+#### [L2] Animal Cognition Theory
+- [L3] Learning and intelligence
+  - [L4] Associative learning models
+  - [L4] Spatial cognition models
+  - [L4] Tool-use cognition theory
+- [L3] Social cognition
+  - [L4] Theory of mind in animals
+  - [L4] Social learning theory
+  - [L4] Cultural transmission in animals
+
+### E.8 Neurolinguistics Theory
+
+#### [L2] Neural Language Architecture
+- [L3] Classical models
+  - [L4] Broca-Wernicke model
+  - [L4] Geschwind disconnection model
+  - [L4] Dual-stream language model
+- [L3] Processing models
+  - [L4] Lexical access models
+  - [L4] Sentence processing models
+  - [L4] Predictive coding of language
+
+#### [L2] Language Disorders and Plasticity Theory
+- [L3] Aphasia models
+  - [L4] Connectionist aphasia models
+  - [L4] Semantic dementia models
+  - [L4] Phonological loop impairment models
+- [L3] Development and recovery
+  - [L4] Critical period hypothesis
+  - [L4] Neural plasticity in language recovery
+  - [L4] Bilingual language control models
+
+=====================================================================
+F. SOCIAL AND ECONOMIC SCIENCES
+=====================================================================
+
+### F.1 Theoretical Economics
+
+#### [L2] Microeconomic Theory
+- [L3] Consumer and producer theory
+  - [L4] Utility maximisation
+  - [L4] Revealed preference theory
+  - [L4] Cost duality
+- [L3] Market and equilibrium theory
+  - [L4] General equilibrium theory
+  - [L4] Welfare theorems
+  - [L4] Market failure theory
+
+#### [L2] Macroeconomic Theory
+- [L3] Growth and cycles
+  - [L4] Solow growth model
+  - [L4] Endogenous growth theory
+  - [L4] Real business cycle theory
+- [L3] Monetary and fiscal theory
+  - [L4] Quantity theory of money
+  - [L4] New Keynesian DSGE models
+  - [L4] Ricardian equivalence
+
+### F.2 Econometric Theory
+
+#### [L2] Estimation and Identification
+- [L3] Classical econometrics
+  - [L4] Ordinary least squares theory
+  - [L4] Generalised least squares
+  - [L4] Instrumental variables
+- [L3] Identification
+  - [L4] Structural identification
+  - [L4] Partial identification
+  - [L4] Simultaneity bias theory
+
+#### [L2] Dynamic and Causal Econometrics
+- [L3] Time series econometrics
+  - [L4] Unit root theory
+  - [L4] Cointegration
+  - [L4] Vector autoregression
+- [L3] Causal econometrics
+  - [L4] Difference-in-differences
+  - [L4] Regression discontinuity design
+  - [L4] Synthetic control method
+
+### F.3 Social Choice Theory
+
+#### [L2] Collective Choice
+- [L3] Voting theory
+  - [L4] Condorcet method
+  - [L4] Borda count
+  - [L4] Median voter theorem
+- [L3] Impossibility theory
+  - [L4] Arrow impossibility theorem
+  - [L4] Gibbard-Satterthwaite theorem
+  - [L4] Sen liberal paradox
+
+#### [L2] Welfare and Fairness
+- [L3] Welfare aggregation
+  - [L4] Social welfare functions
+  - [L4] Pareto criterion
+  - [L4] Utilitarian aggregation
+- [L3] Fair division
+  - [L4] Envy-freeness
+  - [L4] Proportionality
+  - [L4] Cake-cutting theory
+
+### F.4 Political Theory and Formal Political Science
+
+#### [L2] Formal Political Theory
+- [L3] Political institutions
+  - [L4] Spatial voting model
+  - [L4] Agenda-setting models
+  - [L4] Veto player theory
+- [L3] Coalition and party theory
+  - [L4] Minimum winning coalition theory
+  - [L4] Party competition models
+  - [L4] Duverger's law
+
+#### [L2] Normative Political Theory
+- [L3] Justice and legitimacy
+  - [L4] Rawlsian justice
+  - [L4] Nozick entitlement theory
+  - [L4] Deliberative democracy theory
+- [L3] State and power
+  - [L4] Social contract theory
+  - [L4] Republican liberty theory
+  - [L4] Democratic legitimacy theory
+
+### F.5 Theoretical Sociology
+
+#### [L2] Social Structure and Action
+- [L3] Action theory
+  - [L4] Weberian social action
+  - [L4] Rational choice sociology
+  - [L4] Symbolic interactionism
+- [L3] Social structure theory
+  - [L4] Functionalism
+  - [L4] Conflict theory
+  - [L4] Structuration theory
+
+#### [L2] Social Systems and Change
+- [L3] Systems sociology
+  - [L4] Parsons social system theory
+  - [L4] Luhmann systems theory
+  - [L4] Social network theory
+- [L3] Change and modernity
+  - [L4] Modernisation theory
+  - [L4] World-systems theory
+  - [L4] Social movement theory
+
+### F.6 Theoretical Anthropology
+
+#### [L2] Cultural and Social Theory
+- [L3] Cultural theory
+  - [L4] Cultural relativism
+  - [L4] Structural anthropology
+  - [L4] Symbolic anthropology
+- [L3] Social organisation
+  - [L4] Kinship theory
+  - [L4] Alliance theory
+  - [L4] Descent theory
+
+#### [L2] Evolutionary and Interpretive Anthropology
+- [L3] Evolutionary anthropology
+  - [L4] Cultural materialism
+  - [L4] Dual inheritance theory
+  - [L4] Human behavioural ecology
+- [L3] Interpretive theory
+  - [L4] Thick description
+  - [L4] Practice theory
+  - [L4] Ontological anthropology
+
+### F.7 Demography and Population Theory
+
+#### [L2] Formal Demography
+- [L3] Population structure
+  - [L4] Life table theory
+  - [L4] Stable population theory
+  - [L4] Stationary population model
+- [L3] Population change
+  - [L4] Fertility transition theory
+  - [L4] Mortality transition theory
+  - [L4] Migration models
+
+#### [L2] Population Dynamics and Projection
+- [L3] Projection models
+  - [L4] Cohort-component projection
+  - [L4] Leslie matrix model
+  - [L4] Multi-state population models
+- [L3] Demographic transition
+  - [L4] Demographic transition theory
+  - [L4] Second demographic transition
+  - [L4] Age-structural transition theory
+
+### F.8 Cultural Evolution Theory
+
+#### [L2] Cultural Transmission
+- [L3] Transmission models
+  - [L4] Vertical transmission
+  - [L4] Horizontal transmission
+  - [L4] Oblique transmission
+- [L3] Cultural selection
+  - [L4] Cultural fitness
+  - [L4] Conformist bias
+  - [L4] Prestige bias
+
+#### [L2] Gene-Culture and Macro-Cultural Evolution
+- [L3] Gene-culture coevolution
+  - [L4] Dual inheritance theory
+  - [L4] Niche construction theory
+  - [L4] Lactase persistence models
+- [L3] Cultural macroevolution
+  - [L4] Phylogenetic cultural analysis
+  - [L4] Memetics
+  - [L4] Cumulative culture theory
+
+### F.9 Institutional Theory
+
+#### [L2] Economic and Political Institutions
+- [L3] Institutional economics
+  - [L4] Transaction cost theory
+  - [L4] Property rights theory
+  - [L4] Principal-agent theory
+- [L3] Political institutionalism
+  - [L4] Historical institutionalism
+  - [L4] Rational choice institutionalism
+  - [L4] Sociological institutionalism
+
+#### [L2] Organisational Institutionalism
+- [L3] Institutional change
+  - [L4] Path dependence
+  - [L4] Punctuated equilibrium in institutions
+  - [L4] Institutional entrepreneurship
+- [L3] Legitimacy and fields
+  - [L4] Isomorphism
+  - [L4] Organisational field theory
+  - [L4] Legitimacy theory
+
+### F.10 Law-and-Economics Theory / Formal Legal Theory
+
+#### [L2] Economic Analysis of Law
+- [L3] Liability and property
+  - [L4] Coase theorem
+  - [L4] Calabresi accident cost theory
+  - [L4] Efficient breach theory
+- [L3] Legal incentives
+  - [L4] Deterrence theory
+  - [L4] Optimal enforcement theory
+  - [L4] Litigation cost models
+
+#### [L2] Formal Legal Theory
+- [L3] Legal reasoning
+  - [L4] Deontic logic
+  - [L4] Defeasible legal reasoning
+  - [L4] Legal positivism
+- [L3] Rights and institutions
+  - [L4] Hohfeldian rights analysis
+  - [L4] Constitutional choice theory
+  - [L4] Public choice theory of law
+
+### F.11 Theoretical Geography and Spatial Theory
+
+#### [L2] Spatial Organisation
+- [L3] Location theory
+  - [L4] Von Thunen model
+  - [L4] Weber industrial location theory
+  - [L4] Central place theory
+- [L3] Spatial interaction
+  - [L4] Gravity model
+  - [L4] Spatial diffusion theory
+  - [L4] Time-geography
+
+#### [L2] Human and Regional Spatial Theory
+- [L3] Urban and regional theory
+  - [L4] Rank-size rule
+  - [L4] Core-periphery model
+  - [L4] Agglomeration theory
+- [L3] Critical spatial theory
+  - [L4] Spatial justice
+  - [L4] Production of space
+  - [L4] Territoriality theory
+
+### F.12 Peace Theory and Conflict Resolution Theory
+
+#### [L2] Conflict Theory
+- [L3] Conflict dynamics
+  - [L4] Security dilemma
+  - [L4] Bargaining model of war
+  - [L4] Spiral model
+- [L3] Civil conflict
+  - [L4] Greed and grievance theory
+  - [L4] Ethnic security dilemma
+  - [L4] Insurgency theory
+
+#### [L2] Peace and Resolution Theory
+- [L3] Peace theories
+  - [L4] Democratic peace theory
+  - [L4] Negative and positive peace
+  - [L4] Liberal peace theory
+- [L3] Conflict resolution
+  - [L4] Interest-based negotiation
+  - [L4] Mediation theory
+  - [L4] Ripeness theory
+
+### F.13 Theoretical Criminology
+
+#### [L2] Causes of Crime
+- [L3] Social and structural theories
+  - [L4] Strain theory
+  - [L4] Social disorganisation theory
+  - [L4] Differential association theory
+- [L3] Control and choice theories
+  - [L4] Social control theory
+  - [L4] Routine activity theory
+  - [L4] Rational choice criminology
+
+#### [L2] Crime, Punishment, and Justice
+- [L3] Labelling and conflict theories
+  - [L4] Labelling theory
+  - [L4] Critical criminology
+  - [L4] Feminist criminology
+- [L3] Punishment theory
+  - [L4] Deterrence theory
+  - [L4] Incapacitation theory
+  - [L4] Restorative justice theory
+
+### F.14 Organisation Theory
+
+#### [L2] Organisational Structure
+- [L3] Structural theories
+  - [L4] Bureaucracy theory
+  - [L4] Contingency theory
+  - [L4] Resource dependence theory
+- [L3] Organisational ecology
+  - [L4] Population ecology of organisations
+  - [L4] Niche width theory
+  - [L4] Liability of newness
+
+#### [L2] Organisational Processes
+- [L3] Decision and learning
+  - [L4] Garbage can model
+  - [L4] Organisational learning theory
+  - [L4] Sensemaking theory
+- [L3] Power and culture
+  - [L4] Organisational culture theory
+  - [L4] Institutional isomorphism
+  - [L4] Agency theory
+
+=====================================================================
+G. ENGINEERING AND TECHNOLOGICAL THEORY
+=====================================================================
+
+### G.1 Theoretical Engineering Science
+
+#### [L2] Engineering Mechanics and Modelling
+- [L3] Solid and fluid mechanics
+  - [L4] Continuum mechanics
+  - [L4] Elasticity theory
+  - [L4] Navier-Stokes theory
+- [L3] Transport theory
+  - [L4] Heat conduction equation
+  - [L4] Diffusion theory
+  - [L4] Momentum transport theory
+
+#### [L2] Engineering Systems Theory
+- [L3] Systems modelling
+  - [L4] Lumped-parameter models
+  - [L4] Distributed-parameter models
+  - [L4] Dimensional analysis
+- [L3] Similarity and scaling
+  - [L4] Buckingham pi theorem
+  - [L4] Scale model theory
+  - [L4] Nondimensionalisation
+
+### G.2 Signal Theory
+
+#### [L2] Deterministic Signal Theory
+- [L3] Transform methods
+  - [L4] Fourier transform
+  - [L4] Laplace transform
+  - [L4] Z-transform
+- [L3] Sampling and reconstruction
+  - [L4] Nyquist-Shannon sampling theorem
+  - [L4] Aliasing theory
+  - [L4] Sinc interpolation
+
+#### [L2] Stochastic and Digital Signal Theory
+- [L3] Random signals
+  - [L4] Power spectral density
+  - [L4] Wiener filtering
+  - [L4] Kalman filtering
+- [L3] Digital signal processing
+  - [L4] Discrete Fourier transform
+  - [L4] Fast Fourier transform
+  - [L4] Finite impulse response filters
+
+### G.3 Communication Systems Theory
+
+#### [L2] Modulation and Channel Theory
+- [L3] Modulation theory
+  - [L4] Amplitude modulation
+  - [L4] Frequency modulation
+  - [L4] Quadrature amplitude modulation
+- [L3] Channel models
+  - [L4] Additive white Gaussian noise channel
+  - [L4] Fading channel models
+  - [L4] Multiple-input multiple-output channel theory
+
+#### [L2] Coding and Networked Communication
+- [L3] Error control coding
+  - [L4] Convolutional codes
+  - [L4] Turbo codes
+  - [L4] Polar codes
+- [L3] Communication networks
+  - [L4] Packet switching theory
+  - [L4] Queueing models of networks
+  - [L4] Congestion control theory
+
+### G.4 Robotics Theory
+
+#### [L2] Robot Mechanics and Control
+- [L3] Kinematics and dynamics
+  - [L4] Forward kinematics
+  - [L4] Inverse kinematics
+  - [L4] Manipulator dynamics
+- [L3] Robot control
+  - [L4] Computed torque control
+  - [L4] Impedance control
+  - [L4] Visual servoing
+
+#### [L2] Planning, Perception, and Multi-Robot Theory
+- [L3] Motion planning
+  - [L4] Configuration space
+  - [L4] Probabilistic roadmaps
+  - [L4] Rapidly exploring random trees
+- [L3] Multi-robot systems
+  - [L4] Consensus algorithms
+  - [L4] Formation control
+  - [L4] Swarm robotics models
+
+### G.5 Theoretical AI and Machine Learning Theory
+
+#### [L2] Learning Foundations
+- [L3] Supervised learning theory
+  - [L4] Empirical risk minimisation
+  - [L4] VC dimension
+  - [L4] Bias-variance decomposition
+- [L3] Unsupervised learning theory
+  - [L4] Clustering objective theory
+  - [L4] Principal component analysis
+  - [L4] Manifold learning
+
+#### [L2] Advanced AI Theory
+- [L3] Reinforcement learning theory
+  - [L4] Bellman equation
+  - [L4] Q-learning convergence
+  - [L4] Policy gradient theorem
+- [L3] Deep learning theory
+  - [L4] Universal approximation theorem
+  - [L4] Neural tangent kernel
+  - [L4] Double descent
+
+### G.6 Theoretical Data Science
+
+#### [L2] Data Representation and Inference
+- [L3] Statistical learning
+  - [L4] Generalisation bounds
+  - [L4] Cross-validation theory
+  - [L4] Regularisation theory
+- [L3] Dimensionality and structure
+  - [L4] Curse of dimensionality
+  - [L4] Low-rank modelling
+  - [L4] Sparse modelling
+
+#### [L2] Data Pipelines and Knowledge Extraction
+- [L3] Data mining theory
+  - [L4] Association rule mining
+  - [L4] Frequent itemset mining
+  - [L4] Anomaly detection theory
+- [L3] Causal data science
+  - [L4] Causal discovery
+  - [L4] Counterfactual prediction
+  - [L4] Uplift modelling
+
+### G.7 Operations Research
+
+#### [L2] Optimisation and Allocation
+- [L3] Mathematical programming
+  - [L4] Linear programming
+  - [L4] Integer programming
+  - [L4] Network flow theory
+- [L3] Resource allocation
+  - [L4] Assignment problem
+  - [L4] Transportation problem
+  - [L4] Knapsack problem
+
+#### [L2] Stochastic Operations Models
+- [L3] Queueing and service systems
+  - [L4] M/M/1 queue
+  - [L4] Jackson networks
+  - [L4] Heavy-traffic approximation
+- [L3] Inventory and scheduling
+  - [L4] Newsvendor model
+  - [L4] Economic order quantity
+  - [L4] Job-shop scheduling theory
+
+### G.8 Reliability Theory
+
+#### [L2] Component and System Reliability
+- [L3] Lifetime models
+  - [L4] Exponential failure model
+  - [L4] Weibull failure model
+  - [L4] Hazard rate theory
+- [L3] System reliability
+  - [L4] Series system reliability
+  - [L4] Parallel system reliability
+  - [L4] Fault tree analysis
+
+#### [L2] Maintenance and Dependability
+- [L3] Repairable systems
+  - [L4] Renewal process theory
+  - [L4] Markov reliability models
+  - [L4] Availability theory
+- [L3] Dependability modelling
+  - [L4] Reliability block diagrams
+  - [L4] Failure modes and effects analysis
+  - [L4] Common cause failure models
+
+### G.9 Risk Theory and Safety Science
+
+#### [L2] Risk Analysis
+- [L3] Probabilistic risk
+  - [L4] Expected loss theory
+  - [L4] Extreme value risk models
+  - [L4] Bayesian risk assessment
+- [L3] Hazard analysis
+  - [L4] Event tree analysis
+  - [L4] Fault tree analysis
+  - [L4] Bow-tie model
+
+#### [L2] Safety Systems Theory
+- [L3] Accident causation
+  - [L4] Swiss cheese model
+  - [L4] Normal accident theory
+  - [L4] High reliability organisation theory
+- [L3] Resilience and safety
+  - [L4] Resilience engineering
+  - [L4] Safety-II theory
+  - [L4] Systems-theoretic accident model and processes
+
+### G.10 Design Theory and Systems Engineering Theory
+
+#### [L2] Design Theory
+- [L3] Design process models
+  - [L4] Axiomatic design
+  - [L4] Function-behaviour-structure model
+  - [L4] Design structure matrix
+- [L3] Design cognition
+  - [L4] Coevolution model of design
+  - [L4] Reflective practice
+  - [L4] Design fixation theory
+
+#### [L2] Systems Engineering Theory
+- [L3] Requirements and architecture
+  - [L4] Requirements traceability
+  - [L4] Systems architecture framework
+  - [L4] Model-based systems engineering
+- [L3] Lifecycle and trade space
+  - [L4] V-model
+  - [L4] Trade-space exploration
+  - [L4] Verification and validation theory
+
+### G.11 Control and Dynamical Systems Engineering Theory
+
+#### [L2] Dynamical Systems Engineering
+- [L3] System dynamics
+  - [L4] State-space representation
+  - [L4] Transfer function theory
+  - [L4] Stability margins
+- [L3] Nonlinear systems
+  - [L4] Phase plane analysis
+  - [L4] Bifurcation analysis
+  - [L4] Limit cycle theory
+
+#### [L2] Engineering Control Theory
+- [L3] Feedback design
+  - [L4] PID control
+  - [L4] Lead-lag compensation
+  - [L4] Loop shaping
+- [L3] Advanced control
+  - [L4] Adaptive control
+  - [L4] Robust control
+  - [L4] Predictive control
+
+### G.12 Information Engineering Theory
+
+#### [L2] Information Representation
+- [L3] Coding and compression
+  - [L4] Source coding theorem
+  - [L4] Lossy compression theory
+  - [L4] Entropy coding
+- [L3] Information storage
+  - [L4] Indexing theory
+  - [L4] Data integrity models
+  - [L4] Error-correcting storage codes
+
+#### [L2] Information Processing Systems
+- [L3] Retrieval and filtering
+  - [L4] Vector space model
+  - [L4] Probabilistic retrieval model
+  - [L4] Relevance feedback
+- [L3] Distributed information systems
+  - [L4] Consistency models
+  - [L4] Consensus protocols
+  - [L4] Replication theory
+
+### G.13 Theoretical Bioengineering
+
+#### [L2] Biological System Design
+- [L3] Tissue engineering theory
+  - [L4] Scaffold transport models
+  - [L4] Cell proliferation models
+  - [L4] Mechanobiology models
+- [L3] Biomedical device theory
+  - [L4] Biocompatibility theory
+  - [L4] Biosensor transduction models
+  - [L4] Drug delivery models
+
+#### [L2] Bioprocess and Biomechatronic Theory
+- [L3] Bioprocess models
+  - [L4] Monod growth kinetics
+  - [L4] Chemostat theory
+  - [L4] Bioreactor mass balance models
+- [L3] Neural and prosthetic engineering
+  - [L4] Neural decoding models
+  - [L4] Brain-computer interface signal models
+  - [L4] Closed-loop neurostimulation models
+
+### G.14 Theoretical Environmental Engineering
+
+#### [L2] Environmental Transport and Reaction
+- [L3] Pollutant fate models
+  - [L4] Advection-dispersion equation
+  - [L4] Sorption isotherms
+  - [L4] First-order decay models
+- [L3] Water and air systems
+  - [L4] Activated sludge models
+  - [L4] Atmospheric dispersion models
+  - [L4] Groundwater flow theory
+
+#### [L2] Environmental Systems and Design
+- [L3] Risk and sustainability
+  - [L4] Life-cycle assessment
+  - [L4] Environmental risk assessment
+  - [L4] Industrial ecology
+- [L3] Treatment process theory
+  - [L4] Mass transfer in treatment systems
+  - [L4] Reaction engineering in treatment
+  - [L4] Membrane separation theory
+
+### G.15 Theoretical Materials Engineering
+
+#### [L2] Structure-Property Theory
+- [L3] Materials microstructure
+  - [L4] Phase diagrams
+  - [L4] Nucleation theory
+  - [L4] Grain growth theory
+- [L3] Mechanical behaviour
+  - [L4] Dislocation strengthening
+  - [L4] Fracture mechanics
+  - [L4] Fatigue crack growth theory
+
+#### [L2] Processing and Performance Models
+- [L3] Processing theory
+  - [L4] Solidification theory
+  - [L4] Sintering theory
+  - [L4] Diffusion-controlled transformations
+- [L3] Materials degradation
+  - [L4] Corrosion thermodynamics
+  - [L4] Oxidation kinetics
+  - [L4] Creep theory
+
+### G.16 Theoretical Energy Systems
+
+#### [L2] Energy Conversion Theory
+- [L3] Thermodynamic conversion
+  - [L4] Carnot efficiency
+  - [L4] Exergy analysis
+  - [L4] Rankine cycle theory
+- [L3] Electrochemical and renewable conversion
+  - [L4] Butler-Volmer kinetics
+  - [L4] Photovoltaic detailed balance
+  - [L4] Wind turbine actuator disk theory
+
+#### [L2] Energy Networks and Planning
+- [L3] Power systems theory
+  - [L4] Optimal power flow
+  - [L4] Unit commitment
+  - [L4] Power system stability
+- [L3] Energy systems modelling
+  - [L4] Energy balance models
+  - [L4] Capacity expansion models
+  - [L4] Integrated assessment models
+
+### G.17 Theoretical Transportation Science
+
+#### [L2] Traffic Flow Theory
+- [L3] Road traffic models
+  - [L4] Lighthill-Whitham-Richards model
+  - [L4] Car-following models
+  - [L4] Fundamental diagram
+- [L3] Network traffic assignment
+  - [L4] Wardrop equilibrium
+  - [L4] Dynamic traffic assignment
+  - [L4] User equilibrium model
+
+#### [L2] Transport Systems and Demand
+- [L3] Travel demand theory
+  - [L4] Discrete choice models
+  - [L4] Four-step transport model
+  - [L4] Activity-based travel models
+- [L3] Public transport and logistics
+  - [L4] Vehicle routing problem
+  - [L4] Timetabling theory
+  - [L4] Hub-and-spoke network models
+
+=====================================================================
+H. METHODOLOGICAL, PHILOSOPHICAL, AND META-SCIENTIFIC THEORY
+=====================================================================
+
+### H.1 Philosophy of Science
+
+#### [L2] Scientific Realism and Explanation
+- [L3] Realism debates
+  - [L4] Scientific realism
+  - [L4] Constructive empiricism
+  - [L4] Structural realism
+- [L3] Explanation theories
+  - [L4] Deductive-nomological model
+  - [L4] Causal-mechanical explanation
+  - [L4] Unificationist explanation
+
+#### [L2] Scientific Change and Laws
+- [L3] Change theories
+  - [L4] Kuhnian paradigm theory
+  - [L4] Lakatos research programmes
+  - [L4] Laudan research traditions
+- [L3] Laws of nature
+  - [L4] Humean regularity theory
+  - [L4] Best-system account
+  - [L4] Dispositional essentialism
+
+### H.2 Philosophy of Mathematics
+
+#### [L2] Ontology and Epistemology of Mathematics
+- [L3] Ontological positions
+  - [L4] Platonism
+  - [L4] Nominalism
+  - [L4] Structuralism
+- [L3] Knowledge of mathematics
+  - [L4] Apriorism
+  - [L4] Quasi-empiricism
+  - [L4] Indispensability argument
+
+#### [L2] Foundations and Practice
+- [L3] Foundational views
+  - [L4] Logicism
+  - [L4] Formalism
+  - [L4] Intuitionism
+- [L3] Mathematical explanation
+  - [L4] Proof explanation theory
+  - [L4] Explanatory proof
+  - [L4] Mathematical structural explanation
+
+### H.3 Philosophy of Physics
+
+#### [L2] Space, Time, and Quantum Foundations
+- [L3] Spacetime philosophy
+  - [L4] Substantivalism
+  - [L4] Relationism
+  - [L4] Conventionality of simultaneity
+- [L3] Quantum foundations
+  - [L4] Measurement problem
+  - [L4] Many-worlds interpretation
+  - [L4] Bohmian mechanics interpretation
+
+#### [L2] Statistical Mechanics and Field Theory
+- [L3] Statistical mechanics foundations
+  - [L4] Boltzmannian approach
+  - [L4] Gibbsian approach
+  - [L4] Past hypothesis
+- [L3] Field and symmetry philosophy
+  - [L4] Gauge realism debate
+  - [L4] Symmetry principles
+  - [L4] Effective field theory interpretation
+
+### H.4 Philosophy of Biology
+
+#### [L2] Evolution and Function
+- [L3] Evolutionary concepts
+  - [L4] Units of selection
+  - [L4] Species concepts
+  - [L4] Adaptationism debate
+- [L3] Biological function
+  - [L4] Etiological theory of function
+  - [L4] Cummins causal-role function
+  - [L4] Teleosemantics
+
+#### [L2] Biology, Information, and Reduction
+- [L3] Reduction and emergence
+  - [L4] Reductionism in biology
+  - [L4] Mechanistic explanation
+  - [L4] Biological individuality
+- [L3] Genes and information
+  - [L4] Gene concept debate
+  - [L4] Genetic programme critique
+  - [L4] Developmental systems theory
+
+### H.5 Philosophy of Chemistry
+
+#### [L2] Chemical Ontology
+- [L3] Chemical entities
+  - [L4] Molecular structure problem
+  - [L4] Chemical bond concept
+  - [L4] Substance ontology
+- [L3] Reduction and autonomy
+  - [L4] Reduction of chemistry to physics
+  - [L4] Emergence in chemistry
+  - [L4] Chemical kinds
+
+#### [L2] Explanation and Models in Chemistry
+- [L3] Chemical explanation
+  - [L4] Mechanistic explanation in chemistry
+  - [L4] Model-based explanation
+  - [L4] Structure-property explanation
+- [L3] Chemical representation
+  - [L4] Structural formula interpretation
+  - [L4] Orbital realism debate
+  - [L4] Periodic table classification theory
+
+### H.6 Philosophy of Computer Science and AI
+
+#### [L2] Computation and Programs
+- [L3] Nature of computation
+  - [L4] Church-Turing thesis
+  - [L4] Computationalism
+  - [L4] Physical computation theory
+- [L3] Programs and abstraction
+  - [L4] Program correctness
+  - [L4] Software ontology
+  - [L4] Abstraction in computer science
+
+#### [L2] AI Philosophy
+- [L3] Intelligence and agency
+  - [L4] Turing test
+  - [L4] Chinese room argument
+  - [L4] Artificial agency
+- [L3] AI ethics foundations
+  - [L4] Value alignment
+  - [L4] Algorithmic fairness
+  - [L4] Explainability theory
+
+### H.7 Philosophy of Social Science
+
+#### [L2] Explanation and Method
+- [L3] Social explanation
+  - [L4] Methodological individualism
+  - [L4] Holism
+  - [L4] Mechanism-based explanation
+- [L3] Interpretation and causality
+  - [L4] Verstehen
+  - [L4] Hermeneutic explanation
+  - [L4] Causal modelling in social science
+
+#### [L2] Values and Objectivity
+- [L3] Objectivity debates
+  - [L4] Value neutrality
+  - [L4] Standpoint epistemology
+  - [L4] Reflexivity
+- [L3] Social ontology
+  - [L4] Collective intentionality
+  - [L4] Social construction
+  - [L4] Institutional facts
+
+### H.8 Scientific Methodology
+
+#### [L2] Inference and Testing
+- [L3] Hypothesis testing
+  - [L4] Hypothetico-deductive method
+  - [L4] Falsificationism
+  - [L4] Severe testing
+- [L3] Induction and discovery
+  - [L4] Enumerative induction
+  - [L4] Abduction
+  - [L4] Inference to the best explanation
+
+#### [L2] Research Design
+- [L3] Experimental methodology
+  - [L4] Randomised controlled trial
+  - [L4] Factorial design
+  - [L4] Blinding and control theory
+- [L3] Observational methodology
+  - [L4] Case study logic
+  - [L4] Comparative method
+  - [L4] Triangulation
+
+### H.9 Measurement Theory
+
+#### [L2] Formal Measurement
+- [L3] Representational measurement
+  - [L4] Representation theorem
+  - [L4] Uniqueness theorem
+  - [L4] Meaningfulness
+- [L3] Scale theory
+  - [L4] Nominal scale
+  - [L4] Ordinal scale
+  - [L4] Interval scale
+  - [L4] Ratio scale
+
+#### [L2] Measurement Error and Instruments
+- [L3] Error theory
+  - [L4] Classical test theory
+  - [L4] Item response theory
+  - [L4] Reliability and validity theory
+- [L3] Calibration and standards
+  - [L4] Calibration hierarchy
+  - [L4] Traceability
+  - [L4] Measurement uncertainty
+
+### H.10 Model Theory of Science
+
+#### [L2] Scientific Model Types
+- [L3] Representational models
+  - [L4] Scale models
+  - [L4] Idealised models
+  - [L4] Fictional models
+- [L3] Mathematical models
+  - [L4] Dynamical models
+  - [L4] Statistical models
+  - [L4] Simulation models
+
+#### [L2] Model Evaluation
+- [L3] Model-world relations
+  - [L4] Similarity account
+  - [L4] Isomorphism account
+  - [L4] Partial structures account
+- [L3] Model quality
+  - [L4] Validation
+  - [L4] Verification
+  - [L4] Robustness analysis
+
+### H.11 Causation and Explanation
+
+#### [L2] Theories of Causation
+- [L3] Counterfactual and interventionist theories
+  - [L4] Lewis counterfactual theory
+  - [L4] Structural causal model
+  - [L4] Interventionist causation
+- [L3] Probabilistic and process theories
+  - [L4] Suppes probabilistic causation
+  - [L4] Salmon process theory
+  - [L4] Mechanistic causation
+
+#### [L2] Explanatory Forms
+- [L3] Scientific explanation
+  - [L4] Covering-law explanation
+  - [L4] Causal explanation
+  - [L4] Statistical relevance explanation
+- [L3] Explanation structure
+  - [L4] Explanatory depth
+  - [L4] Contrastive explanation
+  - [L4] Why-question analysis
+
+### H.12 Confirmation Theory
+
+#### [L2] Logical and Bayesian Confirmation
+- [L3] Classical confirmation
+  - [L4] Hempel confirmation
+  - [L4] Raven paradox
+  - [L4] Nicod criterion
+- [L3] Bayesian confirmation
+  - [L4] Bayes factor
+  - [L4] Likelihood ratio confirmation
+  - [L4] Incremental confirmation
+
+#### [L2] Evidence and Theory Choice
+- [L3] Evidence relations
+  - [L4] Evidential relevance
+  - [L4] Underdetermination
+  - [L4] Duhem-Quine thesis
+- [L3] Theory choice
+  - [L4] Simplicity
+  - [L4] Explanatory power
+  - [L4] Predictive success
+
+### H.13 Metascience and Replication Theory
+
+#### [L2] Replication and Reproducibility
+- [L3] Replication theory
+  - [L4] Direct replication
+  - [L4] Conceptual replication
+  - [L4] Replication crisis theory
+- [L3] Reproducibility
+  - [L4] Computational reproducibility
+  - [L4] Analytical reproducibility
+  - [L4] Registered reports
+
+#### [L2] Research Systems and Bias
+- [L3] Publication and incentives
+  - [L4] Publication bias
+  - [L4] File drawer problem
+  - [L4] P-hacking
+- [L3] Meta-analysis theory
+  - [L4] Fixed-effect meta-analysis
+  - [L4] Random-effects meta-analysis
+  - [L4] Heterogeneity models
+
+### H.14 Classification, Taxonomy, and Ontology of Science
+
+#### [L2] Classification Theory
+- [L3] Taxonomic systems
+  - [L4] Hierarchical classification
+  - [L4] Faceted classification
+  - [L4] Polyhierarchy
+- [L3] Scientific domains
+  - [L4] Disciplinary classification
+  - [L4] Field delineation
+  - [L4] Bibliometric clustering
+
+#### [L2] Ontology Engineering for Science
+- [L3] Formal ontology
+  - [L4] Classes and instances
+  - [L4] Relations and properties
+  - [L4] Ontological commitment
+- [L3] Knowledge organisation
+  - [L4] Controlled vocabularies
+  - [L4] Thesauri
+  - [L4] Knowledge graphs
+
+### H.15 Philosophy of Technology and Engineering
+
+#### [L2] Technology and Artefacts
+- [L3] Artefact theory
+  - [L4] Dual nature of technical artefacts
+  - [L4] Function in engineering
+  - [L4] Affordance theory
+- [L3] Technological change
+  - [L4] Technological determinism
+  - [L4] Social construction of technology
+  - [L4] Actor-network theory
+
+#### [L2] Engineering Epistemology and Ethics
+- [L3] Engineering knowledge
+  - [L4] Design knowledge
+  - [L4] Engineering models
+  - [L4] Technological explanation
+- [L3] Technology ethics
+  - [L4] Responsible innovation
+  - [L4] Value-sensitive design
+  - [L4] Precautionary principle
+
+### H.16 Philosophy of Information
+
+#### [L2] Nature of Information
+- [L3] Information concepts
+  - [L4] Semantic information
+  - [L4] Shannon information interpretation
+  - [L4] Information as data plus meaning
+- [L3] Ontology of information
+  - [L4] Informational structural realism
+  - [L4] Levels of abstraction
+  - [L4] Data ontology
+
+#### [L2] Information Ethics and Knowledge
+- [L3] Information ethics
+  - [L4] Infosphere
+  - [L4] Privacy as information control
+  - [L4] Digital rights theory
+- [L3] Information epistemology
+  - [L4] Testimony and information
+  - [L4] Misinformation theory
+  - [L4] Knowledge representation
+
+### H.17 History and Philosophy of Logic
+
+#### [L2] Historical Logic Traditions
+- [L3] Ancient and medieval logic
+  - [L4] Aristotelian syllogistic
+  - [L4] Stoic propositional logic
+  - [L4] Scholastic supposition theory
+- [L3] Modern symbolic logic
+  - [L4] Fregean logic
+  - [L4] Peano arithmetic tradition
+  - [L4] Hilbert programme
+
+#### [L2] Philosophical Logic
+- [L3] Logical consequence
+  - [L4] Tarskian consequence
+  - [L4] Proof-theoretic consequence
+  - [L4] Model-theoretic consequence
+- [L3] Logical pluralism
+  - [L4] Classical logic monism
+  - [L4] Logical pluralism
+  - [L4] Relevant logic critique
+
+### H.18 Research Ethics and Integrity Theory
+
+#### [L2] Research Ethics
+- [L3] Human and animal research
+  - [L4] Informed consent
+  - [L4] Beneficence
+  - [L4] Animal replacement-reduction-refinement
+- [L3] Justice and risk
+  - [L4] Research risk-benefit analysis
+  - [L4] Vulnerable population protections
+  - [L4] Equipoise
+
+#### [L2] Integrity and Misconduct
+- [L3] Scientific misconduct
+  - [L4] Fabrication
+  - [L4] Falsification
+  - [L4] Plagiarism
+- [L3] Responsible conduct
+  - [L4] Authorship ethics
+  - [L4] Conflict of interest theory
+  - [L4] Data stewardship
+
+### H.19 Science and Technology Studies (STS) Theory
+
+#### [L2] Social Studies of Science
+- [L3] Sociology of scientific knowledge
+  - [L4] Strong programme
+  - [L4] Laboratory studies
+  - [L4] Social construction of facts
+- [L3] Expertise and publics
+  - [L4] Boundary-work
+  - [L4] Epistemic cultures
+  - [L4] Public understanding of science
+
+#### [L2] Technology and Society
+- [L3] Sociotechnical systems
+  - [L4] Actor-network theory
+  - [L4] Social construction of technology
+  - [L4] Large technical systems
+- [L3] Governance of science
+  - [L4] Mode 2 knowledge production
+  - [L4] Responsible research and innovation
+  - [L4] Co-production
+
+### H.20 Epistemology of Simulation and Modeling
+
+#### [L2] Simulation Knowledge
+- [L3] Simulation epistemology
+  - [L4] Computer simulation as experiment
+  - [L4] Numerical experiment
+  - [L4] Simulation credibility
+- [L3] Model validation
+  - [L4] Verification-validation-uncertainty quantification
+  - [L4] Sensitivity analysis
+  - [L4] Calibration
+
+#### [L2] Simulation Practice and Limits
+- [L3] Computational representation
+  - [L4] Discretisation
+  - [L4] Model idealisation
+  - [L4] Algorithmic approximation
+- [L3] Uncertainty and trust
+  - [L4] Uncertainty quantification
+  - [L4] Ensemble modelling
+  - [L4] Robustness analysis
+
+### H.21 Argumentation Theory
+
+#### [L2] Logic of Argument
+- [L3] Formal argumentation
+  - [L4] Dung abstract argumentation frameworks
+  - [L4] Defeasible argumentation
+  - [L4] Argumentation semantics
+- [L3] Informal logic
+  - [L4] Toulmin model
+  - [L4] Fallacy theory
+  - [L4] Critical questions
+
+#### [L2] Dialogical and Rhetorical Argument
+- [L3] Dialogue theory
+  - [L4] Pragma-dialectics
+  - [L4] Burden of proof
+  - [L4] Dialogue games
+- [L3] Persuasion theory
+  - [L4] Rhetorical argumentation
+  - [L4] Ethos-pathos-logos model
+  - [L4] Narrative argument
+
+=====================================================================
+I. COMPUTATIONAL AND INFORMATIONAL SCIENCES
+=====================================================================
+
+### I.1 Computational Science Theory
+
+#### [L2] Computational Modelling
+- [L3] Model construction
+  - [L4] Discretisation
+  - [L4] Numerical approximation
+  - [L4] Computational experiment
+- [L3] Simulation methods
+  - [L4] Agent-based simulation
+  - [L4] Monte Carlo simulation
+  - [L4] Multiscale simulation
+
+#### [L2] Verification and Uncertainty
+- [L3] Verification and validation
+  - [L4] Code verification
+  - [L4] Solution verification
+  - [L4] Model validation
+- [L3] Uncertainty quantification
+  - [L4] Polynomial chaos
+  - [L4] Sensitivity indices
+  - [L4] Bayesian calibration
+
+### I.2 Scientific Computing Theory
+
+#### [L2] Numerical Computation
+- [L3] Numerical linear algebra
+  - [L4] LU factorisation
+  - [L4] QR factorisation
+  - [L4] Conjugate gradient method
+- [L3] Differential equation solvers
+  - [L4] Runge-Kutta methods
+  - [L4] Multistep methods
+  - [L4] Finite volume methods
+
+#### [L2] Computational Performance
+- [L3] Error and stability
+  - [L4] Floating-point error analysis
+  - [L4] Stability regions
+  - [L4] Condition number theory
+- [L3] Parallel numerical methods
+  - [L4] Domain decomposition
+  - [L4] Multigrid methods
+  - [L4] Parallel sparse solvers
+
+### I.3 Quantum Computing Theory
+
+#### [L2] Quantum Models of Computation
+- [L3] Circuit and gate models
+  - [L4] Quantum circuit model
+  - [L4] Universal quantum gates
+  - [L4] Solovay-Kitaev theorem
+- [L3] Alternative models
+  - [L4] Adiabatic quantum computation
+  - [L4] Measurement-based quantum computation
+  - [L4] Topological quantum computation
+
+#### [L2] Quantum Algorithms and Error Correction
+- [L3] Algorithms
+  - [L4] Shor algorithm
+  - [L4] Grover algorithm
+  - [L4] Quantum phase estimation
+- [L3] Error correction
+  - [L4] Stabiliser codes
+  - [L4] Surface codes
+  - [L4] Threshold theorem
+
+### I.4 Computational Geometry and Topology
+
+#### [L2] Computational Geometry
+- [L3] Geometric algorithms
+  - [L4] Convex hull algorithms
+  - [L4] Voronoi diagrams
+  - [L4] Delaunay triangulation
+- [L3] Spatial data structures
+  - [L4] K-d trees
+  - [L4] Range trees
+  - [L4] Arrangement algorithms
+
+#### [L2] Computational Topology
+- [L3] Topological data structures
+  - [L4] Simplicial complexes
+  - [L4] Alpha complexes
+  - [L4] Reeb graphs
+- [L3] Persistent topology
+  - [L4] Persistent homology
+  - [L4] Persistence diagrams
+  - [L4] Mapper algorithm
+
+### I.5 Algorithmic Game Theory
+
+#### [L2] Computation of Equilibria
+- [L3] Equilibrium algorithms
+  - [L4] Lemke-Howson algorithm
+  - [L4] PPAD complexity
+  - [L4] Correlated equilibrium computation
+- [L3] Market algorithms
+  - [L4] Fisher market algorithms
+  - [L4] Competitive equilibrium computation
+  - [L4] Stable matching algorithms
+
+#### [L2] Mechanisms and Network Games
+- [L3] Mechanism design algorithms
+  - [L4] Truthful approximation mechanisms
+  - [L4] Combinatorial auction mechanisms
+  - [L4] VCG computational mechanisms
+- [L3] Network games
+  - [L4] Price of anarchy
+  - [L4] Congestion games
+  - [L4] Potential games
+
+### I.6 Computational Social Science
+
+#### [L2] Social Simulation
+- [L3] Agent-based social models
+  - [L4] Schelling segregation model
+  - [L4] Opinion dynamics models
+  - [L4] Social influence models
+- [L3] Social network computation
+  - [L4] Community detection
+  - [L4] Diffusion of innovations models
+  - [L4] Cascade models
+
+#### [L2] Computational Inference in Society
+- [L3] Text and behaviour analysis
+  - [L4] Topic modelling
+  - [L4] Sentiment modelling
+  - [L4] Event detection models
+- [L3] Causal and policy simulation
+  - [L4] Microsimulation
+  - [L4] Counterfactual policy models
+  - [L4] Synthetic populations
+
+### I.7 Computational Biology Theory
+
+#### [L2] Sequence and Genome Algorithms
+- [L3] Sequence analysis
+  - [L4] Needleman-Wunsch alignment
+  - [L4] Smith-Waterman alignment
+  - [L4] Hidden Markov sequence models
+- [L3] Genome assembly
+  - [L4] De Bruijn graph assembly
+  - [L4] Overlap-layout-consensus assembly
+  - [L4] Variant calling models
+
+#### [L2] Biological Network Computation
+- [L3] Phylogenetic computation
+  - [L4] Maximum parsimony
+  - [L4] Maximum likelihood phylogenetics
+  - [L4] Bayesian phylogenetics
+- [L3] Systems computation
+  - [L4] Flux balance computation
+  - [L4] Network motif detection
+  - [L4] Protein folding models
+
+### I.8 Computational Chemistry Theory
+
+#### [L2] Quantum and Molecular Computation
+- [L3] Electronic structure computation
+  - [L4] Self-consistent field algorithms
+  - [L4] Coupled-cluster algorithms
+  - [L4] Density functional approximations
+- [L3] Molecular simulation
+  - [L4] Molecular dynamics
+  - [L4] Monte Carlo molecular simulation
+  - [L4] Free energy perturbation
+
+#### [L2] Cheminformatics
+- [L3] Molecular representation
+  - [L4] Molecular graphs
+  - [L4] SMILES canonicalisation
+  - [L4] Fingerprint similarity
+- [L3] Chemical prediction
+  - [L4] QSAR models
+  - [L4] Reaction network enumeration
+  - [L4] Virtual screening theory
+
+### I.9 Computational Physics Theory
+
+#### [L2] Simulation of Physical Systems
+- [L3] Particle and field simulation
+  - [L4] Molecular dynamics
+  - [L4] Particle-in-cell methods
+  - [L4] Lattice field simulation
+- [L3] Statistical simulation
+  - [L4] Metropolis-Hastings sampling
+  - [L4] Wang-Landau sampling
+  - [L4] Cluster Monte Carlo methods
+
+#### [L2] Numerical Physics Methods
+- [L3] Quantum computation methods
+  - [L4] Density matrix renormalisation group
+  - [L4] Quantum Monte Carlo
+  - [L4] Tensor network methods
+- [L3] Relativistic and fluid computation
+  - [L4] Numerical relativity
+  - [L4] Smoothed particle hydrodynamics
+  - [L4] Computational fluid dynamics
+
+### I.10 High-Performance Computing Theory
+
+#### [L2] Parallel Computation
+- [L3] Parallel models
+  - [L4] PRAM model
+  - [L4] Bulk synchronous parallel model
+  - [L4] Message passing model
+- [L3] Parallel algorithms
+  - [L4] Parallel prefix
+  - [L4] Parallel sorting
+  - [L4] Load balancing theory
+
+#### [L2] Performance and Architecture
+- [L3] Performance models
+  - [L4] Amdahl law
+  - [L4] Gustafson law
+  - [L4] Roofline model
+- [L3] Memory and communication
+  - [L4] Cache complexity
+  - [L4] Communication-avoiding algorithms
+  - [L4] Scalability theory
+
+### I.11 Data Mining and Knowledge Discovery Theory
+
+#### [L2] Pattern Discovery
+- [L3] Association and sequence mining
+  - [L4] Apriori algorithm
+  - [L4] FP-growth
+  - [L4] Sequential pattern mining
+- [L3] Clustering and anomaly mining
+  - [L4] K-means objective
+  - [L4] Density-based clustering
+  - [L4] Outlier detection models
+
+#### [L2] Knowledge Discovery Process
+- [L3] Model evaluation
+  - [L4] Interestingness measures
+  - [L4] Lift and support-confidence
+  - [L4] Cross-validation in data mining
+- [L3] Knowledge representation
+  - [L4] Decision rules
+  - [L4] Decision trees
+  - [L4] Knowledge graph extraction
+
+### I.12 Machine Learning Foundations
+
+#### [L2] Statistical Learning Theory
+- [L3] Generalisation theory
+  - [L4] PAC learning
+  - [L4] VC dimension
+  - [L4] Rademacher complexity
+- [L3] Regularisation and optimisation
+  - [L4] Ridge regression
+  - [L4] Lasso theory
+  - [L4] Stochastic gradient descent theory
+
+#### [L2] Probabilistic and Deep Learning Foundations
+- [L3] Probabilistic models
+  - [L4] Bayesian networks
+  - [L4] Markov random fields
+  - [L4] Variational inference
+- [L3] Deep learning foundations
+  - [L4] Backpropagation
+  - [L4] Convolutional neural networks
+  - [L4] Transformer self-attention
+
+### I.13 Computer Vision and Pattern Recognition Theory
+
+#### [L2] Image Formation and Features
+- [L3] Vision geometry
+  - [L4] Projective camera model
+  - [L4] Epipolar geometry
+  - [L4] Structure from motion
+- [L3] Feature theory
+  - [L4] Edge detection
+  - [L4] Scale-invariant feature transform
+  - [L4] Histogram of oriented gradients
+
+#### [L2] Recognition and Segmentation
+- [L3] Pattern recognition
+  - [L4] Template matching
+  - [L4] Bayesian pattern classification
+  - [L4] Support vector machines
+- [L3] Visual segmentation and learning
+  - [L4] Graph cuts
+  - [L4] Conditional random fields for vision
+  - [L4] Convolutional feature hierarchies
+
+### I.14 Natural Language Processing Theory
+
+#### [L2] Language Modelling and Parsing
+- [L3] Statistical NLP
+  - [L4] N-gram smoothing
+  - [L4] Hidden Markov tagging
+  - [L4] Probabilistic parsing
+- [L3] Neural NLP
+  - [L4] Word2vec
+  - [L4] Encoder-decoder attention
+  - [L4] Transformer language modelling
+
+#### [L2] Semantic and Discourse Computation
+- [L3] Semantics
+  - [L4] Distributional semantics
+  - [L4] Semantic role labelling
+  - [L4] Natural language inference
+- [L3] Discourse and generation
+  - [L4] Coreference resolution
+  - [L4] Discourse parsing
+  - [L4] Text generation models
+
+### I.15 Computational Creativity Theory
+
+#### [L2] Models of Creative Generation
+- [L3] Search and transformation
+  - [L4] Conceptual space theory
+  - [L4] Combinational creativity
+  - [L4] Transformational creativity
+- [L3] Generative systems
+  - [L4] Evolutionary art algorithms
+  - [L4] Procedural content generation
+  - [L4] Generative adversarial networks
+
+#### [L2] Evaluation and Co-Creativity
+- [L3] Creativity assessment
+  - [L4] Novelty-value-surprise model
+  - [L4] Creative product evaluation
+  - [L4] Computational aesthetic measures
+- [L3] Human-AI creativity
+  - [L4] Co-creative systems
+  - [L4] Mixed-initiative creativity
+  - [L4] Interactive evolutionary computation
+
+=====================================================================
+J. EARTH, SPACE, AND ENVIRONMENTAL THEORY
+=====================================================================
+
+### J.1 Theoretical Geology and Geodynamics
+
+#### [L2] Solid Earth Dynamics
+- [L3] Tectonics and deformation
+  - [L4] Plate tectonics
+  - [L4] Elastic rebound theory
+  - [L4] Fault mechanics
+- [L3] Mantle and lithosphere
+  - [L4] Mantle convection
+  - [L4] Lithospheric flexure
+  - [L4] Isostasy
+
+#### [L2] Geological Processes
+- [L3] Sedimentary and surface theory
+  - [L4] Sequence stratigraphy
+  - [L4] Sediment transport theory
+  - [L4] Landscape evolution models
+- [L3] Petrology and geochemistry theory
+  - [L4] Bowen reaction series
+  - [L4] Phase equilibria in rocks
+  - [L4] Isotope geochemistry models
+
+### J.2 Theoretical Oceanography
+
+#### [L2] Physical Oceanography
+- [L3] Ocean circulation
+  - [L4] Sverdrup balance
+  - [L4] Ekman transport
+  - [L4] Thermohaline circulation
+- [L3] Waves and tides
+  - [L4] Linear wave theory
+  - [L4] Internal wave theory
+  - [L4] Tidal resonance theory
+
+#### [L2] Ocean Biogeochemistry and Climate
+- [L3] Marine biogeochemistry
+  - [L4] Biological pump
+  - [L4] Nutrient limitation models
+  - [L4] Carbonate chemistry
+- [L3] Coupled ocean systems
+  - [L4] Ocean-atmosphere coupling
+  - [L4] Mixed layer theory
+  - [L4] ENSO ocean dynamics
+
+### J.3 Theoretical Atmospheric Science
+
+#### [L2] Atmospheric Dynamics
+- [L3] Fluid dynamical atmosphere
+  - [L4] Primitive equations
+  - [L4] Hydrostatic balance
+  - [L4] Potential vorticity
+- [L3] Atmospheric waves
+  - [L4] Gravity waves
+  - [L4] Rossby waves
+  - [L4] Kelvin waves
+
+#### [L2] Atmospheric Physics and Chemistry
+- [L3] Radiation and clouds
+  - [L4] Radiative transfer
+  - [L4] Cloud microphysics
+  - [L4] Aerosol indirect effect
+- [L3] Atmospheric chemistry
+  - [L4] Chapman ozone chemistry
+  - [L4] Photochemical smog models
+  - [L4] Oxidation capacity theory
+
+### J.4 Theoretical Soil Science
+
+#### [L2] Soil Physics
+- [L3] Water and transport
+  - [L4] Richards equation
+  - [L4] Darcy flow in soil
+  - [L4] Solute transport models
+- [L3] Soil structure
+  - [L4] Soil aggregation theory
+  - [L4] Porous media theory
+  - [L4] Soil compaction models
+
+#### [L2] Soil Chemistry and Ecology
+- [L3] Chemical processes
+  - [L4] Cation exchange capacity theory
+  - [L4] Sorption isotherms
+  - [L4] Soil pH buffering models
+- [L3] Soil biogeochemistry
+  - [L4] Soil organic matter turnover
+  - [L4] Nitrogen mineralisation models
+  - [L4] Microbial decomposition theory
+
+### J.5 Theoretical Ecology and Biogeochemistry
+
+#### [L2] Ecosystem Biogeochemistry
+- [L3] Element cycles
+  - [L4] Carbon cycle models
+  - [L4] Nitrogen cycle models
+  - [L4] Phosphorus cycle models
+- [L3] Ecosystem metabolism
+  - [L4] Net primary productivity models
+  - [L4] Decomposition models
+  - [L4] Nutrient limitation theory
+
+#### [L2] Coupled Earth-Life Systems
+- [L3] Ecohydrology
+  - [L4] Soil-plant-atmosphere continuum
+  - [L4] Water-use efficiency models
+  - [L4] Vegetation-climate feedbacks
+- [L3] Global ecology
+  - [L4] Dynamic global vegetation models
+  - [L4] Earth system model biogeochemistry
+  - [L4] Critical zone theory
+
+### J.6 Space Science Theory
+
+#### [L2] Space Plasma and Magnetospheres
+- [L3] Magnetospheric physics
+  - [L4] Magnetopause reconnection
+  - [L4] Radiation belt theory
+  - [L4] Ring current models
+- [L3] Solar wind interaction
+  - [L4] Parker solar wind model
+  - [L4] Bow shock theory
+  - [L4] Heliospheric current sheet
+
+#### [L2] Solar and Space Environment Theory
+- [L3] Solar physics
+  - [L4] Solar dynamo theory
+  - [L4] Coronal heating problem
+  - [L4] Magnetic flux emergence
+- [L3] Space weather
+  - [L4] Geomagnetic storm models
+  - [L4] Ionospheric scintillation theory
+  - [L4] Coronal mass ejection propagation
+
+### J.7 Astrobiology Theory
+
+#### [L2] Origin and Habitability
+- [L3] Origin of life theory
+  - [L4] RNA world hypothesis
+  - [L4] Metabolism-first models
+  - [L4] Autocatalytic sets
+- [L3] Habitability theory
+  - [L4] Circumstellar habitable zone
+  - [L4] Planetary habitability index concepts
+  - [L4] Gaia hypothesis
+
+#### [L2] Biosignatures and Life Detection
+- [L3] Biosignature theory
+  - [L4] Atmospheric disequilibrium biosignatures
+  - [L4] Surface biosignature models
+  - [L4] Isotopic biosignatures
+- [L3] Evolution beyond Earth
+  - [L4] Panspermia hypothesis
+  - [L4] Planetary protection models
+  - [L4] Evolutionary contingency in astrobiology
+
+### J.8 Theoretical Exoplanet Science
+
+#### [L2] Exoplanet Formation and Dynamics
+- [L3] Planet demographics
+  - [L4] Core accretion
+  - [L4] Disk instability
+  - [L4] Migration traps
+- [L3] Orbital dynamics
+  - [L4] Transit timing variation theory
+  - [L4] Mean-motion resonance
+  - [L4] Secular dynamics
+
+#### [L2] Exoplanet Atmospheres and Habitability
+- [L3] Atmosphere retrieval theory
+  - [L4] Transmission spectroscopy models
+  - [L4] Emission spectroscopy models
+  - [L4] Bayesian atmospheric retrieval
+- [L3] Climate and habitability
+  - [L4] Runaway greenhouse theory
+  - [L4] Tidal locking climate models
+  - [L4] Atmospheric escape models
+
+### J.9 Theoretical Geoinformatics
+
+#### [L2] Spatial Data Theory
+- [L3] Geographic representation
+  - [L4] Raster data model
+  - [L4] Vector data model
+  - [L4] Spatial topology
+- [L3] Spatial analysis
+  - [L4] Spatial autocorrelation
+  - [L4] Kriging theory
+  - [L4] Map algebra
+
+#### [L2] Geocomputation and Uncertainty
+- [L3] Geospatial modelling
+  - [L4] Cellular automata land-use models
+  - [L4] Agent-based geographic models
+  - [L4] Spatial interaction models
+- [L3] Geodata uncertainty
+  - [L4] Positional uncertainty
+  - [L4] Modifiable areal unit problem
+  - [L4] Scale and resolution theory
+
+=====================================================================
+K. INTERDISCIPLINARY AND APPLIED THEORETICAL DOMAINS
+=====================================================================
+
+### K.1 Theoretical Education Science
+
+#### [L2] Learning and Instruction Theory
+- [L3] Learning theories
+  - [L4] Constructivism
+  - [L4] Social learning theory
+  - [L4] Cognitive load theory
+- [L3] Instructional design
+  - [L4] Bloom taxonomy
+  - [L4] Mastery learning
+  - [L4] Scaffolding theory
+
+#### [L2] Educational Measurement and Systems
+- [L3] Assessment theory
+  - [L4] Classical test theory
+  - [L4] Item response theory
+  - [L4] Formative assessment theory
+- [L3] Educational systems
+  - [L4] Curriculum theory
+  - [L4] Hidden curriculum
+  - [L4] Communities of practice
+
+### K.2 Theoretical Management Science
+
+#### [L2] Strategy and Organisations
+- [L3] Strategic theory
+  - [L4] Resource-based view
+  - [L4] Porter five forces
+  - [L4] Dynamic capabilities
+- [L3] Organisational behaviour
+  - [L4] Motivation theory
+  - [L4] Leadership contingency theory
+  - [L4] Psychological contract theory
+
+#### [L2] Operations and Decision Management
+- [L3] Operations management
+  - [L4] Lean production theory
+  - [L4] Theory of constraints
+  - [L4] Supply chain bullwhip effect
+- [L3] Managerial decision theory
+  - [L4] Bounded rationality
+  - [L4] Prospect theory in management
+  - [L4] Real options theory
+
+### K.3 Theoretical Urban Planning and Architecture
+
+#### [L2] Urban Theory
+- [L3] Urban form and systems
+  - [L4] Central place theory
+  - [L4] Urban morphology
+  - [L4] Space syntax
+- [L3] Planning theory
+  - [L4] Rational comprehensive planning
+  - [L4] Advocacy planning
+  - [L4] Communicative planning theory
+
+#### [L2] Architectural Theory
+- [L3] Design and form
+  - [L4] Pattern language
+  - [L4] Modernist functionalism
+  - [L4] Parametricism
+- [L3] Environment and sustainability
+  - [L4] Bioclimatic design theory
+  - [L4] Passive solar design
+  - [L4] Urban heat island theory
+
+### K.4 Theoretical Forensic Science
+
+#### [L2] Forensic Inference
+- [L3] Evidence interpretation
+  - [L4] Likelihood ratio framework
+  - [L4] Bayesian forensic inference
+  - [L4] Source-level attribution
+- [L3] Identification theory
+  - [L4] Fingerprint individuality debate
+  - [L4] DNA match probability
+  - [L4] Error-rate modelling
+
+#### [L2] Forensic Reconstruction
+- [L3] Event reconstruction
+  - [L4] Bloodstain pattern analysis models
+  - [L4] Ballistics trajectory models
+  - [L4] Fire dynamics reconstruction
+- [L3] Digital and trace forensics
+  - [L4] Digital evidence chain models
+  - [L4] Trace transfer theory
+  - [L4] Activity-level propositions
+
+### K.5 Theoretical Military and Strategic Studies
+
+#### [L2] Strategy Theory
+- [L3] Classical strategy
+  - [L4] Clausewitzian theory
+  - [L4] Sun Tzu strategic principles
+  - [L4] Liddell Hart indirect approach
+- [L3] Deterrence and escalation
+  - [L4] Nuclear deterrence theory
+  - [L4] Escalation ladder
+  - [L4] Compellence theory
+
+#### [L2] Operational and Security Theory
+- [L3] Warfare models
+  - [L4] Lanchester equations
+  - [L4] Maneuver warfare theory
+  - [L4] Counterinsurgency theory
+- [L3] Security studies
+  - [L4] Security dilemma
+  - [L4] Balance of power theory
+  - [L4] Offense-defense theory
+
+### K.6 Theoretical Nutrition and Food Science
+
+#### [L2] Nutritional Theory
+- [L3] Energy and metabolism
+  - [L4] Energy balance model
+  - [L4] Glycemic index theory
+  - [L4] Protein leverage hypothesis
+- [L3] Nutrient requirements
+  - [L4] Dietary reference intake model
+  - [L4] Essential nutrient theory
+  - [L4] Nutrient density concept
+
+#### [L2] Food Science Theory
+- [L3] Food chemistry and structure
+  - [L4] Maillard reaction theory
+  - [L4] Food colloid theory
+  - [L4] Water activity
+- [L3] Food safety and systems
+  - [L4] Hazard analysis critical control point
+  - [L4] Predictive microbiology
+  - [L4] Shelf-life modelling
+
+### K.7 Theoretical Sports Science
+
+#### [L2] Exercise and Performance Theory
+- [L3] Exercise physiology
+  - [L4] VO2 max model
+  - [L4] Lactate threshold theory
+  - [L4] Supercompensation theory
+- [L3] Biomechanics and motor control
+  - [L4] Force-velocity relationship
+  - [L4] Motor learning stages
+  - [L4] Dynamical systems approach to movement
+
+#### [L2] Psychology and Training Theory
+- [L3] Sport psychology
+  - [L4] Self-efficacy theory
+  - [L4] Flow theory
+  - [L4] Achievement goal theory
+- [L3] Training models
+  - [L4] Periodisation
+  - [L4] Overload principle
+  - [L4] Specific adaptation to imposed demands
+
+### K.8 Theoretical Art, Music, and Aesthetics
+
+#### [L2] Aesthetic Theory
+- [L3] Philosophical aesthetics
+  - [L4] Formalism
+  - [L4] Expression theory
+  - [L4] Institutional theory of art
+- [L3] Interpretation and judgement
+  - [L4] Aesthetic experience
+  - [L4] Taste and judgement
+  - [L4] Hermeneutic aesthetics
+
+#### [L2] Music and Artistic Structure
+- [L3] Music theory
+  - [L4] Tonal harmony
+  - [L4] Schenkerian analysis
+  - [L4] Set theory in music
+- [L3] Art structure and media
+  - [L4] Visual composition theory
+  - [L4] Semiotics of art
+  - [L4] Narrative theory in art
+
+### K.9 Theoretical Media Studies
+
+#### [L2] Media Theory
+- [L3] Medium and society
+  - [L4] Medium theory
+  - [L4] Technological determinism in media
+  - [L4] Public sphere theory
+- [L3] Representation and ideology
+  - [L4] Encoding-decoding model
+  - [L4] Agenda-setting theory
+  - [L4] Framing theory
+
+#### [L2] Digital and Networked Media
+- [L3] Platform and network theory
+  - [L4] Network society
+  - [L4] Platformisation
+  - [L4] Participatory culture
+- [L3] Media effects
+  - [L4] Cultivation theory
+  - [L4] Uses and gratifications
+  - [L4] Spiral of silence
+
+### K.10 Theoretical Library and Information Science
+
+#### [L2] Knowledge Organisation
+- [L3] Classification systems
+  - [L4] Dewey decimal classification
+  - [L4] Library of Congress classification
+  - [L4] Colon classification
+- [L3] Subject representation
+  - [L4] Controlled vocabulary
+  - [L4] Faceted classification
+  - [L4] Bibliographic relationships
+
+#### [L2] Information Behaviour and Retrieval
+- [L3] Information seeking
+  - [L4] Wilson information behaviour model
+  - [L4] Sense-making methodology
+  - [L4] Information foraging theory
+- [L3] Retrieval theory
+  - [L4] Relevance theory
+  - [L4] Bradford law
+  - [L4] Lotka law
+
+### K.11 Theoretical Museology and Heritage Science
+
+#### [L2] Museology Theory
+- [L3] Museum objects and meaning
+  - [L4] Object biography
+  - [L4] New museology
+  - [L4] Exhibition semiotics
+- [L3] Collections and memory
+  - [L4] Collective memory theory
+  - [L4] Heritage value theory
+  - [L4] Curatorial authority
+
+#### [L2] Heritage and Conservation Theory
+- [L3] Heritage theory
+  - [L4] Authorized heritage discourse
+  - [L4] Intangible cultural heritage theory
+  - [L4] Dark heritage theory
+- [L3] Conservation science theory
+  - [L4] Preventive conservation
+  - [L4] Material degradation models
+  - [L4] Conservation ethics
+
+### K.12 Theoretical Theology and Religious Studies
+
+#### [L2] Theology and Doctrine
+- [L3] Systematic theology
+  - [L4] Doctrine of God
+  - [L4] Christology
+  - [L4] Soteriology
+- [L3] Philosophical theology
+  - [L4] Ontological argument
+  - [L4] Problem of evil
+  - [L4] Divine attributes theory
+
+#### [L2] Religious Studies Theory
+- [L3] Comparative and social religion
+  - [L4] Sacred-profane distinction
+  - [L4] Ritual theory
+  - [L4] Secularisation theory
+- [L3] Interpretation and experience
+  - [L4] Hermeneutics of scripture
+  - [L4] Mysticism theory
+  - [L4] Myth and symbol theory
+
+END OF COMPLETE FOUR-LEVEL TAXONOMY OF THE THEORETICAL SCIENCES

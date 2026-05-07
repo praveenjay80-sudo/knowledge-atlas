@@ -1,6 +1,6 @@
 const STORAGE_KEY = "theoretical-sciences-taxonomy-source-v2";
 const BIBLIOGRAPHY_KEY = "theoretical-sciences-taxonomy-bibliography-v2";
-const SOURCE_URL = "/data/user_taxonomy_source.txt";
+const SOURCE_URL = "/data/theoretical_sciences_128_taxonomy.txt";
 
 const refs = {
   stats: document.querySelector("#stats"),
@@ -144,6 +144,12 @@ function extractLegacySegment(line) {
   return [{ level, raw: match[2] }];
 }
 
+function extractDomainHeadingSegment(line) {
+  const match = String(line || "").match(/^###\s+([A-K]\.\d+)\s+(.+)$/);
+  if (!match) return null;
+  return [{ level: 1, raw: `${match[1]} ${match[2]}` }];
+}
+
 function parseNameAndNote(raw) {
   let text = stripLeadingEnumeration(stripMarkdown(trimSegmentDecorations(raw)));
   let noteParts = [];
@@ -256,9 +262,16 @@ function isIgnoredSourceLine(line) {
   return (
     /^A COMPLETE TAXONOMY/i.test(line) ||
     /^#\s*Exhaustive Hierarchical Taxonomy/i.test(line) ||
+    /^COMPLETE FOUR-LEVEL TAXONOMY/i.test(line) ||
+    /^Version:/i.test(line) ||
+    /^Scope:/i.test(line) ||
+    /^Format:/i.test(line) ||
     /^##\s*Level Convention/i.test(line) ||
     /^##\s*Cross-Domain Connection Map/i.test(line) ||
+    /^END OF COMPLETE/i.test(line) ||
     /^---+$/.test(line) ||
+    /^=+$/.test(line) ||
+    /^[A-K]\.\s+/.test(line) ||
     /^\*End of taxonomy/i.test(line)
   );
 }
@@ -295,12 +308,14 @@ function parseTaxonomyWithReport(text) {
 
     const taggedSegments = extractTaggedSegments(line);
     const legacySegments = extractLegacySegment(line);
-    if (!taggedSegments.length && legacySegments) {
-      for (const segment of legacySegments) {
+    const domainHeadingSegments = extractDomainHeadingSegment(line);
+    const fallbackSegments = legacySegments || domainHeadingSegments;
+    if (!taggedSegments.length && fallbackSegments) {
+      for (const segment of fallbackSegments) {
         report.rawTagsByLevel[segment.level] += 1;
       }
     }
-    const segments = taggedSegments.length ? taggedSegments : legacySegments || [];
+    const segments = taggedSegments.length ? taggedSegments : fallbackSegments || [];
     if (!segments.length) {
       pushSample(report.skippedUntaggedLines, lineNumber, line, "No [L1]-[L5] or L1-L5 marker");
       continue;
