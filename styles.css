@@ -461,6 +461,60 @@ textarea:focus {
   background: #f8fbfc;
 }
 
+.parse-audit {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf8;
+}
+
+.parse-audit h3,
+.parse-audit h4 {
+  margin: 0;
+}
+
+.parse-audit p,
+.parse-audit li {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.parse-audit-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.parse-level-chip {
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.parse-audit-skipped {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.parse-skip-group {
+  display: grid;
+  gap: 6px;
+}
+
+.parse-skip-group ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 22px;
+}
+
 .audit-actions {
   display: flex;
   flex-wrap: wrap;

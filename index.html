@@ -40,6 +40,17 @@
         <button id="hideImportButton" type="button">Close</button>
       </div>
       <p id="importStatus" class="status-line"></p>
+      <section id="parseAudit" class="parse-audit" hidden>
+        <div>
+          <h3>Parser Coverage</h3>
+          <p id="parseAuditSummary"></p>
+        </div>
+        <div id="parseAuditLevels" class="parse-audit-levels"></div>
+        <details>
+          <summary>Skipped or non-taxonomy lines</summary>
+          <div id="parseAuditSkipped" class="parse-audit-skipped"></div>
+        </details>
+      </section>
     </section>
 
     <section class="browser">

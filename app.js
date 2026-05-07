@@ -13,6 +13,10 @@ const refs = {
   parseSourceButton: document.querySelector("#parseSourceButton"),
   hideImportButton: document.querySelector("#hideImportButton"),
   importStatus: document.querySelector("#importStatus"),
+  parseAudit: document.querySelector("#parseAudit"),
+  parseAuditSummary: document.querySelector("#parseAuditSummary"),
+  parseAuditLevels: document.querySelector("#parseAuditLevels"),
+  parseAuditSkipped: document.querySelector("#parseAuditSkipped"),
   tree: document.querySelector("#tree"),
   emptyState: document.querySelector("#emptyState"),
   detail: document.querySelector("#detail"),
@@ -50,6 +54,7 @@ const state = {
   explanation: null,
   explainTargetId: "",
   explainLoading: false,
+  parseReport: null,
 };
 
 const EXTERNAL_SEARCH_PROVIDERS = [
@@ -219,34 +224,88 @@ function createNode(level, name, description = "", note = "", parent = null) {
   };
 }
 
-function parseTaxonomy(text) {
+function makeParseReport() {
+  return {
+    totalLines: 0,
+    nonEmptyLines: 0,
+    parsedLines: 0,
+    parsedSegments: 0,
+    parsedConceptNodes: 0,
+    ignoredLines: 0,
+    rawTagsByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    createdByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    skippedUntaggedLines: [],
+    skippedTaggedLines: [],
+    parentMissingLines: [],
+    tableLines: [],
+  };
+}
+
+function pushSample(list, lineNumber, text, reason = "") {
+  if (list.length >= 30) return;
+  list.push({ lineNumber, text: normalize(text).slice(0, 260), reason });
+}
+
+function isIgnoredSourceLine(line) {
+  return (
+    /^A COMPLETE TAXONOMY/i.test(line) ||
+    /^#\s*Exhaustive Hierarchical Taxonomy/i.test(line) ||
+    /^##\s*Level Convention/i.test(line) ||
+    /^##\s*Cross-Domain Connection Map/i.test(line) ||
+    /^---+$/.test(line) ||
+    /^\*End of taxonomy/i.test(line)
+  );
+}
+
+function parseTaxonomyWithReport(text) {
   const roots = [];
   let current = { 1: null, 2: null, 3: null, 4: null, 5: null };
+  const report = makeParseReport();
 
-  for (const rawLine of String(text || "").split(/\r?\n/)) {
+  for (const [lineIndex, rawLine] of String(text || "").split(/\r?\n/).entries()) {
+    const lineNumber = lineIndex + 1;
+    report.totalLines += 1;
     const line = rawLine.trim();
-    if (
-      !line ||
-      /^A COMPLETE TAXONOMY/i.test(line) ||
-      /^#\s*Exhaustive Hierarchical Taxonomy/i.test(line) ||
-      /^##\s*Level Convention/i.test(line) ||
-      /^##\s*Cross-Domain Connection Map/i.test(line) ||
-      /^\|/.test(line) ||
-      /^---+$/.test(line) ||
-      /^\*End of taxonomy/i.test(line)
-    ) {
+    if (!line) {
+      continue;
+    }
+    report.nonEmptyLines += 1;
+
+    const tagMatches = [...line.matchAll(/\[L([1-5])\]/g)];
+    for (const match of tagMatches) {
+      report.rawTagsByLevel[Number(match[1])] += 1;
+    }
+
+    if (/^\|/.test(line)) {
+      report.ignoredLines += 1;
+      pushSample(report.tableLines, lineNumber, line, "Markdown table row");
+      continue;
+    }
+
+    if (isIgnoredSourceLine(line)) {
+      report.ignoredLines += 1;
       continue;
     }
 
     const taggedSegments = extractTaggedSegments(line);
     const legacySegments = extractLegacySegment(line);
+    if (!taggedSegments.length && legacySegments) {
+      for (const segment of legacySegments) {
+        report.rawTagsByLevel[segment.level] += 1;
+      }
+    }
     const segments = taggedSegments.length ? taggedSegments : legacySegments || [];
     if (!segments.length) {
+      pushSample(report.skippedUntaggedLines, lineNumber, line, "No [L1]-[L5] or L1-L5 marker");
       continue;
     }
 
+    let lineCreatedNodes = 0;
     for (const segment of segments) {
       const entries = parseLevelEntries(segment.level, segment.raw);
+      if (!entries.length) {
+        pushSample(report.skippedTaggedLines, lineNumber, line, `L${segment.level} tag had no item name`);
+      }
       for (const entry of entries) {
         if (!entry.name) continue;
 
@@ -254,18 +313,29 @@ function parseTaxonomy(text) {
           const node = createNode(1, entry.name, "", entry.note);
           roots.push(node);
           current = { 1: node, 2: null, 3: null, 4: null, 5: null };
+          report.createdByLevel[1] += 1;
+          report.parsedSegments += 1;
+          lineCreatedNodes += 1;
           continue;
         }
 
         const parent = current[segment.level - 1];
         if (!parent) {
+          pushSample(report.parentMissingLines, lineNumber, line, `L${segment.level} appeared before an L${segment.level - 1} parent`);
           continue;
         }
 
         const node = createNode(segment.level, entry.name, "", entry.note, parent);
         parent.children.push(node);
+        report.createdByLevel[segment.level] += 1;
+        report.parsedSegments += 1;
+        lineCreatedNodes += 1;
         for (const concept of entry.concepts || []) {
-          node.children.push(createNode(Math.min(segment.level + 1, 5), concept, "", "", node));
+          const conceptLevel = Math.min(segment.level + 1, 5);
+          node.children.push(createNode(conceptLevel, concept, "", "", node));
+          report.createdByLevel[conceptLevel] += 1;
+          report.parsedConceptNodes += 1;
+          lineCreatedNodes += 1;
         }
 
         for (let level = segment.level; level <= 5; level += 1) {
@@ -273,9 +343,14 @@ function parseTaxonomy(text) {
         }
       }
     }
+    if (lineCreatedNodes) report.parsedLines += 1;
   }
 
-  return roots;
+  return { roots, report };
+}
+
+function parseTaxonomy(text) {
+  return parseTaxonomyWithReport(text).roots;
 }
 
 function flatten(nodes) {
@@ -295,7 +370,9 @@ function clear(element) {
 }
 
 function setTaxonomy(text, sourceLabel) {
-  state.roots = parseTaxonomy(text);
+  const parsed = parseTaxonomyWithReport(text);
+  state.roots = parsed.roots;
+  state.parseReport = parsed.report;
   state.flat = flatten(state.roots);
   applySavedBibliography();
   state.selectedId = state.roots[0]?.id || "";
@@ -449,6 +526,64 @@ function renderStats() {
     chip.className = "stat";
     chip.textContent = item;
     refs.stats.appendChild(chip);
+  }
+}
+
+function renderParseAudit() {
+  const report = state.parseReport;
+  refs.parseAudit.hidden = !report;
+  clear(refs.parseAuditLevels);
+  clear(refs.parseAuditSkipped);
+  if (!report) return;
+
+  const createdTotal = Object.values(report.createdByLevel).reduce((sum, count) => sum + count, 0);
+  const rawTagTotal = Object.values(report.rawTagsByLevel).reduce((sum, count) => sum + count, 0);
+  const issueCount =
+    report.skippedUntaggedLines.length +
+    report.skippedTaggedLines.length +
+    report.parentMissingLines.length;
+
+  refs.parseAuditSummary.textContent =
+    `Created ${createdTotal.toLocaleString()} nodes from ${report.parsedLines.toLocaleString()} tagged source lines. ` +
+    `Raw source contained ${rawTagTotal.toLocaleString()} explicit L1-L5 markers. ` +
+    `${issueCount ? `${issueCount} sampled parser issue${issueCount === 1 ? "" : "s"} need review.` : "No tagged taxonomy lines were sampled as failed."}`;
+
+  for (const level of [1, 2, 3, 4, 5]) {
+    const chip = document.createElement("span");
+    chip.className = "parse-level-chip";
+    chip.textContent = `L${level}: ${report.createdByLevel[level].toLocaleString()} nodes / ${report.rawTagsByLevel[level].toLocaleString()} tags`;
+    refs.parseAuditLevels.appendChild(chip);
+  }
+
+  const groups = [
+    ["Tagged lines with missing parents", report.parentMissingLines],
+    ["Tagged lines with no usable item name", report.skippedTaggedLines],
+    ["Non-empty untagged lines", report.skippedUntaggedLines],
+    ["Markdown table rows kept out of the hierarchy", report.tableLines],
+  ];
+
+  for (const [title, lines] of groups) {
+    const section = document.createElement("section");
+    section.className = "parse-skip-group";
+    const heading = document.createElement("h4");
+    heading.textContent = `${title} (${lines.length}${lines.length >= 30 ? "+" : ""})`;
+    section.appendChild(heading);
+
+    if (!lines.length) {
+      const empty = document.createElement("p");
+      empty.className = "item-meta";
+      empty.textContent = "None sampled.";
+      section.appendChild(empty);
+    } else {
+      const list = document.createElement("ol");
+      for (const item of lines) {
+        const row = document.createElement("li");
+        row.textContent = `Line ${item.lineNumber}: ${item.reason ? `${item.reason} - ` : ""}${item.text}`;
+        list.appendChild(row);
+      }
+      section.appendChild(list);
+    }
+    refs.parseAuditSkipped.appendChild(section);
   }
 }
 
@@ -670,6 +805,7 @@ function renderExplanation(node) {
 
 function render() {
   renderStats();
+  renderParseAudit();
   renderTree();
   renderDetail();
 }
@@ -1008,15 +1144,19 @@ refs.parseSourceButton.addEventListener("click", () => {
     refs.importStatus.textContent = "Paste the taxonomy source text first.";
     return;
   }
-  const roots = parseTaxonomy(text);
-  const flat = flatten(roots);
-  if (!roots.length || !flat.some((node) => node.level >= 4)) {
+  const parsed = parseTaxonomyWithReport(text);
+  const flat = flatten(parsed.roots);
+  if (!parsed.roots.length || !flat.some((node) => node.level >= 4)) {
     refs.importStatus.textContent = "I could not find usable [L1]-[L5] taxonomy entries in that text.";
     return;
   }
   localStorage.setItem(STORAGE_KEY, text);
   setTaxonomy(text, "Imported source");
-  refs.importStatus.textContent = `Parsed ${flat.length.toLocaleString()} items from the imported taxonomy.`;
+  const skippedTagged =
+    parsed.report.skippedTaggedLines.length + parsed.report.parentMissingLines.length;
+  refs.importStatus.textContent =
+    `Parsed ${flat.length.toLocaleString()} items from the imported taxonomy. ` +
+    `${skippedTagged ? `Review parser coverage: ${skippedTagged} sampled tagged issue${skippedTagged === 1 ? "" : "s"}.` : "Every sampled tagged line became taxonomy nodes."}`;
 });
 
 refs.clearImportButton.addEventListener("click", () => {
