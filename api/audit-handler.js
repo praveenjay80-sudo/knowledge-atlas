@@ -218,15 +218,19 @@ function taxonomyPrompt(body) {
 function coveragePrompt(body) {
   const selectedPath = (body.selectedPath || []).join(" > ");
   const subtree = JSON.stringify(body.subtree || []).slice(0, 65000);
+  const isWholeDataset = body.wholeDataset === true;
 
   return [
-    "Deep-audit a user-supplied theoretical sciences taxonomy for missing L2-L4 coverage.",
+    isWholeDataset
+      ? "Deep-audit the entire loaded theoretical sciences taxonomy tree for missing L2-L4 branch coverage."
+      : "Deep-audit a user-supplied theoretical sciences taxonomy branch for missing L2-L4 coverage.",
     "Return only established, well-documented academic subdomains, subfields, theories, models, or concepts.",
     "Do not invent plausible-sounding categories. Do not return fashionable buzzwords, courses, departments, tools, websites, or administrative labels.",
     "Do not duplicate existing names, aliases, near-synonyms, singular/plural variants, or items already present in the subtree.",
     "Every returned item must be a direct child of an existing parent_path from the supplied subtree.",
     "Do not use a missing proposed item as the parent of another proposed item. Parent paths must already exist in the subtree.",
     "Use level 2 only for major direct subdomains under an L1 domain, level 3 for subfields under L2, and level 4 for specific theories/models/concepts under L3.",
+    "Inspect all relevant existing branches, not only L1 domain names. Thin L2 or L3 branches should be audited for missing lower-level structure.",
     "Prioritise omissions that a rigorous university curriculum, handbook, encyclopedia, or standard field taxonomy would consider core.",
     "For L4 items, include a concise foundational_work string when a canonical work or origin is well known; otherwise use a short field-defining note.",
     "If the supplied branch is already adequately covered at this pass, return an empty items array.",

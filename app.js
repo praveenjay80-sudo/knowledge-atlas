@@ -1,12 +1,15 @@
 const STORAGE_KEY = "theoretical-sciences-taxonomy-source-v2";
 const BIBLIOGRAPHY_KEY = "theoretical-sciences-taxonomy-bibliography-v2";
 const SOURCE_URL = "/data/theoretical_sciences_128_taxonomy.txt";
+const CANONICAL_L1_COUNT = 139;
+const DATASET_ROOT_ID = "Theoretical Sciences Dataset";
 
 const refs = {
   stats: document.querySelector("#stats"),
   searchInput: document.querySelector("#searchInput"),
   apiKeyInput: document.querySelector("#apiKeyInput"),
   showImportButton: document.querySelector("#showImportButton"),
+  loadCanonicalButton: document.querySelector("#loadCanonicalButton"),
   clearImportButton: document.querySelector("#clearImportButton"),
   importPanel: document.querySelector("#importPanel"),
   sourceInput: document.querySelector("#sourceInput"),
@@ -380,6 +383,23 @@ function flatten(nodes) {
   return nodes.flatMap((node) => [node, ...flatten(node.children)]);
 }
 
+function datasetRoot() {
+  return {
+    id: DATASET_ROOT_ID,
+    level: 0,
+    name: DATASET_ROOT_ID,
+    description: "Level 0 dataset root above all L1 domains. Use this level to audit the whole taxonomy dataset.",
+    note: `${state.roots.length} L1 domains loaded.`,
+    path: [DATASET_ROOT_ID],
+    bibliography: [],
+    children: state.roots,
+  };
+}
+
+function displayFlat() {
+  return state.roots.length ? [datasetRoot(), ...flatten(state.roots)] : [];
+}
+
 function childCount(node, level) {
   return flatten(node.children).filter((item) => item.level === level).length;
 }
@@ -396,9 +416,9 @@ function setTaxonomy(text, sourceLabel) {
   const parsed = parseTaxonomyWithReport(text);
   state.roots = parsed.roots;
   state.parseReport = parsed.report;
-  state.flat = flatten(state.roots);
+  state.flat = displayFlat();
   applySavedBibliography();
-  state.selectedId = state.roots[0]?.id || "";
+  state.selectedId = DATASET_ROOT_ID;
   state.sourceLabel = sourceLabel;
   state.auditItems = [];
   state.auditMode = "";
@@ -613,7 +633,7 @@ function renderParseAudit() {
 function renderTree() {
   clear(refs.tree);
   const query = state.query.toLowerCase().trim();
-  const nodes = query ? visibleNodes() : state.roots;
+  const nodes = query ? visibleNodes() : state.roots.length ? [datasetRoot()] : [];
   if (!state.flat.length || !nodes.length) {
     const empty = document.createElement("p");
     empty.className = "no-results";
@@ -631,7 +651,7 @@ function renderTree() {
 
   const list = document.createElement("div");
   list.className = "structured-tree";
-  for (const root of state.roots) {
+  for (const root of nodes) {
     list.appendChild(renderTreeBranch(root));
   }
   refs.tree.appendChild(list);
@@ -672,7 +692,7 @@ function renderTreeBranch(node) {
   const isSelectedPath = Boolean(selected) && node.path.every((part, index) => selected.path[index] === part);
   branch.appendChild(renderTreeButton(node));
 
-  if (node.children.length && (node.level === 1 || isSelectedPath)) {
+  if (node.children.length && (node.level === 0 || node.level === 1 || isSelectedPath)) {
     const children = document.createElement("div");
     children.className = "tree-children";
     for (const child of node.children) {
@@ -741,7 +761,9 @@ function renderDetail() {
     refs.externalSearchLinks.append(...createExternalSearchLinks(node).childNodes);
   }
   refs.detailDescription.textContent = node.description || (
-    node.level === 5
+    node.level === 0
+      ? "Dataset root above all L1 domains. This is the level for auditing coverage across the entire taxonomy."
+      : node.level === 5
       ? "Specific concept or object of study from the supplied taxonomy."
       : node.level === 4
       ? "Topic area from the supplied taxonomy."
@@ -752,13 +774,17 @@ function renderDetail() {
   refs.explainButton.disabled = state.explainLoading || !state.flat.length;
   refs.explainButton.textContent = state.explainLoading ? "Teaching..." : "Teach This Item";
   renderExplanation(node);
-  refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || (node.level >= 5 && !parentNode(node));
-  refs.auditCoverageButton.disabled = state.auditLoading || !state.flat.length || node.level >= 4;
+  refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || node.level === 0 || (node.level >= 5 && !parentNode(node));
+  refs.auditCoverageButton.disabled = state.auditLoading || !state.flat.length || node.level === 0 || node.level >= 4;
   refs.auditAllDomainsButton.disabled = state.auditLoading || !state.roots.length;
-  refs.auditBibliographyButton.disabled = state.auditLoading;
+  refs.auditBibliographyButton.disabled = state.auditLoading || node.level === 0;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
   refs.auditCoverageButton.textContent = state.auditLoading && state.auditMode === "coverage" ? "Auditing coverage..." : "Deep L2-L4 Coverage Audit";
-  refs.auditAllDomainsButton.textContent = state.auditLoading && state.auditMode === "all-coverage" ? "Auditing all domains..." : "Audit All L1 Domains";
+  refs.auditAllDomainsButton.textContent = state.auditLoading && state.auditMode === "all-coverage"
+    ? "Auditing L0 dataset..."
+    : node.level === 0
+    ? "Audit L0 Whole Tree"
+    : "Audit Whole Tree";
   refs.auditBibliographyButton.textContent = state.auditLoading && state.auditMode === "bibliography" ? "Auditing bibliography..." : "Audit Bibliography Gaps";
   renderAuditResults();
   renderBibliography(node);
@@ -992,7 +1018,7 @@ function addTaxonomyCandidate(item) {
   const child = createNode(parent.level + 1, item.name, "", item.note, parent);
   parent.children.push(child);
   parent.children.sort((left, right) => left.name.localeCompare(right.name));
-  state.flat = flatten(state.roots);
+  state.flat = displayFlat();
   applySavedBibliography();
   persistTaxonomy();
   return true;
@@ -1125,7 +1151,7 @@ async function auditCoverage() {
   }
 }
 
-async function auditAllDomains() {
+async function auditWholeDataset() {
   if (!state.roots.length) return;
 
   state.auditLoading = true;
@@ -1134,14 +1160,15 @@ async function auditAllDomains() {
   state.auditItems = [];
   let added = 0;
   let found = 0;
+  let failed = 0;
   render();
 
-  try {
-    for (const [index, root] of state.roots.entries()) {
-      refs.auditStatus.textContent =
-        `Auditing ${index + 1} of ${state.roots.length}: ${root.name}. Added ${added} missing items so far.`;
-      render();
+  for (const [index, root] of state.roots.entries()) {
+    refs.auditStatus.textContent =
+      `Auditing whole-tree coverage, branch ${index + 1} of ${state.roots.length}: ${root.name}. Added ${added} missing items so far.`;
+    render();
 
+    try {
       const payload = await fetchJson("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1150,6 +1177,7 @@ async function auditAllDomains() {
           apiKey: apiKey(),
           selectedPath: root.path,
           selectedLevel: root.level,
+          wholeDataset: true,
           subtree: compactSubtreeForAudit(root),
         }),
       });
@@ -1158,18 +1186,17 @@ async function auditAllDomains() {
       for (const item of accepted) {
         if (addTaxonomyCandidate(item)) added += 1;
       }
+    } catch {
+      failed += 1;
     }
-    refs.auditStatus.textContent =
-      `All-domain audit complete. Found ${found} candidate item${found === 1 ? "" : "s"} and added ${added}. Saved for refresh.`;
-  } catch (error) {
-    refs.auditStatus.textContent =
-      `All-domain audit stopped after adding ${added} item${added === 1 ? "" : "s"}. ${error.message || "Coverage audit failed."}`;
-  } finally {
-    state.auditLoading = false;
-    state.auditMode = "";
-    state.auditItems = [];
-    render();
   }
+
+  refs.auditStatus.textContent =
+    `L0 whole-tree audit complete across all loaded branches. Found ${found} candidate item${found === 1 ? "" : "s"} and added ${added}. ${failed ? `${failed} branch audit${failed === 1 ? "" : "s"} failed and were skipped. ` : ""}Saved for refresh.`;
+  state.auditLoading = false;
+  state.auditMode = "";
+  state.auditItems = [];
+  render();
 }
 
 async function auditBibliography() {
@@ -1245,20 +1272,26 @@ async function loadInitialSource() {
   const imported = localStorage.getItem(STORAGE_KEY);
   if (imported) {
     const roots = parseTaxonomy(imported);
-    if (roots.length) {
+    if (roots.length >= CANONICAL_L1_COUNT) {
       setTaxonomy(imported, "Saved source");
       refs.importStatus.textContent = "Loaded saved taxonomy and bibliography additions from this browser.";
       return;
     }
-    refs.importStatus.textContent = "Saved taxonomy could not be read. Paste or import the source again.";
+    localStorage.removeItem(STORAGE_KEY);
+    refs.importStatus.textContent = `Ignored stale saved taxonomy with ${roots.length} L1 domains. Loading the checked-in 139-domain source.`;
   }
 
+  await loadCanonicalSource();
+}
+
+async function loadCanonicalSource() {
   try {
     const response = await fetch(SOURCE_URL);
     if (response.ok) {
       const text = await response.text();
       if (text.trim()) {
         setTaxonomy(text, "Checked-in source");
+        refs.importStatus.textContent = `Loaded checked-in source with ${state.roots.length} L1 domains.`;
         return;
       }
     }
@@ -1284,6 +1317,11 @@ refs.searchInput.addEventListener("input", (event) => {
 refs.showImportButton.addEventListener("click", () => {
   refs.importPanel.hidden = false;
   refs.sourceInput.focus();
+});
+
+refs.loadCanonicalButton.addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY);
+  loadCanonicalSource();
 });
 
 refs.hideImportButton.addEventListener("click", () => {
@@ -1321,7 +1359,7 @@ refs.clearImportButton.addEventListener("click", () => {
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
 refs.auditCoverageButton.addEventListener("click", auditCoverage);
-refs.auditAllDomainsButton.addEventListener("click", auditAllDomains);
+refs.auditAllDomainsButton.addEventListener("click", auditWholeDataset);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
 refs.explainButton.addEventListener("click", explainSelectedItem);
 
