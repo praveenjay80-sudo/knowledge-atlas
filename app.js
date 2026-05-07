@@ -31,6 +31,8 @@ const refs = {
   explainStatus: document.querySelector("#explainStatus"),
   explanation: document.querySelector("#explanation"),
   auditTaxonomyButton: document.querySelector("#auditTaxonomyButton"),
+  auditCoverageButton: document.querySelector("#auditCoverageButton"),
+  auditAllDomainsButton: document.querySelector("#auditAllDomainsButton"),
   auditBibliographyButton: document.querySelector("#auditBibliographyButton"),
   auditStatus: document.querySelector("#auditStatus"),
   auditResults: document.querySelector("#auditResults"),
@@ -751,8 +753,12 @@ function renderDetail() {
   refs.explainButton.textContent = state.explainLoading ? "Teaching..." : "Teach This Item";
   renderExplanation(node);
   refs.auditTaxonomyButton.disabled = state.auditLoading || !state.flat.length || (node.level >= 5 && !parentNode(node));
+  refs.auditCoverageButton.disabled = state.auditLoading || !state.flat.length || node.level >= 4;
+  refs.auditAllDomainsButton.disabled = state.auditLoading || !state.roots.length;
   refs.auditBibliographyButton.disabled = state.auditLoading;
   refs.auditTaxonomyButton.textContent = state.auditLoading && state.auditMode === "taxonomy" ? "Auditing taxonomy..." : "Audit Taxonomy Gaps";
+  refs.auditCoverageButton.textContent = state.auditLoading && state.auditMode === "coverage" ? "Auditing coverage..." : "Deep L2-L4 Coverage Audit";
+  refs.auditAllDomainsButton.textContent = state.auditLoading && state.auditMode === "all-coverage" ? "Auditing all domains..." : "Audit All L1 Domains";
   refs.auditBibliographyButton.textContent = state.auditLoading && state.auditMode === "bibliography" ? "Auditing bibliography..." : "Audit Bibliography Gaps";
   renderAuditResults();
   renderBibliography(node);
@@ -854,6 +860,8 @@ function renderAuditResults() {
       : item.name;
     const meta = state.auditMode === "bibliography"
       ? item.category || "bibliography"
+      : state.auditMode === "coverage"
+      ? `L${item.suggestedLevel} under ${state.flat.find((node) => node.id === item.parentId)?.path.join(" > ") || "selected branch"}`
       : item.note || "taxonomy item";
     card.innerHTML = `
       <strong></strong>
@@ -913,6 +921,31 @@ function dedupeTaxonomyItems(parent, items) {
         why_missing: normalize(item.why_missing),
         confidence: item.confidence || "medium",
         parentId: parent.id,
+    });
+  }
+  return accepted;
+}
+
+function dedupeCoverageItems(items) {
+  const accepted = [];
+  const seen = new Set();
+  for (const item of items || []) {
+    const name = normalize(item.name);
+    const parentPath = Array.isArray(item.parent_path) ? item.parent_path.map(normalize).filter(Boolean) : [];
+    const parent = state.flat.find((node) => makeId(node.path) === makeId(parentPath));
+    const level = Number(item.level);
+    if (!name || !parent || parent.level >= 4 || level !== parent.level + 1 || level < 2 || level > 4) continue;
+
+    const key = `${parent.id}|${normalizeKey(name)}`;
+    if (seen.has(key) || parent.children.some((child) => normalizeKey(child.name) === normalizeKey(name))) continue;
+    seen.add(key);
+    accepted.push({
+      name,
+      note: normalize(item.foundational_work),
+      why_missing: normalize(item.why_missing),
+      confidence: item.confidence || "medium",
+      parentId: parent.id,
+      suggestedLevel: level,
     });
   }
   return accepted;
@@ -1037,6 +1070,104 @@ async function auditTaxonomy() {
     refs.auditStatus.textContent = error.message || "Taxonomy audit failed.";
   } finally {
     state.auditLoading = false;
+    render();
+  }
+}
+
+function compactSubtreeForAudit(root) {
+  return flatten([root])
+    .filter((node) => node.level <= 4)
+    .slice(0, 1400)
+    .map((node) => ({
+      level: node.level,
+      path: node.path,
+      child_count: node.children.filter((child) => child.level <= 4).length,
+      children: node.children
+        .filter((child) => child.level <= 4)
+        .slice(0, 80)
+        .map((child) => child.name),
+    }));
+}
+
+async function auditCoverage() {
+  const node = selectedNode();
+  if (!node || node.level >= 4) return;
+
+  state.auditLoading = true;
+  state.auditMode = "coverage";
+  state.auditTargetId = node.id;
+  state.auditItems = [];
+  refs.auditStatus.textContent = "Searching for missing established L2-L4 areas across this branch...";
+  render();
+
+  try {
+    const payload = await fetchJson("/api/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "coverage",
+        apiKey: apiKey(),
+        selectedPath: node.path,
+        selectedLevel: node.level,
+        subtree: compactSubtreeForAudit(node),
+      }),
+    });
+    const accepted = dedupeCoverageItems(payload.items);
+    state.auditItems = accepted;
+    refs.auditStatus.textContent = accepted.length
+      ? `${payload.overview || "Coverage audit complete."} Found ${accepted.length} missing L2-L4 candidate${accepted.length === 1 ? "" : "s"} to review and add.`
+      : payload.overview || "Coverage audit complete. No high-confidence L2-L4 omissions were returned for this branch.";
+  } catch (error) {
+    refs.auditStatus.textContent = error.message || "Coverage audit failed.";
+  } finally {
+    state.auditLoading = false;
+    render();
+  }
+}
+
+async function auditAllDomains() {
+  if (!state.roots.length) return;
+
+  state.auditLoading = true;
+  state.auditMode = "all-coverage";
+  state.auditTargetId = "";
+  state.auditItems = [];
+  let added = 0;
+  let found = 0;
+  render();
+
+  try {
+    for (const [index, root] of state.roots.entries()) {
+      refs.auditStatus.textContent =
+        `Auditing ${index + 1} of ${state.roots.length}: ${root.name}. Added ${added} missing items so far.`;
+      render();
+
+      const payload = await fetchJson("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "coverage",
+          apiKey: apiKey(),
+          selectedPath: root.path,
+          selectedLevel: root.level,
+          subtree: compactSubtreeForAudit(root),
+        }),
+      });
+      const accepted = dedupeCoverageItems(payload.items);
+      found += accepted.length;
+      for (const item of accepted) {
+        if (addTaxonomyCandidate(item)) added += 1;
+      }
+    }
+    refs.auditStatus.textContent =
+      `All-domain audit complete. Found ${found} candidate item${found === 1 ? "" : "s"} and added ${added}. Saved for refresh.`;
+  } catch (error) {
+    refs.auditStatus.textContent =
+      `All-domain audit stopped after adding ${added} item${added === 1 ? "" : "s"}. ${error.message || "Coverage audit failed."}`;
+  } finally {
+    state.auditLoading = false;
+    state.auditMode = "";
+    state.auditItems = [];
     render();
   }
 }
@@ -1189,6 +1320,8 @@ refs.clearImportButton.addEventListener("click", () => {
 });
 
 refs.auditTaxonomyButton.addEventListener("click", auditTaxonomy);
+refs.auditCoverageButton.addEventListener("click", auditCoverage);
+refs.auditAllDomainsButton.addEventListener("click", auditAllDomains);
 refs.auditBibliographyButton.addEventListener("click", auditBibliography);
 refs.explainButton.addEventListener("click", explainSelectedItem);
 

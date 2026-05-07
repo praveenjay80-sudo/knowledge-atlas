@@ -36,6 +36,27 @@ function schemaItem() {
   };
 }
 
+function coverageItem() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      name: { type: "string" },
+      level: { type: "integer", enum: [2, 3, 4] },
+      parent_path: {
+        type: "array",
+        minItems: 1,
+        maxItems: 4,
+        items: { type: "string" },
+      },
+      foundational_work: { type: "string" },
+      why_missing: { type: "string" },
+      confidence: { type: "string", enum: CONFIDENCE_VALUES },
+    },
+    required: ["name", "level", "parent_path", "foundational_work", "why_missing", "confidence"],
+  };
+}
+
 function bibliographyItem() {
   return {
     type: "object",
@@ -61,8 +82,8 @@ function auditSchema(mode) {
       items: {
         type: "array",
         minItems: 0,
-        maxItems: 24,
-        items: mode === "bibliography" ? bibliographyItem() : schemaItem(),
+        maxItems: mode === "coverage" ? 60 : 24,
+        items: mode === "bibliography" ? bibliographyItem() : mode === "coverage" ? coverageItem() : schemaItem(),
       },
     },
     required: ["overview", "items"],
@@ -194,6 +215,27 @@ function taxonomyPrompt(body) {
   ].join("\n");
 }
 
+function coveragePrompt(body) {
+  const selectedPath = (body.selectedPath || []).join(" > ");
+  const subtree = JSON.stringify(body.subtree || []).slice(0, 65000);
+
+  return [
+    "Deep-audit a user-supplied theoretical sciences taxonomy for missing L2-L4 coverage.",
+    "Return only established, well-documented academic subdomains, subfields, theories, models, or concepts.",
+    "Do not invent plausible-sounding categories. Do not return fashionable buzzwords, courses, departments, tools, websites, or administrative labels.",
+    "Do not duplicate existing names, aliases, near-synonyms, singular/plural variants, or items already present in the subtree.",
+    "Every returned item must be a direct child of an existing parent_path from the supplied subtree.",
+    "Do not use a missing proposed item as the parent of another proposed item. Parent paths must already exist in the subtree.",
+    "Use level 2 only for major direct subdomains under an L1 domain, level 3 for subfields under L2, and level 4 for specific theories/models/concepts under L3.",
+    "Prioritise omissions that a rigorous university curriculum, handbook, encyclopedia, or standard field taxonomy would consider core.",
+    "For L4 items, include a concise foundational_work string when a canonical work or origin is well known; otherwise use a short field-defining note.",
+    "If the supplied branch is already adequately covered at this pass, return an empty items array.",
+    "",
+    `Selected branch: ${selectedPath}`,
+    `Existing subtree JSON: ${subtree}`,
+  ].join("\n");
+}
+
 function bibliographyPrompt(body) {
   const selectedPath = (body.selectedPath || []).join(" > ");
   const existing = JSON.stringify(body.existingBibliography || []).slice(0, 12000);
@@ -248,11 +290,11 @@ async function handleAuditRequest(req, res) {
     }
 
     const body = await readJsonBody(req);
-    const mode = body.mode === "bibliography" ? "bibliography" : "taxonomy";
+    const mode = body.mode === "bibliography" ? "bibliography" : body.mode === "coverage" ? "coverage" : "taxonomy";
     const payload = await callOpenAI({
       apiKey: typeof body.apiKey === "string" ? body.apiKey.trim() : "",
-      prompt: mode === "bibliography" ? bibliographyPrompt(body) : taxonomyPrompt(body),
-      schemaName: mode === "bibliography" ? "bibliography_gap_audit" : "taxonomy_gap_audit",
+      prompt: mode === "bibliography" ? bibliographyPrompt(body) : mode === "coverage" ? coveragePrompt(body) : taxonomyPrompt(body),
+      schemaName: mode === "bibliography" ? "bibliography_gap_audit" : mode === "coverage" ? "taxonomy_coverage_audit" : "taxonomy_gap_audit",
       schema: auditSchema(mode),
     });
     sendJson(res, 200, payload);
