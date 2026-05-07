@@ -19,6 +19,7 @@ const refs = {
   detailLevel: document.querySelector("#detailLevel"),
   detailTitle: document.querySelector("#detailTitle"),
   detailPath: document.querySelector("#detailPath"),
+  externalSearchLinks: document.querySelector("#externalSearchLinks"),
   detailDescription: document.querySelector("#detailDescription"),
   foundationalSection: document.querySelector("#foundationalSection"),
   foundationalText: document.querySelector("#foundationalText"),
@@ -50,6 +51,28 @@ const state = {
   explainTargetId: "",
   explainLoading: false,
 };
+
+const EXTERNAL_SEARCH_PROVIDERS = [
+  {
+    id: "worldcat",
+    icon: "W",
+    label: "WorldCat",
+    buildUrl: (query) => `https://search.worldcat.org/search?q=${encodeURIComponent(query)}`,
+  },
+  {
+    id: "scholar",
+    icon: "G",
+    label: "Google Scholar",
+    buildUrl: (query) => `https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`,
+  },
+  {
+    id: "eth",
+    icon: "ETH",
+    label: "ETH Zurich swisscovery",
+    buildUrl: (query) =>
+      `https://eth.swisscovery.slsp.ch/discovery/search?query=any,contains,${encodeURIComponent(query)}&tab=discovery_network&search_scope=DiscoveryNetwork&vid=41SLSP_ETH:ETH&lang=en`,
+  },
+];
 
 function normalize(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
@@ -288,6 +311,36 @@ function selectedNode() {
   return state.flat.find((node) => node.id === state.selectedId) || null;
 }
 
+function externalSearchEnabled(node) {
+  return node && node.level >= 2 && node.level <= 4;
+}
+
+function externalSearchQuery(node) {
+  return node.path.join(" ");
+}
+
+function createExternalSearchLinks(node) {
+  const group = document.createElement("div");
+  group.className = "external-search-links";
+  group.setAttribute("aria-label", `Search sources for ${node.name}`);
+  if (!externalSearchEnabled(node)) return group;
+
+  const query = externalSearchQuery(node);
+  for (const provider of EXTERNAL_SEARCH_PROVIDERS) {
+    const link = document.createElement("a");
+    link.className = `search-icon search-icon-${provider.id}`;
+    link.href = provider.buildUrl(query);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.title = `Search ${provider.label} for ${query}`;
+    link.setAttribute("aria-label", `Search ${provider.label} for ${query}`);
+    link.textContent = provider.icon;
+    link.addEventListener("click", (event) => event.stopPropagation());
+    group.appendChild(link);
+  }
+  return group;
+}
+
 function selectNode(node) {
   state.selectedId = node.id;
   state.auditItems = [];
@@ -427,23 +480,31 @@ function renderTree() {
 }
 
 function renderTreeButton(node, showPath = false) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `tree-item level-${node.level}`;
-    button.classList.toggle("active", node.id === state.selectedId);
-    button.innerHTML = `
+    const item = document.createElement("div");
+    item.className = `tree-item level-${node.level}`;
+    item.classList.toggle("active", node.id === state.selectedId);
+    item.setAttribute("role", "button");
+    item.tabIndex = 0;
+    item.innerHTML = `
       <span class="item-meta">L${node.level}</span>
       <span class="item-title"></span>
       ${showPath ? '<span class="item-path"></span>' : ""}
       ${node.note ? '<span class="item-foundation"></span>' : ""}
     `;
-    button.querySelector(".item-title").textContent = node.name;
-    const path = button.querySelector(".item-path");
+    item.querySelector(".item-title").textContent = node.name;
+    const path = item.querySelector(".item-path");
     if (path) path.textContent = node.path.join(" > ");
-    const foundation = button.querySelector(".item-foundation");
+    const foundation = item.querySelector(".item-foundation");
     if (foundation) foundation.textContent = node.note;
-    button.addEventListener("click", () => selectNode(node));
-    return button;
+    item.appendChild(createExternalSearchLinks(node));
+    item.addEventListener("click", () => selectNode(node));
+    item.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectNode(node);
+      }
+    });
+    return item;
 }
 
 function renderTreeBranch(node) {
@@ -479,22 +540,30 @@ function renderChildren(node) {
   const list = document.createElement("div");
   list.className = "children-list";
   for (const child of node.children) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "child-item";
+    const item = document.createElement("div");
+    item.className = "child-item";
+    item.setAttribute("role", "button");
+    item.tabIndex = 0;
     const lowerCounts = child.level < 5
       ? ` | ${childCount(child, child.level + 1)} direct or lower items`
       : "";
-    button.innerHTML = `
+    item.innerHTML = `
       <span class="item-meta">L${child.level}${lowerCounts}</span>
       <span class="item-title"></span>
       ${child.note ? '<span class="item-foundation"></span>' : ""}
     `;
-    button.querySelector(".item-title").textContent = child.name;
-    const foundation = button.querySelector(".item-foundation");
+    item.querySelector(".item-title").textContent = child.name;
+    const foundation = item.querySelector(".item-foundation");
     if (foundation) foundation.textContent = child.note;
-    button.addEventListener("click", () => selectNode(child));
-    list.appendChild(button);
+    item.appendChild(createExternalSearchLinks(child));
+    item.addEventListener("click", () => selectNode(child));
+    item.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectNode(child);
+      }
+    });
+    list.appendChild(item);
   }
   refs.children.appendChild(list);
 }
@@ -508,6 +577,11 @@ function renderDetail() {
   refs.detailLevel.textContent = `L${node.level}`;
   refs.detailTitle.textContent = node.name;
   refs.detailPath.textContent = node.path.join(" > ");
+  refs.externalSearchLinks.replaceChildren();
+  refs.externalSearchLinks.hidden = !externalSearchEnabled(node);
+  if (externalSearchEnabled(node)) {
+    refs.externalSearchLinks.append(...createExternalSearchLinks(node).childNodes);
+  }
   refs.detailDescription.textContent = node.description || (
     node.level === 5
       ? "Specific concept or object of study from the supplied taxonomy."

@@ -250,6 +250,7 @@ textarea:focus {
   border-radius: 6px;
   background: #fff;
   text-align: left;
+  cursor: pointer;
 }
 
 .tree-item {
@@ -297,6 +298,53 @@ textarea:focus {
   font-size: 0.8rem;
   font-weight: 700;
   line-height: 1.35;
+}
+
+.external-search-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.detail-search-links {
+  margin-top: -8px;
+}
+
+.search-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-soft);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.search-icon:hover,
+.search-icon:focus {
+  border-color: var(--accent);
+  background: var(--active);
+  outline: none;
+}
+
+.search-icon-worldcat {
+  color: #4a3f8f;
+}
+
+.search-icon-scholar {
+  color: #1f5fbf;
+}
+
+.search-icon-eth {
+  width: 42px;
+  color: #1f1f1f;
 }
 
 .detail {
