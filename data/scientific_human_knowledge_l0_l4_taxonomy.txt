@@ -1,0 +1,862 @@
+SUPERGIANT L0-L4 TAXONOMY OF SCIENTIFIC HUMAN KNOWLEDGE
+Version: broad scientific-knowledge source taxonomy
+Scope: formal, natural, life, medical, social, behavioral, applied, engineering, environmental, information, and scholarly-method domains
+Reliability note: This file uses established academic field names and avoids invented subfields. No finite taxonomy can literally prove 99.99% coverage of human knowledge, but this is designed as a broad, conservative source file for audit and expansion.
+Format: L0 major domain, L1 domain, L2 branch, L3 subbranch, L4 field/topic
+
+L0: Formal Sciences
+L1: Mathematics
+L2: Foundations and Logic
+L3: Set Theory
+L4: Naive Set Theory
+L4: Axiomatic Set Theory
+L4: Descriptive Set Theory
+L4: Forcing and Independence
+L4: Large Cardinal Theory
+L3: Mathematical Logic
+L4: Model Theory
+L4: Proof Theory
+L4: Computability Theory
+L4: Recursion Theory
+L4: Reverse Mathematics
+L3: Category and Type Theory
+L4: Category Theory
+L4: Topos Theory
+L4: Universal Algebra
+L4: Type Theory
+L4: Homotopy Type Theory
+L2: Algebra and Number
+L3: Algebra
+L4: Abstract Algebra
+L4: Linear Algebra
+L4: Group Theory
+L4: Ring Theory
+L4: Module Theory
+L4: Field Theory
+L4: Galois Theory
+L4: Lie Algebra
+L4: Representation Theory
+L4: Homological Algebra
+L4: Commutative Algebra
+L3: Number Theory
+L4: Elementary Number Theory
+L4: Algebraic Number Theory
+L4: Analytic Number Theory
+L4: Computational Number Theory
+L4: Additive Number Theory
+L4: Diophantine Geometry
+L4: Modular Forms
+L4: Automorphic Forms
+L4: Langlands Program
+L2: Geometry and Topology
+L3: Geometry
+L4: Euclidean Geometry
+L4: Non-Euclidean Geometry
+L4: Differential Geometry
+L4: Riemannian Geometry
+L4: Algebraic Geometry
+L4: Projective Geometry
+L4: Symplectic Geometry
+L4: Convex Geometry
+L4: Discrete Geometry
+L4: Computational Geometry
+L3: Topology
+L4: Point-Set Topology
+L4: Algebraic Topology
+L4: Differential Topology
+L4: Geometric Topology
+L4: Low-Dimensional Topology
+L4: Knot Theory
+L4: Topological Data Analysis
+L2: Analysis and Applied Mathematics
+L3: Analysis
+L4: Real Analysis
+L4: Complex Analysis
+L4: Functional Analysis
+L4: Harmonic Analysis
+L4: Fourier Analysis
+L4: Measure Theory
+L4: Operator Theory
+L4: Spectral Theory
+L4: Microlocal Analysis
+L3: Differential Equations and Dynamics
+L4: Ordinary Differential Equations
+L4: Partial Differential Equations
+L4: Dynamical Systems
+L4: Ergodic Theory
+L4: Chaos Theory
+L4: Calculus of Variations
+L3: Computation and Optimization
+L4: Numerical Analysis
+L4: Scientific Computing
+L4: Optimization Theory
+L4: Operations Research
+L4: Control Theory
+L4: Mathematical Programming
+L4: Inverse Problems
+L4: Approximation Theory
+L1: Statistics and Probability
+L2: Probability Theory
+L3: Foundations of Probability
+L4: Measure-Theoretic Probability
+L4: Limit Theorems
+L4: Martingale Theory
+L4: Large Deviations Theory
+L4: Concentration of Measure
+L3: Stochastic Processes
+L4: Markov Chains
+L4: Brownian Motion
+L4: Stochastic Calculus
+L4: Stochastic Differential Equations
+L4: Point Processes
+L4: Random Fields
+L4: Branching Processes
+L4: Queueing Theory
+L3: Random Structures
+L4: Random Graphs
+L4: Random Matrix Theory
+L4: Percolation Theory
+L4: Stochastic Geometry
+L4: Free Probability
+L2: Statistical Theory
+L3: Statistical Inference
+L4: Estimation Theory
+L4: Hypothesis Testing
+L4: Confidence Intervals
+L4: Decision-Theoretic Statistics
+L4: Bayesian Statistics
+L4: Frequentist Statistics
+L4: Likelihood Theory
+L3: Statistical Modelling
+L4: Regression Analysis
+L4: Multivariate Statistics
+L4: Time Series Analysis
+L4: Spatial Statistics
+L4: Survival Analysis
+L4: Experimental Design
+L4: Nonparametric Statistics
+L4: Robust Statistics
+L4: Causal Inference
+L4: Statistical Learning Theory
+L1: Computer and Information Sciences
+L2: Theoretical Computer Science
+L3: Theory of Computation
+L4: Automata Theory
+L4: Formal Language Theory
+L4: Computability Theory
+L4: Computational Complexity Theory
+L4: Circuit Complexity
+L4: Proof Complexity
+L4: Quantum Complexity Theory
+L3: Algorithms and Data Structures
+L4: Algorithm Design and Analysis
+L4: Graph Algorithms
+L4: String Algorithms
+L4: Approximation Algorithms
+L4: Randomized Algorithms
+L4: Online Algorithms
+L4: Streaming Algorithms
+L4: Data Structures
+L3: Logic and Programming Languages
+L4: Programming Language Theory
+L4: Type Systems
+L4: Formal Semantics
+L4: Program Verification
+L4: Compiler Theory
+L4: Concurrency Theory
+L2: Information and Computation
+L3: Information Theory
+L4: Shannon Information Theory
+L4: Source Coding
+L4: Channel Coding
+L4: Network Information Theory
+L4: Algorithmic Information Theory
+L4: Quantum Information Theory
+L3: Cryptography and Security
+L4: Public-Key Cryptography
+L4: Symmetric Cryptography
+L4: Zero-Knowledge Proofs
+L4: Secure Multi-Party Computation
+L4: Post-Quantum Cryptography
+L4: Differential Privacy
+L3: Data and Knowledge
+L4: Database Theory
+L4: Information Retrieval
+L4: Knowledge Representation
+L4: Ontology Engineering
+L4: Semantic Web
+L4: Data Mining
+
+L0: Natural Sciences
+L1: Physics
+L2: Classical and Relativistic Physics
+L3: Mechanics and Fields
+L4: Classical Mechanics
+L4: Lagrangian Mechanics
+L4: Hamiltonian Mechanics
+L4: Continuum Mechanics
+L4: Fluid Dynamics
+L4: Classical Electromagnetism
+L4: Classical Field Theory
+L3: Relativity and Gravitation
+L4: Special Relativity
+L4: General Relativity
+L4: Mathematical Relativity
+L4: Black Hole Physics
+L4: Gravitational Wave Theory
+L4: Numerical Relativity
+L2: Quantum and Statistical Physics
+L3: Quantum Theory
+L4: Nonrelativistic Quantum Mechanics
+L4: Quantum Measurement Theory
+L4: Open Quantum Systems
+L4: Quantum Information
+L4: Quantum Optics
+L4: Quantum Chaos
+L3: Statistical and Thermal Physics
+L4: Thermodynamics
+L4: Equilibrium Statistical Mechanics
+L4: Nonequilibrium Statistical Mechanics
+L4: Kinetic Theory
+L4: Critical Phenomena
+L4: Renormalization Group
+L2: Matter, Fields, and Particles
+L3: Condensed Matter Physics
+L4: Solid State Physics
+L4: Electronic Structure Theory
+L4: Superconductivity
+L4: Superfluidity
+L4: Magnetism
+L4: Topological Phases of Matter
+L4: Soft Matter Physics
+L4: Mesoscopic Physics
+L3: High-Energy and Nuclear Physics
+L4: Quantum Field Theory
+L4: Gauge Theory
+L4: Standard Model Physics
+L4: Particle Phenomenology
+L4: Nuclear Structure Theory
+L4: Nuclear Reaction Theory
+L4: Hadron Physics
+L4: Quantum Chromodynamics
+L3: Plasma and Atomic Physics
+L4: Plasma Physics
+L4: Magnetohydrodynamics
+L4: Atomic Physics
+L4: Molecular Physics
+L4: Optical Physics
+L4: Laser Physics
+L1: Chemistry
+L2: Physical and Theoretical Chemistry
+L3: Quantum and Molecular Chemistry
+L4: Quantum Chemistry
+L4: Molecular Orbital Theory
+L4: Valence Bond Theory
+L4: Density Functional Theory
+L4: Electronic Structure Theory
+L4: Molecular Spectroscopy
+L4: Photochemistry
+L3: Thermodynamics and Kinetics
+L4: Chemical Thermodynamics
+L4: Statistical Thermodynamics
+L4: Chemical Kinetics
+L4: Reaction Rate Theory
+L4: Transition State Theory
+L4: Catalysis Theory
+L4: Electrochemistry
+L2: Chemical Subdisciplines
+L3: Molecular and Materials Chemistry
+L4: Organic Chemistry
+L4: Inorganic Chemistry
+L4: Organometallic Chemistry
+L4: Coordination Chemistry
+L4: Polymer Chemistry
+L4: Surface Chemistry
+L4: Solid-State Chemistry
+L4: Supramolecular Chemistry
+L3: Analytical and Computational Chemistry
+L4: Analytical Chemistry
+L4: Separation Science
+L4: Mass Spectrometry
+L4: Nuclear Magnetic Resonance Spectroscopy
+L4: Computational Chemistry
+L4: Molecular Dynamics
+L4: Cheminformatics
+L1: Astronomy and Space Sciences
+L2: Astronomy and Astrophysics
+L3: Stellar and Galactic Science
+L4: Stellar Astrophysics
+L4: Stellar Evolution
+L4: Galactic Astronomy
+L4: Galactic Dynamics
+L4: Interstellar Medium
+L4: High-Energy Astrophysics
+L3: Cosmology and Relativistic Astrophysics
+L4: Physical Cosmology
+L4: Early-Universe Cosmology
+L4: Large-Scale Structure
+L4: Cosmic Microwave Background Physics
+L4: Dark Matter Theory
+L4: Dark Energy Theory
+L4: Black Hole Astrophysics
+L2: Planetary and Space Science
+L3: Planetary Science
+L4: Celestial Mechanics
+L4: Planetary Geology
+L4: Planetary Atmospheres
+L4: Exoplanet Science
+L4: Astrobiology
+L4: Solar System Dynamics
+L3: Space Physics
+L4: Solar Physics
+L4: Heliophysics
+L4: Magnetospheric Physics
+L4: Ionospheric Physics
+L4: Space Plasma Physics
+L1: Earth Sciences
+L2: Solid Earth Sciences
+L3: Geology and Geophysics
+L4: Mineralogy
+L4: Petrology
+L4: Structural Geology
+L4: Sedimentology
+L4: Stratigraphy
+L4: Paleontology
+L4: Geochronology
+L4: Geomorphology
+L4: Geodynamics
+L4: Seismology
+L4: Tectonics
+L4: Volcanology
+L3: Geochemistry and Geomaterials
+L4: Geochemistry
+L4: Isotope Geochemistry
+L4: Biogeochemistry
+L4: Soil Science
+L4: Geomicrobiology
+L2: Fluid Earth and Climate
+L3: Atmospheric and Ocean Sciences
+L4: Meteorology
+L4: Atmospheric Physics
+L4: Atmospheric Chemistry
+L4: Climatology
+L4: Climate Dynamics
+L4: Oceanography
+L4: Physical Oceanography
+L4: Chemical Oceanography
+L4: Biological Oceanography
+L3: Water and Cryosphere
+L4: Hydrology
+L4: Hydrogeology
+L4: Glaciology
+L4: Cryospheric Science
+L4: Limnology
+
+L0: Life and Biomedical Sciences
+L1: Biology
+L2: Molecular and Cellular Biology
+L3: Molecular Life Sciences
+L4: Molecular Biology
+L4: Biochemistry
+L4: Structural Biology
+L4: Molecular Genetics
+L4: Genomics
+L4: Proteomics
+L4: Metabolomics
+L4: Epigenetics
+L3: Cellular Life Sciences
+L4: Cell Biology
+L4: Developmental Biology
+L4: Stem Cell Biology
+L4: Cancer Biology
+L4: Microbiology
+L4: Virology
+L4: Immunobiology
+L2: Organismal Biology
+L3: Plant and Animal Sciences
+L4: Botany
+L4: Plant Physiology
+L4: Zoology
+L4: Animal Physiology
+L4: Comparative Anatomy
+L4: Entomology
+L4: Ichthyology
+L4: Herpetology
+L4: Ornithology
+L4: Mammalogy
+L3: Evolution and Diversity
+L4: Evolutionary Biology
+L4: Systematics
+L4: Taxonomy
+L4: Phylogenetics
+L4: Population Genetics
+L4: Evolutionary Developmental Biology
+L4: Paleobiology
+L2: Ecology and Environmental Biology
+L3: Ecology
+L4: Population Ecology
+L4: Community Ecology
+L4: Ecosystem Ecology
+L4: Landscape Ecology
+L4: Theoretical Ecology
+L4: Behavioral Ecology
+L4: Conservation Biology
+L4: Restoration Ecology
+L3: Marine and Freshwater Biology
+L4: Marine Biology
+L4: Freshwater Biology
+L4: Fisheries Science
+L4: Aquatic Ecology
+L1: Medicine and Health Sciences
+L2: Basic Medical Sciences
+L3: Structure and Function
+L4: Anatomy
+L4: Histology
+L4: Embryology
+L4: Physiology
+L4: Pathology
+L4: Pharmacology
+L4: Toxicology
+L4: Medical Genetics
+L4: Medical Microbiology
+L4: Immunology
+L3: Population Health Foundations
+L4: Epidemiology
+L4: Biostatistics
+L4: Public Health
+L4: Global Health
+L4: Environmental Health
+L4: Health Economics
+L4: Health Policy
+L2: Clinical Medicine
+L3: Medical Specialties
+L4: Internal Medicine
+L4: Family Medicine
+L4: Pediatrics
+L4: Geriatrics
+L4: Neurology
+L4: Psychiatry
+L4: Dermatology
+L4: Cardiology
+L4: Pulmonology
+L4: Gastroenterology
+L4: Nephrology
+L4: Endocrinology
+L4: Hematology
+L4: Oncology
+L4: Infectious Diseases
+L4: Rheumatology
+L3: Procedural and Diagnostic Medicine
+L4: Surgery
+L4: Anesthesiology
+L4: Emergency Medicine
+L4: Critical Care Medicine
+L4: Radiology
+L4: Nuclear Medicine
+L4: Pathology
+L4: Obstetrics and Gynecology
+L4: Ophthalmology
+L4: Otolaryngology
+L4: Orthopedics
+L4: Urology
+L4: Physical Medicine and Rehabilitation
+L2: Allied and Applied Health
+L3: Health Professions
+L4: Nursing
+L4: Dentistry
+L4: Pharmacy
+L4: Clinical Psychology
+L4: Occupational Therapy
+L4: Physical Therapy
+L4: Speech-Language Pathology
+L4: Nutrition and Dietetics
+L4: Medical Informatics
+L1: Agricultural, Veterinary, and Food Sciences
+L2: Agricultural Sciences
+L3: Crop and Soil Systems
+L4: Agronomy
+L4: Crop Science
+L4: Plant Breeding
+L4: Horticulture
+L4: Soil Fertility
+L4: Weed Science
+L4: Plant Pathology
+L4: Agricultural Ecology
+L3: Animal and Food Systems
+L4: Animal Science
+L4: Dairy Science
+L4: Poultry Science
+L4: Aquaculture
+L4: Food Science
+L4: Food Chemistry
+L4: Food Microbiology
+L4: Food Engineering
+L2: Veterinary Sciences
+L3: Veterinary Medicine
+L4: Veterinary Anatomy
+L4: Veterinary Physiology
+L4: Veterinary Pathology
+L4: Veterinary Pharmacology
+L4: Veterinary Epidemiology
+L4: Veterinary Surgery
+L4: Veterinary Public Health
+
+L0: Human, Behavioral, and Social Sciences
+L1: Psychology and Cognitive Sciences
+L2: Psychology
+L3: Core Psychological Sciences
+L4: Cognitive Psychology
+L4: Developmental Psychology
+L4: Social Psychology
+L4: Personality Psychology
+L4: Biological Psychology
+L4: Comparative Psychology
+L4: Experimental Psychology
+L4: Quantitative Psychology
+L3: Applied Psychology
+L4: Clinical Psychology
+L4: Counseling Psychology
+L4: Educational Psychology
+L4: Industrial-Organizational Psychology
+L4: Health Psychology
+L4: Forensic Psychology
+L4: Sport Psychology
+L2: Cognitive and Neuroscience Fields
+L3: Cognitive Science
+L4: Cognitive Neuroscience
+L4: Computational Cognitive Science
+L4: Philosophy of Cognitive Science
+L4: Artificial Cognitive Systems
+L4: Psycholinguistics
+L4: Human-Computer Interaction
+L3: Neuroscience
+L4: Cellular Neuroscience
+L4: Systems Neuroscience
+L4: Behavioral Neuroscience
+L4: Computational Neuroscience
+L4: Theoretical Neuroscience
+L4: Neuropsychology
+L4: Neurolinguistics
+L1: Linguistics and Communication
+L2: Linguistics
+L3: Structural Linguistics
+L4: Phonetics
+L4: Phonology
+L4: Morphology
+L4: Syntax
+L4: Semantics
+L4: Pragmatics
+L4: Discourse Analysis
+L3: Language in Mind and Society
+L4: Sociolinguistics
+L4: Historical Linguistics
+L4: Typology
+L4: Anthropological Linguistics
+L4: Computational Linguistics
+L4: Corpus Linguistics
+L4: Applied Linguistics
+L2: Communication and Media
+L3: Communication Studies
+L4: Interpersonal Communication
+L4: Organizational Communication
+L4: Mass Communication
+L4: Rhetoric
+L4: Journalism Studies
+L4: Public Relations
+L4: Advertising Studies
+L4: Media Studies
+L1: Social Sciences
+L2: Core Social Sciences
+L3: Sociology and Anthropology
+L4: Sociological Theory
+L4: Social Stratification
+L4: Social Networks
+L4: Criminology
+L4: Demography
+L4: Cultural Anthropology
+L4: Biological Anthropology
+L4: Archaeology
+L4: Linguistic Anthropology
+L3: Political and Legal Studies
+L4: Political Science
+L4: Political Theory
+L4: Comparative Politics
+L4: International Relations
+L4: Public Administration
+L4: Public Policy
+L4: Legal Studies
+L4: Jurisprudence
+L4: Criminology
+L3: Economics and Geography
+L4: Microeconomics
+L4: Macroeconomics
+L4: Econometrics
+L4: Mathematical Economics
+L4: Behavioral Economics
+L4: Development Economics
+L4: International Economics
+L4: Economic History
+L4: Human Geography
+L4: Physical Geography
+L4: Geographic Information Science
+L4: Urban Geography
+L4: Economic Geography
+L2: Education and Human Development
+L3: Education Sciences
+L4: Curriculum Studies
+L4: Instructional Design
+L4: Learning Sciences
+L4: Educational Measurement
+L4: Comparative Education
+L4: Special Education
+L4: Higher Education Studies
+L4: Science Education
+L1: Business, Management, and Organization
+L2: Business Disciplines
+L3: Management Sciences
+L4: Strategic Management
+L4: Organizational Behavior
+L4: Human Resource Management
+L4: Operations Management
+L4: Supply Chain Management
+L4: Project Management
+L4: Innovation Management
+L4: Entrepreneurship
+L3: Commerce and Finance
+L4: Accounting
+L4: Corporate Finance
+L4: Financial Economics
+L4: Marketing
+L4: Consumer Behavior
+L4: International Business
+L4: Business Analytics
+L4: Risk Management
+
+L0: Applied Sciences and Engineering
+L1: Engineering
+L2: Mechanical and Aerospace Engineering
+L3: Mechanical Engineering
+L4: Mechanics of Materials
+L4: Thermodynamics
+L4: Heat Transfer
+L4: Fluid Mechanics
+L4: Machine Design
+L4: Manufacturing Engineering
+L4: Robotics Engineering
+L4: Mechatronics
+L4: Tribology
+L3: Aerospace and Marine Engineering
+L4: Aerodynamics
+L4: Flight Dynamics
+L4: Propulsion
+L4: Astronautics
+L4: Space Systems Engineering
+L4: Naval Architecture
+L4: Marine Engineering
+L2: Electrical, Computer, and Information Engineering
+L3: Electrical Engineering
+L4: Circuit Theory
+L4: Electronics
+L4: Microelectronics
+L4: Power Engineering
+L4: Signal Processing
+L4: Telecommunications
+L4: Electromagnetics
+L4: Control Systems
+L3: Computer Engineering
+L4: Computer Architecture
+L4: Embedded Systems
+L4: VLSI Design
+L4: Real-Time Systems
+L4: Hardware Security
+L4: Digital Systems Design
+L2: Civil, Environmental, and Industrial Engineering
+L3: Civil Engineering
+L4: Structural Engineering
+L4: Geotechnical Engineering
+L4: Transportation Engineering
+L4: Water Resources Engineering
+L4: Construction Engineering
+L4: Earthquake Engineering
+L4: Surveying
+L3: Environmental and Industrial Engineering
+L4: Environmental Engineering
+L4: Sanitary Engineering
+L4: Industrial Engineering
+L4: Human Factors Engineering
+L4: Systems Engineering
+L4: Reliability Engineering
+L4: Safety Engineering
+L2: Chemical, Materials, and Biomedical Engineering
+L3: Chemical Engineering
+L4: Transport Phenomena
+L4: Reaction Engineering
+L4: Separation Processes
+L4: Process Systems Engineering
+L4: Biochemical Engineering
+L4: Petroleum Engineering
+L3: Materials Engineering
+L4: Materials Science
+L4: Metallurgy
+L4: Polymer Engineering
+L4: Ceramic Engineering
+L4: Electronic Materials
+L4: Nanomaterials
+L4: Biomaterials
+L3: Biomedical Engineering
+L4: Biomechanics
+L4: Tissue Engineering
+L4: Medical Imaging
+L4: Neural Engineering
+L4: Medical Devices
+L4: Rehabilitation Engineering
+L1: Computing, Artificial Intelligence, and Data Science
+L2: Artificial Intelligence
+L3: AI Foundations
+L4: Machine Learning
+L4: Deep Learning
+L4: Reinforcement Learning
+L4: Probabilistic Machine Learning
+L4: Knowledge-Based Systems
+L4: Planning and Search
+L4: Multi-Agent Systems
+L4: AI Alignment Research
+L3: AI Applications
+L4: Natural Language Processing
+L4: Computer Vision
+L4: Speech Processing
+L4: Recommender Systems
+L4: Robotics AI
+L4: Explainable AI
+L2: Data and Computational Science
+L3: Data Science
+L4: Data Engineering
+L4: Statistical Computing
+L4: Machine Learning Engineering
+L4: Data Visualization
+L4: Big Data Analytics
+L4: Network Science
+L4: Computational Social Science
+L3: Computational Science
+L4: High-Performance Computing
+L4: Parallel Computing
+L4: Distributed Computing
+L4: Simulation Science
+L4: Computational Modelling
+L4: Scientific Visualization
+L1: Environmental, Urban, and Design Sciences
+L2: Environmental and Sustainability Sciences
+L3: Environmental Science
+L4: Environmental Chemistry
+L4: Environmental Toxicology
+L4: Environmental Microbiology
+L4: Environmental Modelling
+L4: Conservation Science
+L4: Sustainability Science
+L4: Ecological Economics
+L4: Industrial Ecology
+L3: Resource and Energy Sciences
+L4: Energy Systems Analysis
+L4: Renewable Energy Science
+L4: Nuclear Engineering Science
+L4: Water Resource Science
+L4: Forestry Science
+L4: Fisheries Science
+L4: Mining Engineering Science
+L2: Built Environment and Design
+L3: Planning and Architecture
+L4: Architecture
+L4: Architectural Science
+L4: Urban Planning
+L4: Urban Design
+L4: Landscape Architecture
+L4: Building Science
+L4: Construction Management
+L3: Design Sciences
+L4: Industrial Design
+L4: Product Design
+L4: Human-Centered Design
+L4: Service Design
+L4: Design Research
+L4: Ergonomics
+
+L0: Scholarly, Philosophical, and Integrative Sciences
+L1: Philosophy, Methodology, and Metascience
+L2: Philosophy of Science
+L3: General Philosophy of Science
+L4: Scientific Realism
+L4: Scientific Explanation
+L4: Laws of Nature
+L4: Theory Change
+L4: Confirmation Theory
+L4: Causation
+L4: Models and Representation
+L4: Values in Science
+L3: Philosophy of Specific Sciences
+L4: Philosophy of Mathematics
+L4: Philosophy of Physics
+L4: Philosophy of Chemistry
+L4: Philosophy of Biology
+L4: Philosophy of Medicine
+L4: Philosophy of Psychology
+L4: Philosophy of Social Science
+L4: Philosophy of Computer Science
+L2: Research Methods and Metascience
+L3: Scientific Methodology
+L4: Experimental Design
+L4: Measurement Theory
+L4: Classification Theory
+L4: Taxonomy and Ontology
+L4: Simulation Methodology
+L4: Modelling Methodology
+L4: Replication Studies
+L4: Research Integrity
+L4: Evidence Synthesis
+L4: Meta-Analysis
+L1: Information, Library, and Knowledge Sciences
+L2: Information Sciences
+L3: Knowledge Organization
+L4: Library Science
+L4: Archival Science
+L4: Bibliometrics
+L4: Scientometrics
+L4: Information Policy
+L4: Information Behavior
+L4: Records Management
+L4: Digital Curation
+L3: Digital Scholarship
+L4: Digital Humanities
+L4: Computational Humanities
+L4: Text Encoding
+L4: Corpus Analysis
+L4: Cultural Analytics
+L1: Humanities and Arts Research
+L2: Historical and Interpretive Sciences
+L3: Historical Studies
+L4: Historiography
+L4: Ancient History
+L4: Medieval History
+L4: Modern History
+L4: History of Science
+L4: Economic History
+L4: Social History
+L4: Intellectual History
+L3: Textual and Cultural Studies
+L4: Literary Studies
+L4: Comparative Literature
+L4: Philology
+L4: Classics
+L4: Religious Studies
+L4: Cultural Studies
+L4: Gender Studies
+L4: Postcolonial Studies
+L2: Arts and Aesthetics Research
+L3: Arts Studies
+L4: Art History
+L4: Musicology
+L4: Ethnomusicology
+L4: Film Studies
+L4: Theatre Studies
+L4: Performance Studies
+L4: Aesthetics
+L4: Design History
